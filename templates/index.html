@@ -1,0 +1,1411 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DICOM Gateway Service - Management Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --card-bg: #1e293b;
+            --card-border: #334155;
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --input-bg: #0f172a;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--card-border);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #3b82f6, #06b6d4);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 18px;
+        }
+
+        .logo-title h1 {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--success);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--success);
+            box-shadow: 0 0 8px var(--success);
+        }
+
+        main {
+            flex: 1;
+            padding: 2rem;
+            max-width: 1300px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        /* Nav Tabs */
+        .tabs {
+            display: flex;
+            gap: 10px;
+            border-bottom: 1px solid var(--card-border);
+            margin-bottom: 2rem;
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            padding: 12px 20px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .tab-btn:hover {
+            color: var(--text-main);
+        }
+
+        .tab-btn.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Grid Layout */
+        .grid-4 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-card {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-val {
+            font-size: 32px;
+            font-weight: 700;
+        }
+
+        .stat-val.processed { color: var(--success); }
+        .stat-val.retry { color: var(--warning); }
+        .stat-val.failed { color: var(--danger); }
+        .stat-val.duplicates { color: var(--primary); }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 1.2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Form Controls */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-muted);
+        }
+
+        .form-control {
+            background-color: var(--input-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            padding: 10px 14px;
+            color: var(--text-main);
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary);
+        }
+
+        /* Buttons */
+        .btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 18px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+        .btn:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--card-border);
+            color: var(--text-main);
+        }
+
+        .btn-outline:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+            border-color: var(--text-muted);
+        }
+
+        .btn-success {
+            background-color: var(--success);
+        }
+        .btn-success:hover {
+            background-color: #059669;
+        }
+
+        .btn-danger {
+            background-color: var(--danger);
+        }
+        .btn-danger:hover {
+            background-color: #dc2626;
+        }
+
+        /* Table */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        th {
+            color: var(--text-muted);
+            font-weight: 500;
+            font-size: 13px;
+            text-transform: uppercase;
+        }
+
+        td {
+            font-size: 14px;
+        }
+
+        .modality-badge {
+            background-color: rgba(59, 130, 246, 0.2);
+            color: #60a5fa;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 12px;
+        }
+
+        /* Terminal Console */
+        .terminal {
+            background-color: #090d16;
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            padding: 1rem;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 13px;
+            color: #38bdf8;
+            height: 450px;
+            overflow-y: auto;
+            line-height: 1.5;
+        }
+
+        .log-entry {
+            margin-bottom: 4px;
+        }
+        .log-entry.ERROR { color: #f87171; }
+        .log-entry.WARNING { color: #fbbf24; }
+
+        /* Toast Alert */
+        #toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            padding: 12px 24px;
+            border-radius: 8px;
+            background-color: var(--card-bg);
+            border: 1px solid var(--card-border);
+            color: var(--text-main);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+            display: none;
+            z-index: 1000;
+            font-size: 14px;
+        }
+
+        #toast.success {
+            border-left: 4px solid var(--success);
+        }
+        #toast.error {
+            border-left: 4px solid var(--danger);
+        }
+
+        /* Dropzone & Manual Upload */
+        .dropzone {
+            border: 2px dashed var(--primary);
+            border-radius: 12px;
+            padding: 2.5rem 1.5rem;
+            text-align: center;
+            background-color: rgba(59, 130, 246, 0.05);
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 1.5rem;
+        }
+        .dropzone:hover, .dropzone.dragover {
+            background-color: rgba(59, 130, 246, 0.15);
+            border-color: var(--primary-hover);
+        }
+        .file-list-preview {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 1rem;
+        }
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--input-bg);
+            padding: 8px 14px;
+            border-radius: 6px;
+            border: 1px solid var(--card-border);
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo-title">
+            <div class="logo-icon">D</div>
+            <div>
+                <h1>DICOM Gateway Service</h1>
+                <small style="color: var(--text-muted);">Web Control Panel</small>
+            </div>
+        </div>
+        <div class="status-badge" id="service-status-badge">
+            <div class="status-dot"></div>
+            <span id="service-status-text">Đang chạy</span>
+        </div>
+    </header>
+
+    <main>
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('dashboard', this)">📊 Tổng quan</button>
+            <button class="tab-btn" onclick="switchTab('worklist', this)">📋 RIS Worklist</button>
+            <button class="tab-btn" onclick="switchTab('upload', this)">📤 Tải lên & Đẩy PACS</button>
+            <button class="tab-btn" onclick="switchTab('history', this)">📜 Lịch sử Ca Khám</button>
+            <button class="tab-btn" onclick="switchTab('connection', this)">🔌 PACS & RIS</button>
+            <button class="tab-btn" onclick="switchTab('folders', this)">📁 Thư mục & Modality</button>
+            <button class="tab-btn" onclick="switchTab('logs', this)">📜 Nhật ký Log</button>
+        </div>
+
+        <!-- Tab 1: Dashboard -->
+        <div id="tab-dashboard" class="tab-content active">
+            <div class="grid-4">
+                <div class="card stat-card">
+                    <span class="stat-label">Đã gửi PACS thành công</span>
+                    <span class="stat-val processed" id="stat-processed">0</span>
+                </div>
+                <div class="card stat-card">
+                    <span class="stat-label">Đang chờ thử lại (Retry)</span>
+                    <span class="stat-val retry" id="stat-retry">0</span>
+                </div>
+                <div class="card stat-card">
+                    <span class="stat-label">File lỗi (Failed)</span>
+                    <span class="stat-val failed" id="stat-failed">0</span>
+                </div>
+                <div class="card stat-card">
+                    <span class="stat-label">File trùng (Duplicates)</span>
+                    <span class="stat-val duplicates" id="stat-duplicates">0</span>
+                </div>
+            </div>
+
+            <div class="card" style="margin-bottom: 1.5rem;">
+                <div class="section-title">
+                    <span>⚡ Thao tác nhanh</span>
+                </div>
+                <div style="display: flex; gap: 1rem;">
+                    <button class="btn btn-outline" onclick="fetchStatus()">🔄 Cập nhật thống kê</button>
+                    <button class="btn btn-outline" onclick="triggerRetry()">🔁 Thử lại ngay các file kẹt</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="section-title">📌 PACS Đích hiện tại</div>
+                <p id="pacs-target-info" style="color: var(--text-muted); font-size: 15px;">Đang tải...</p>
+            </div>
+        </div>
+
+        <!-- Tab 2: RIS Worklist -->
+        <div id="tab-worklist" class="tab-content">
+            <div class="workflow-steps" style="display: flex; gap: 10px; margin-bottom: 1.5rem; background: rgba(255,255,255,0.03); padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.08);">
+                <div class="step-item" style="flex: 1; text-align: center; padding: 8px; background: rgba(59, 130, 246, 0.15); border-radius: 6px; border: 1px solid rgba(59, 130, 246, 0.3);">
+                    <strong style="color: var(--primary);">Bước 1</strong>: 🔍 Load Worklist
+                </div>
+                <div class="step-item" style="flex: 1; text-align: center; padding: 8px; background: rgba(255,255,255,0.05); border-radius: 6px;">
+                    <strong>Bước 2</strong>: 👤 Chọn Bệnh Nhân
+                </div>
+                <div class="step-item" style="flex: 1; text-align: center; padding: 8px; background: rgba(255,255,255,0.05); border-radius: 6px;">
+                    <strong>Bước 3</strong>: 📸 Thực Hiện CLS (Add ảnh/PDF)
+                </div>
+                <div class="step-item" style="flex: 1; text-align: center; padding: 8px; background: rgba(16, 185, 129, 0.15); border-radius: 6px; border: 1px solid rgba(16, 185, 129, 0.3);">
+                    <strong style="color: var(--success);">Bước 4</strong>: 🚀 Đẩy PACS
+                </div>
+            </div>
+
+            <div class="card" style="margin-bottom: 1rem; padding: 14px 18px;">
+                <div style="display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap;">
+                    <div style="flex: 1; min-width: 130px;">
+                        <label style="font-size: 12px; margin-bottom: 4px; display: block; color: var(--text-muted);">Ngày chỉ định</label>
+                        <input type="date" id="wl-search-date" class="form-control" style="padding: 6px 10px; font-size: 13px;">
+                    </div>
+                    <div style="flex: 1.2; min-width: 140px;">
+                        <label style="font-size: 12px; margin-bottom: 4px; display: block; color: var(--text-muted);">Mã Bệnh Nhân</label>
+                        <input type="text" id="wl-search-pid" class="form-control" style="padding: 6px 10px; font-size: 13px;" placeholder="Ví dụ: BN18000991">
+                    </div>
+                    <div style="flex: 1.5; min-width: 160px;">
+                        <label style="font-size: 12px; margin-bottom: 4px; display: block; color: var(--text-muted);">Họ và Tên Bệnh Nhân</label>
+                        <input type="text" id="wl-search-pname" class="form-control" style="padding: 6px 10px; font-size: 13px;" placeholder="Ví dụ: NGUYEN VAN A">
+                    </div>
+                    <div style="flex: 1.2; min-width: 150px;">
+                        <label style="font-size: 12px; margin-bottom: 4px; display: block; color: var(--text-muted);">Loại Thiết Bị (Modality)</label>
+                        <select id="wl-search-modality" class="form-control" style="padding: 6px 10px; font-size: 13px;">
+                            <option value="">Tất cả Modality</option>
+                            <option value="CR">CR - X-quang</option>
+                            <option value="US">US - Siêu âm</option>
+                            <option value="ECG">ECG - Điện tim</option>
+                            <option value="ES">ES - Nội soi</option>
+                            <option value="PFT">PFT - Đo hô hấp</option>
+                            <option value="BD">BD - Đo loãng xương</option>
+                        </select>
+                    </div>
+                    <button class="btn" onclick="fetchWorklist()" style="padding: 7px 18px; font-size: 13px; white-space: nowrap;">
+                        🔍 Load Worklist từ RIS
+                    </button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="section-title">
+                    <span>📋 Danh sách ca chỉ định từ RIS</span>
+                    <span style="font-size: 13px; color: var(--text-muted);" id="wl-count-text">0 ca</span>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Mã Bệnh Nhân</th>
+                            <th>Họ và Tên</th>
+                            <th>Ngày Sinh / GT</th>
+                            <th>Số Chỉ Định</th>
+                            <th>Tên Dịch Vụ Khám</th>
+                            <th>Modality</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="worklist-table-body">
+                        <tr>
+                            <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 2rem;">
+                                Bấm nút "Load Worklist từ RIS" để tải danh sách chỉ định ca khám.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Tab 3: Manual Upload & Push to PACS -->
+        <div id="tab-upload" class="tab-content">
+            <div id="selected-patient-banner" class="card" style="display: none; background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.4); margin-bottom: 1.5rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <div style="font-size: 13px; color: var(--primary); font-weight: 600; text-transform: uppercase;">
+                            ✅ ĐÃ CHỌN BỆNH NHÂN TỪ RIS WORKLIST (BƯỚC 2/4)
+                        </div>
+                        <div style="font-size: 18px; font-weight: 700; margin-top: 4px; color: var(--text-main);" id="banner-patient-name">
+                            BN18000991 - NGUYEN VAN A
+                        </div>
+                        <div style="font-size: 13px; color: var(--text-muted); margin-top: 2px;" id="banner-patient-details">
+                            Mã BN: 18000991 | Dịch vụ: Siêu âm ổ bụng tổng quát | Số CĐ: 3022292 | Modality: US
+                        </div>
+                    </div>
+                    <div>
+                        <span style="font-size: 28px;">🩺</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card" style="margin-bottom: 1.5rem;">
+                <div class="section-title">
+                    <span>📸 Bước 3: Đính kèm Kết Quả Cận Lâm Sàng (Ảnh / PDF)</span>
+                </div>
+                <div class="dropzone" id="upload-dropzone" onclick="triggerFileInput()" style="cursor: pointer;">
+                    <div style="font-size: 42px; margin-bottom: 10px;">📁</div>
+                    <div style="font-size: 16px; font-weight: 600; margin-bottom: 6px;">Kéo thả file vào đây hoặc nhấp trực tiếp vào đây để chọn file</div>
+                    <div style="font-size: 13px; color: var(--text-muted);">Hỗ trợ đính kèm nhiều file kết quả cùng lúc: .png, .jpg, .jpeg, .pdf</div>
+                    <input type="file" id="file-input" multiple accept=".png,.jpg,.jpeg,.pdf" style="display: none;" onchange="handleFileSelect(event)">
+                </div>
+
+                <div id="file-list-container" class="file-list-preview"></div>
+            </div>
+
+            <div class="card" style="margin-bottom: 1.5rem;">
+                <div class="section-title">
+                    <span>👤 Thông tin Bệnh Nhân & Chỉ Định (Tùy chọn)</span>
+                </div>
+                <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 1rem;">
+                    * Lưu ý: Nếu để trống, hệ thống sẽ tự động bóc tách từ tên file (Regex) hoặc tự động tra cứu từ hệ thống RIS.
+                </p>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Mã Bệnh Nhân (PatientID)</label>
+                        <input type="text" id="manual-patient-id" class="form-control" placeholder="Ví dụ: BN18000991">
+                    </div>
+                    <div class="form-group">
+                        <label>Họ và Tên Bệnh Nhân (PatientName)</label>
+                        <input type="text" id="manual-patient-name" class="form-control" placeholder="Ví dụ: NGUYEN VAN A">
+                    </div>
+                    <div class="form-group">
+                        <label>Ngày Chụp (StudyDate)</label>
+                        <input type="date" id="manual-study-date" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label>Số Chỉ Định (AccessionNumber)</label>
+                        <input type="text" id="manual-accession" class="form-control" placeholder="Ví dụ: 3022292">
+                        <input type="hidden" id="manual-study-uid">
+                    </div>
+                    <div class="form-group">
+                        <label>Chọn Loại Dịch Vụ Khám Mẫu</label>
+                        <select id="manual-service-preset" class="form-control" onchange="applyServicePreset()">
+                            <option value="">-- Chọn loại dịch vụ mẫu --</option>
+                            <option value="Sieu am o bung tong quat|US">Siêu âm ổ bụng tổng quát (US)</option>
+                            <option value="Sieu am tim mau|US">Siêu âm tim màu (US)</option>
+                            <option value="Sieu am giap - vu|US">Siêu âm tuyến giáp / vú (US)</option>
+                            <option value="Dien tim thuong|ECG">Điện tâm đồ (ECG)</option>
+                            <option value="X-quang nguc thang|CR">X-quang ngực thẳng (CR)</option>
+                            <option value="Noi soi da day|ES">Nội soi dạ dày (ES)</option>
+                            <option value="Do chuc nang ho hap|PFT">Đo chức năng hô hấp (PFT)</option>
+                            <option value="Do mat do xuong|BD">Đo mật độ xương (BD)</option>
+                            <option value="Bao cao ket qua PDF|DOC">Báo cáo kết quả PDF (DOC)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Tên Dịch Vụ Khám (StudyDescription)</label>
+                        <input type="text" id="manual-study-desc" class="form-control" placeholder="Ví dụ: Sieu am o bung tong quat">
+                    </div>
+                    <div class="form-group">
+                        <label>Loại Thiết Bị (Modality)</label>
+                        <select id="manual-modality" class="form-control">
+                            <option value="">Tự động (Tự nhận dạng)</option>
+                            <option value="CR">CR - X-quang kỹ thuật số (Computed Radiography)</option>
+                            <option value="DX">DX - X-quang số trực tiếp (Digital Radiography)</option>
+                            <option value="ES">ES - Nội soi (Endoscopy)</option>
+                            <option value="US">US - Siêu âm (Ultrasound)</option>
+                            <option value="ECG">ECG - Điện tâm đồ (Electrocardiogram)</option>
+                            <option value="PFT">PFT - Đo chức năng hô hấp (Pulmonary Function Test)</option>
+                            <option value="BD">BD - Đo loãng xương (Bone Density)</option>
+                            <option value="DOC">DOC - Tài liệu PDF</option>
+                            <option value="OT">OT - Khác (Other)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div style="margin-top: 1.5rem; display: flex; justify-content: flex-end;">
+                    <button class="btn" id="btn-push-pacs" onclick="sendManualUpload()" style="padding: 12px 24px; font-size: 15px; font-weight: 600;">
+                        🚀 Đẩy Lên PACS Ngay
+                    </button>
+                </div>
+            </div>
+
+            <div class="card" id="upload-results-card" style="display: none;">
+                <div class="section-title">
+                    <span>📋 Kết quả đẩy PACS</span>
+                </div>
+                <div id="upload-results-list"></div>
+            </div>
+        </div>
+
+        <!-- Tab 4: Study History -->
+        <div id="tab-history" class="tab-content">
+            <div class="card" style="margin-bottom: 1.5rem;">
+                <div class="section-title">
+                    <span>📜 Lịch sử & Trạng thái Ca Khám</span>
+                    <button class="btn btn-outline" onclick="fetchStudiesHistory()">🔄 Làm mới</button>
+                </div>
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                    <select id="history-status-filter" class="form-control" style="width: 220px;" onchange="fetchStudiesHistory()">
+                        <option value="ALL">Tất cả trạng thái</option>
+                        <option value="SUCCESS">🟢 Đã đẩy PACS (Thành công)</option>
+                        <option value="RETRYING">🟠 Đang thử lại (Retry Queue)</option>
+                        <option value="FAILED">🔴 Thất bại (Lỗi)</option>
+                        <option value="DUPLICATE">🔵 File trùng lặp (Duplicate)</option>
+                    </select>
+                    <input type="text" id="history-search-kw" class="form-control" style="flex: 1; min-width: 250px;" placeholder="Tìm kiếm theo Tên BN, Mã BN, Số chỉ định, Tên file..." onkeyup="if(event.key==='Enter') fetchStudiesHistory()">
+                    <button class="btn" onclick="fetchStudiesHistory()">🔍 Tìm kiếm</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Thời gian</th>
+                            <th>Mã BN</th>
+                            <th>Họ và Tên</th>
+                            <th>Tên Dịch Vụ Khám</th>
+                            <th>Số Chỉ Định</th>
+                            <th>Modality</th>
+                            <th>Trạng Thái</th>
+                            <th>SOPInstanceUID / Ghi chú</th>
+                        </tr>
+                    </thead>
+                    <tbody id="history-table-body">
+                        <tr>
+                            <td colspan="8" style="text-align: center; color: var(--text-muted); padding: 2rem;">
+                                Đang tải danh sách lịch sử ca khám...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Tab 3: PACS & RIS Connection -->
+        <div id="tab-connection" class="tab-content">
+            <div class="form-grid">
+                <!-- PACS Config -->
+                <div class="card">
+                    <div class="section-title">🏥 Cấu hình PACS Server</div>
+                    <div class="form-group">
+                        <label>Địa chỉ IP PACS Server</label>
+                        <input type="text" id="pacs-ip" class="form-control" placeholder="192.168.1.100">
+                    </div>
+                    <div class="form-group">
+                        <label>Cổng kết nối (Port)</label>
+                        <input type="number" id="pacs-port" class="form-control" placeholder="104">
+                    </div>
+                    <div class="form-group">
+                        <label>Called AE Title (Tên AE của PACS)</label>
+                        <input type="text" id="pacs-called" class="form-control" placeholder="PACS_AE">
+                    </div>
+                    <div class="form-group">
+                        <label>Calling AE Title (Tên AE Gateway này)</label>
+                        <input type="text" id="pacs-calling" class="form-control" placeholder="DICOM_GATEWAY">
+                    </div>
+                    <button class="btn btn-outline" onclick="testPacsConnection()" style="margin-top: 0.5rem; width: 100%;">
+                        🔌 Kiểm tra kết nối PACS (C-ECHO)
+                    </button>
+                </div>
+
+                <!-- RIS Worklist Config -->
+                <div class="card">
+                    <div class="section-title">📋 Cấu hình RIS Modality Worklist</div>
+                    <div class="form-group" style="flex-direction: row; align-items: center; gap: 10px; margin-bottom: 1rem;">
+                        <input type="checkbox" id="ris-enabled" style="width: 18px; height: 18px;">
+                        <label for="ris-enabled" style="color: var(--text-main); cursor: pointer;">Bật tra cứu thông tin bệnh nhân từ RIS</label>
+                    </div>
+                    <div class="form-group">
+                        <label>Địa chỉ IP RIS Server</label>
+                        <input type="text" id="ris-ip" class="form-control" placeholder="192.168.1.101">
+                    </div>
+                    <div class="form-group">
+                        <label>Cổng RIS (Port)</label>
+                        <input type="number" id="ris-port" class="form-control" placeholder="6002">
+                    </div>
+                    <div class="form-group">
+                        <label>Called AE Title của RIS</label>
+                        <input type="text" id="ris-called" class="form-control" placeholder="RIS_AE">
+                    </div>
+                    <div class="form-group">
+                        <label>Calling AE Title</label>
+                        <input type="text" id="ris-calling" class="form-control" placeholder="DICOM_GATEWAY">
+                    </div>
+                    <button class="btn btn-outline" onclick="testRisConnection()" style="margin-top: 0.5rem; width: 100%;">
+                        🔍 Kiểm tra kết nối RIS (C-ECHO)
+                    </button>
+                </div>
+            </div>
+
+            <div style="margin-top: 1.5rem; display: flex; justify-content: flex-end;">
+                <button class="btn btn-success" onclick="saveConfiguration()">💾 Lưu thay đổi cấu hình</button>
+            </div>
+        </div>
+
+        <!-- Tab 3: Watch Folders & Modality -->
+        <div id="tab-folders" class="tab-content">
+            <div class="card">
+                <div class="section-title">
+                    <span>📂 Thư mục theo dõi & Gán mã Modality</span>
+                </div>
+                <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 1rem;">
+                    Mỗi thư mục đại diện cho một thiết bị y tế. Gán mã Modality tương ứng để PACS phân loại đúng dịch vụ khám (Siêu âm, Hô hấp, Loãng xương...).
+                </p>
+
+                <table id="folders-table">
+                    <thead>
+                        <tr>
+                            <th>Đường dẫn thư mục</th>
+                            <th>Mã Modality</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="folders-list">
+                        <!-- Rendered by JS -->
+                    </tbody>
+                </table>
+
+                <div style="margin-top: 1.5rem; background-color: var(--input-bg); padding: 1rem; border-radius: 8px; border: 1px dashed var(--card-border);">
+                    <h4 style="font-size: 14px; margin-bottom: 0.8rem;">➕ Thêm thư mục theo dõi mới</h4>
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <input type="text" id="new-folder-path" class="form-control" style="flex: 1; min-width: 250px;" placeholder="Ví dụ: D:/May_SieuAm/Output">
+                        <select id="new-folder-modality" class="form-control" style="width: 200px;">
+                            <option value="US">US - Siêu âm (Ultrasound)</option>
+                            <option value="BD">BD - Đo loãng xương (Bone Density)</option>
+                            <option value="RESP">RESP - Thăm dò hô hấp</option>
+                            <option value="ECG">ECG - Điện tâm đồ</option>
+                            <option value="ES">ES - Nội soi (Endoscopy)</option>
+                            <option value="DX">DX - X-quang kỹ thuật số</option>
+                            <option value="OT">OT - Loại khác (Other)</option>
+                        </select>
+                        <button class="btn" onclick="addWatchFolder()">Thêm vào danh sách</button>
+                    </div>
+                </div>
+
+                <div style="margin-top: 1.5rem; display: flex; justify-content: flex-end;">
+                    <button class="btn btn-success" onclick="saveConfiguration()">💾 Lưu danh sách thư mục</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 4: Logs -->
+        <div id="tab-logs" class="tab-content">
+            <div class="card">
+                <div class="section-title">
+                    <span>📜 Nhật ký hoạt động hệ thống (Live Logs)</span>
+                    <button class="btn btn-outline" onclick="fetchLogs()">🔄 Làm mới Logs</button>
+                </div>
+                <div class="terminal" id="log-terminal">
+                    <!-- Logs loaded here -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="toast">Thông báo</div>
+
+    <script>
+        let currentConfig = null;
+
+        function showToast(message, isSuccess = true) {
+            const toast = document.getElementById('toast');
+            toast.innerText = message;
+            toast.className = isSuccess ? 'success' : 'error';
+            toast.style.display = 'block';
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 4000);
+        }
+
+        function switchTab(tabId, btnElement) {
+            const buttons = document.getElementsByClassName('tab-btn');
+            for (let i = 0; i < buttons.length; i++) {
+                buttons[i].classList.remove('active');
+            }
+            const contents = document.getElementsByClassName('tab-content');
+            for (let i = 0; i < contents.length; i++) {
+                contents[i].classList.remove('active');
+            }
+
+            const targetContent = document.getElementById('tab-' + tabId);
+            if (targetContent) {
+                targetContent.classList.add('active');
+            }
+
+            if (btnElement && btnElement.classList) {
+                btnElement.classList.add('active');
+            }
+
+            if (tabId === 'logs') {
+                fetchLogs();
+            } else if (tabId === 'history') {
+                fetchStudiesHistory();
+            } else if (tabId === 'worklist') {
+                fetchWorklist();
+            }
+        }
+
+        async function fetchStatus() {
+            try {
+                const res = await fetch('/api/status');
+                const data = await res.json();
+                
+                document.getElementById('stat-processed').innerText = data.stats.processed_count || 0;
+                document.getElementById('stat-retry').innerText = data.stats.retry_count || 0;
+                document.getElementById('stat-failed').innerText = data.stats.failed_count || 0;
+                document.getElementById('stat-duplicates').innerText = data.stats.duplicates_count || 0;
+                document.getElementById('pacs-target-info').innerText = data.pacs_target;
+            } catch (err) {
+                console.error('Error fetching status:', err);
+            }
+        }
+
+        async function fetchConfig() {
+            try {
+                const res = await fetch('/api/config');
+                currentConfig = await res.json();
+
+                // Populate PACS
+                document.getElementById('pacs-ip').value = currentConfig.pacs.ip || '';
+                document.getElementById('pacs-port').value = currentConfig.pacs.port || '';
+                document.getElementById('pacs-called').value = currentConfig.pacs.called_ae_title || '';
+                document.getElementById('pacs-calling').value = currentConfig.pacs.calling_ae_title || '';
+
+                // Populate RIS
+                document.getElementById('ris-enabled').checked = currentConfig.ris.enabled || false;
+                document.getElementById('ris-ip').value = currentConfig.ris.ip || '';
+                document.getElementById('ris-port').value = currentConfig.ris.port || '';
+                document.getElementById('ris-called').value = currentConfig.ris.called_ae_title || '';
+                document.getElementById('ris-calling').value = currentConfig.ris.calling_ae_title || '';
+
+                renderFoldersList();
+            } catch (err) {
+                showToast('Không tải được file cấu hình', false);
+            }
+        }
+
+        function renderFoldersList() {
+            const tbody = document.getElementById('folders-list');
+            tbody.innerHTML = '';
+
+            const folders = currentConfig.watcher.watch_folders || [];
+            folders.forEach((item, index) => {
+                const path = typeof item === 'string' ? item : item.path;
+                const modality = typeof item === 'string' ? (currentConfig.metadata.modality || 'OT') : (item.modality || 'OT');
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${path}</td>
+                    <td><span class="modality-badge">${modality}</span></td>
+                    <td>
+                        <button class="btn btn-danger" style="padding: 4px 10px; font-size: 12px;" onclick="removeFolder(${index})">Xóa</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function addWatchFolder() {
+            const pathInput = document.getElementById('new-folder-path');
+            const modalitySelect = document.getElementById('new-folder-modality');
+            
+            const path = pathInput.value.trim();
+            const modality = modalitySelect.value;
+
+            if (!path) {
+                showToast('Vui lòng nhập đường dẫn thư mục!', false);
+                return;
+            }
+
+            if (!currentConfig.watcher.watch_folders) {
+                currentConfig.watcher.watch_folders = [];
+            }
+
+            currentConfig.watcher.watch_folders.push({ path: path, modality: modality });
+            renderFoldersList();
+            pathInput.value = '';
+            showToast('Đã thêm thư mục vào danh sách');
+        }
+
+        function removeFolder(index) {
+            currentConfig.watcher.watch_folders.splice(index, 1);
+            renderFoldersList();
+        }
+
+        async function saveConfiguration() {
+            if (!currentConfig) return;
+
+            // Update PACS
+            currentConfig.pacs.ip = document.getElementById('pacs-ip').value.trim();
+            currentConfig.pacs.port = parseInt(document.getElementById('pacs-port').value);
+            currentConfig.pacs.called_ae_title = document.getElementById('pacs-called').value.trim();
+            currentConfig.pacs.calling_ae_title = document.getElementById('pacs-calling').value.trim();
+
+            // Update RIS
+            currentConfig.ris.enabled = document.getElementById('ris-enabled').checked;
+            currentConfig.ris.ip = document.getElementById('ris-ip').value.trim();
+            currentConfig.ris.port = parseInt(document.getElementById('ris-port').value);
+            currentConfig.ris.called_ae_title = document.getElementById('ris-called').value.trim();
+            currentConfig.ris.calling_ae_title = document.getElementById('ris-calling').value.trim();
+
+            try {
+                const res = await fetch('/api/config', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(currentConfig)
+                });
+                const data = await res.json();
+                showToast(data.message, data.success);
+                fetchStatus();
+            } catch (err) {
+                showToast('Lỗi khi lưu cấu hình', false);
+            }
+        }
+
+        async function testPacsConnection() {
+            showToast('Đang kiểm tra C-ECHO PACS...');
+            const pacsData = {
+                ip: document.getElementById('pacs-ip').value.trim(),
+                port: parseInt(document.getElementById('pacs-port').value),
+                called_ae_title: document.getElementById('pacs-called').value.trim(),
+                calling_ae_title: document.getElementById('pacs-calling').value.trim()
+            };
+
+            try {
+                const res = await fetch('/api/test-pacs', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(pacsData)
+                });
+                const data = await res.json();
+                showToast(data.message, data.success);
+            } catch (err) {
+                showToast('Lỗi khi gửi yêu cầu test PACS', false);
+            }
+        }
+
+        async function testRisConnection() {
+            showToast('Đang kiểm tra kết nối RIS...');
+            const risData = {
+                enabled: document.getElementById('ris-enabled').checked,
+                ip: document.getElementById('ris-ip').value.trim(),
+                port: parseInt(document.getElementById('ris-port').value),
+                called_ae_title: document.getElementById('ris-called').value.trim(),
+                calling_ae_title: document.getElementById('ris-calling').value.trim()
+            };
+
+            try {
+                const res = await fetch('/api/test-ris', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(risData)
+                });
+                const data = await res.json();
+                showToast(data.message, data.success);
+            } catch (err) {
+                showToast('Lỗi khi gửi yêu cầu test RIS', false);
+            }
+        }
+
+        async function triggerRetry() {
+            try {
+                const res = await fetch('/api/retry-now', { method: 'POST' });
+                const data = await res.json();
+                showToast(data.message, data.success);
+                setTimeout(fetchStatus, 1500);
+            } catch (err) {
+                showToast('Không thể kích hoạt retry', false);
+            }
+        }
+
+        async function fetchLogs() {
+            try {
+                const res = await fetch('/api/logs');
+                const data = await res.json();
+                const term = document.getElementById('log-terminal');
+                term.innerHTML = '';
+                (data.logs || []).forEach(line => {
+                    const div = document.createElement('div');
+                    div.className = 'log-entry';
+                    if (line.includes('[ERROR]')) div.classList.add('ERROR');
+                    if (line.includes('[WARNING]')) div.classList.add('WARNING');
+                    div.innerText = line;
+                    term.appendChild(div);
+                });
+                term.scrollTop = term.scrollHeight;
+            } catch (err) {
+                console.error('Error fetching logs:', err);
+            }
+        }
+
+        // Drag & Drop & Manual Upload Handling
+        let selectedUploadFiles = [];
+        let mainReportIndex = 0;
+        const dropzone = document.getElementById('upload-dropzone');
+
+        if (dropzone) {
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                dropzone.addEventListener(eventName, (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }, false);
+            });
+
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropzone.addEventListener(eventName, () => dropzone.classList.add('dragover'), false);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropzone.addEventListener(eventName, () => dropzone.classList.remove('dragover'), false);
+            });
+
+            dropzone.addEventListener('drop', (e) => {
+                const dt = e.dataTransfer;
+                if (dt && dt.files) {
+                    addUploadFiles(dt.files);
+                }
+            }, false);
+        }
+
+        function triggerFileInput() {
+            const fileInput = document.getElementById('file-input');
+            if (fileInput) {
+                fileInput.value = '';
+                fileInput.click();
+            }
+        }
+
+        function handleFileSelect(e) {
+            if (e && e.target && e.target.files) {
+                addUploadFiles(e.target.files);
+            }
+        }
+
+        function addUploadFiles(files) {
+            for (let i = 0; i < files.length; i++) {
+                const f = files[i];
+                const ext = f.name.substring(f.name.lastIndexOf('.')).toLowerCase();
+                if (['.png', '.jpg', '.jpeg', '.pdf'].includes(ext)) {
+                    selectedUploadFiles.push(f);
+                } else {
+                    showToast(`File ${f.name} không hỗ trợ (chỉ chọn .png, .jpg, .pdf)`, false);
+                }
+            }
+            renderSelectedFileList();
+        }
+
+        function removeSelectedFile(index) {
+            selectedUploadFiles.splice(index, 1);
+            if (mainReportIndex >= selectedUploadFiles.length) {
+                mainReportIndex = Math.max(0, selectedUploadFiles.length - 1);
+            }
+            renderSelectedFileList();
+        }
+
+        function clearAllSelectedFiles() {
+            selectedUploadFiles = [];
+            mainReportIndex = 0;
+            renderSelectedFileList();
+        }
+
+        function setMainReportIndex(index) {
+            mainReportIndex = index;
+            renderSelectedFileList();
+        }
+
+        function renderSelectedFileList() {
+            const container = document.getElementById('file-list-container');
+            if (!container) return;
+            container.innerHTML = '';
+            
+            if (selectedUploadFiles.length === 0) return;
+            if (mainReportIndex >= selectedUploadFiles.length) mainReportIndex = 0;
+
+            const header = document.createElement('div');
+            header.style.display = 'flex';
+            header.style.justifyContent = 'space-between';
+            header.style.alignItems = 'center';
+            header.style.marginBottom = '10px';
+            header.style.paddingBottom = '6px';
+            header.style.borderBottom = '1px solid rgba(255,255,255,0.1)';
+            header.innerHTML = `
+                <span style="font-weight: 600; color: var(--primary);">📁 Danh sách ${selectedUploadFiles.length} file kết quả đã chọn:</span>
+                <button class="btn btn-outline" style="padding: 4px 10px; font-size: 12px; color: var(--danger); border-color: rgba(239,68,68,0.4);" onclick="clearAllSelectedFiles()">🗑️ Xóa tất cả</button>
+            `;
+            container.appendChild(header);
+
+            const pIdRaw = document.getElementById('manual-patient-id').value.trim();
+            const accRaw = document.getElementById('manual-accession').value.trim();
+            const cleanPId = pIdRaw ? pIdRaw.replace(/[^A-Za-z0-9]/g, '') : 'BN_CHUA_NHAP';
+            const cleanAcc = accRaw ? accRaw.replace(/[^A-Za-z0-9]/g, '') : 'SOCD_CHUA_NHAP';
+
+            selectedUploadFiles.forEach((file, idx) => {
+                const isMain = (idx === mainReportIndex);
+                const instStr = String(idx + 1).padStart(3, '0');
+                const dicomTargetName = `${cleanPId}_${cleanAcc}_${instStr}.dcm`;
+
+                const item = document.createElement('div');
+                item.className = 'file-item';
+                item.style.display = 'flex';
+                item.style.justifyContent = 'space-between';
+                item.style.alignItems = 'center';
+                item.style.padding = '8px 12px';
+                item.style.marginBottom = '6px';
+                item.style.background = isMain ? 'rgba(16, 185, 129, 0.1)' : 'rgba(255,255,255,0.03)';
+                item.style.borderRadius = '6px';
+                item.style.border = isMain ? '1px solid rgba(16, 185, 129, 0.4)' : '1px solid rgba(255,255,255,0.06)';
+                
+                item.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 10px; flex: 1; flex-wrap: wrap;">
+                        <label style="cursor: pointer; font-size: 13px; margin: 0; display: flex; align-items: center; gap: 6px;">
+                            <input type="radio" name="main_report_file" ${isMain ? 'checked' : ''} onchange="setMainReportIndex(${idx})" style="cursor: pointer;">
+                            <span style="${isMain ? 'color: #10b981; font-weight: 700;' : 'color: var(--text-muted);'}">
+                                ${isMain ? '⭐ [Report chính]' : '📄 [File phụ]'}
+                            </span>
+                        </label>
+                        <strong style="font-size: 13px; color: var(--text-main);">${file.name}</strong> 
+                        <span style="color: var(--text-muted); font-size: 11px;">(${(file.size / 1024).toFixed(1)} KB)</span>
+                        <span style="font-size: 11px; background: rgba(59, 130, 246, 0.15); color: #60a5fa; padding: 2px 8px; border-radius: 4px; font-family: monospace;">
+                            🏷️ DICOM: <strong>${dicomTargetName}</strong>
+                        </span>
+                    </div>
+                    <button class="btn btn-danger" style="padding: 4px 10px; font-size: 12px;" onclick="removeSelectedFile(${idx})">Gỡ bỏ</button>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function applyServicePreset() {
+            const val = document.getElementById('manual-service-preset').value;
+            if (val) {
+                const parts = val.split('|');
+                document.getElementById('manual-study-desc').value = parts[0];
+                document.getElementById('manual-modality').value = parts[1];
+            }
+        }
+
+        async function sendManualUpload() {
+            if (selectedUploadFiles.length === 0) {
+                showToast('Vui lòng chọn ít nhất 1 file ảnh hoặc PDF!', false);
+                return;
+            }
+
+            const pId = document.getElementById('manual-patient-id').value.trim();
+            const accNum = document.getElementById('manual-accession').value.trim();
+
+            if (!pId && !accNum) {
+                const confirmPush = confirm("⚠️ CẢNH BÁO: Bạn chưa nhập Mã Bệnh Nhân hoặc Số Chỉ Định!\n\nNếu đẩy lên PACS lúc này, PACS có thể xếp file vào khu vực chưa phân loại (Unmatched Studies) và không hiển thị trên danh sách tìm kiếm bệnh nhân.\n\nBạn có muốn tiếp tục đẩy không?");
+                if (!confirmPush) return;
+            }
+
+            const btn = document.getElementById('btn-push-pacs');
+            btn.disabled = true;
+            btn.innerHTML = '⏳ Đang đóng gói & gửi PACS...';
+
+            const formData = new FormData();
+            selectedUploadFiles.forEach(f => formData.append('files', f));
+
+            const mainFile = selectedUploadFiles[mainReportIndex] || selectedUploadFiles[0];
+            if (mainFile) {
+                formData.append('main_report_filename', mainFile.name);
+            }
+
+            formData.append('patient_id', document.getElementById('manual-patient-id').value);
+            formData.append('patient_name', document.getElementById('manual-patient-name').value);
+            formData.append('study_date', document.getElementById('manual-study-date').value);
+            formData.append('accession_number', document.getElementById('manual-accession').value);
+            formData.append('study_description', document.getElementById('manual-study-desc').value);
+            formData.append('modality', document.getElementById('manual-modality').value);
+            formData.append('study_instance_uid', document.getElementById('manual-study-uid').value);
+
+            try {
+                const res = await fetch('/api/upload-manual', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+                showToast(data.message, data.success);
+
+                const resultsCard = document.getElementById('upload-results-card');
+                const resultsList = document.getElementById('upload-results-list');
+                resultsCard.style.display = 'block';
+                resultsList.innerHTML = '';
+
+                (data.results || []).forEach(item => {
+                    const div = document.createElement('div');
+                    div.style.padding = '10px 14px';
+                    div.style.marginBottom = '8px';
+                    div.style.borderRadius = '6px';
+                    div.style.border = '1px solid ' + (item.success ? 'rgba(16, 185, 129, 0.4)' : 'rgba(239, 68, 68, 0.4)');
+                    div.style.backgroundColor = item.success ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)';
+                    div.innerHTML = `
+                        <div style="font-weight: 600; color: ${item.success ? 'var(--success)' : 'var(--danger)'};">
+                            ${item.success ? '✅ THÀNH CÔNG' : '❌ THẤT BẠI'} - ${item.file}
+                        </div>
+                        <div style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">${item.message}</div>
+                    `;
+                    resultsList.appendChild(div);
+                });
+
+                if (data.success) {
+                    selectedUploadFiles = [];
+                    renderSelectedFileList();
+                }
+
+                fetchStatus();
+            } catch (err) {
+                showToast('Lỗi gửi yêu cầu tải lên PACS', false);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '🚀 Đẩy Lên PACS Ngay';
+            }
+        }
+
+        async function fetchWorklist() {
+            const dateVal = document.getElementById('wl-search-date').value;
+            const pidVal = document.getElementById('wl-search-pid').value.trim();
+            const pnameVal = document.getElementById('wl-search-pname').value.trim();
+            const modalityVal = document.getElementById('wl-search-modality').value;
+
+            const params = new URLSearchParams();
+            if (dateVal) params.append('date', dateVal);
+            if (pidVal) params.append('patient_id', pidVal);
+            if (pnameVal) params.append('patient_name', pnameVal);
+            if (modalityVal) params.append('modality', modalityVal);
+
+            const tbody = document.getElementById('worklist-table-body');
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 2rem;">⏳ Đang truy vấn RIS Worklist Server...</td></tr>';
+
+            try {
+                const res = await fetch('/api/worklist?' + params.toString());
+                const data = await res.json();
+
+                if (!data.success && data.message) {
+                    showToast(data.message, false);
+                }
+
+                const items = data.items || [];
+                document.getElementById('wl-count-text').innerText = `${items.length} ca`;
+
+                if (items.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 2rem;">Không tìm thấy ca chỉ định nào khớp với điều kiện tìm kiếm.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = '';
+                items.forEach(item => {
+                    const tr = document.createElement('tr');
+                    const itemJson = JSON.stringify(item).replace(/'/g, "&apos;").replace(/"/g, '&quot;');
+                    tr.innerHTML = `
+                        <td><strong>${item.patient_id || '-'}</strong></td>
+                        <td>${item.patient_name || '-'}</td>
+                        <td>${item.patient_birth_date || '-'} (${item.patient_sex || '-'})</td>
+                        <td>${item.accession_number || '-'}</td>
+                        <td>${item.study_description || 'Khám bệnh'}</td>
+                        <td><span class="modality-badge">${item.modality || 'OT'}</span></td>
+                        <td>
+                            <button class="btn" style="padding: 6px 14px; font-size: 12px; font-weight: 600;" onclick='selectWorklistItem(${itemJson})'>
+                                🩺 Thực hiện CLS (Add kết quả)
+                            </button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (err) {
+                showToast('Lỗi kết nối khi tải RIS Worklist', false);
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--danger); padding: 2rem;">Lỗi kết nối RIS Server.</td></tr>';
+            }
+        }
+
+        function cleanName(str) {
+            if (!str) return '';
+            return str.replace(/\^/g, ' ').replace(/\s+/g, ' ').trim();
+        }
+
+        function selectWorklistItem(item) {
+            const cleanPName = cleanName(item.patient_name);
+            document.getElementById('manual-patient-id').value = item.patient_id || '';
+            document.getElementById('manual-patient-name').value = cleanPName;
+            if (item.patient_birth_date && item.patient_birth_date.length === 8) {
+                const y = item.patient_birth_date.substring(0, 4);
+                const m = item.patient_birth_date.substring(4, 6);
+                const d = item.patient_birth_date.substring(6, 8);
+                document.getElementById('manual-study-date').value = `${y}-${m}-${d}`;
+            } else {
+                document.getElementById('manual-study-date').value = new Date().toISOString().substring(0, 10);
+            }
+            document.getElementById('manual-accession').value = item.accession_number || '';
+            document.getElementById('manual-study-uid').value = item.study_instance_uid || '';
+            document.getElementById('manual-study-desc').value = item.study_description || '';
+            if (item.modality) {
+                document.getElementById('manual-modality').value = item.modality;
+            }
+
+            // Update Selected Patient Banner
+            const banner = document.getElementById('selected-patient-banner');
+            if (banner) {
+                banner.style.display = 'block';
+                document.getElementById('banner-patient-name').innerText = `${item.patient_id} - ${cleanPName || 'Bệnh nhân'}`;
+                document.getElementById('banner-patient-details').innerText = `Mã BN: ${item.patient_id} | Dịch vụ: ${item.study_description || 'Chỉ định'} | Số CĐ: ${item.accession_number || '-'} | Modality: ${item.modality || 'OT'}`;
+            }
+
+            renderSelectedFileList();
+            const uploadBtn = document.querySelectorAll('.tab-btn')[2];
+            switchTab('upload', uploadBtn);
+            showToast(`Đã chọn bệnh nhân ${cleanPName || item.patient_id}. Mời đính kèm ảnh/PDF kết quả CLS để đẩy PACS!`);
+        }
+
+        async function fetchStudiesHistory() {
+            const statusFilter = document.getElementById('history-status-filter').value;
+            const searchKw = document.getElementById('history-search-kw').value.trim();
+
+            const params = new URLSearchParams();
+            if (statusFilter) params.append('status', statusFilter);
+            if (searchKw) params.append('search', searchKw);
+
+            const tbody = document.getElementById('history-table-body');
+            tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: var(--text-muted); padding: 2rem;">⏳ Đang tải dữ liệu lịch sử ca khám...</td></tr>';
+
+            try {
+                const res = await fetch('/api/studies?' + params.toString());
+                const data = await res.json();
+
+                const studies = data.studies || [];
+                if (studies.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: var(--text-muted); padding: 2rem;">Chưa có dữ liệu ca khám nào.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = '';
+                studies.forEach(s => {
+                    const tr = document.createElement('tr');
+                    let statusBadge = '<span style="color: var(--text-muted);">Mới tạo</span>';
+                    if (s.status === 'SUCCESS') statusBadge = '<span class="status-badge" style="background: rgba(16, 185, 129, 0.15); color: var(--success); border-color: rgba(16, 185, 129, 0.3);">🟢 Đã đẩy PACS</span>';
+                    else if (s.status === 'RETRYING') statusBadge = '<span class="status-badge" style="background: rgba(245, 158, 11, 0.15); color: var(--warning); border-color: rgba(245, 158, 11, 0.3);">🟠 Đang thử lại</span>';
+                    else if (s.status === 'FAILED') statusBadge = '<span class="status-badge" style="background: rgba(239, 68, 68, 0.15); color: var(--danger); border-color: rgba(239, 68, 68, 0.3);">🔴 Thất bại</span>';
+                    else if (s.status === 'DUPLICATE') statusBadge = '<span class="status-badge" style="background: rgba(59, 130, 246, 0.15); color: var(--primary); border-color: rgba(59, 130, 246, 0.3);">🔵 File trùng</span>';
+
+                    const timeStr = s.created_at ? s.created_at.replace('T', ' ').substring(0, 19) : '-';
+                    const sopOrErr = s.sop_instance_uid ? `<code style="font-size: 11px; color: #38bdf8;">${s.sop_instance_uid}</code>` : (s.last_error || '-');
+
+                    tr.innerHTML = `
+                        <td style="font-size: 12px; color: var(--text-muted);">${timeStr}</td>
+                        <td><strong>${s.patient_id || '-'}</strong></td>
+                        <td>${s.patient_name || '-'}</td>
+                        <td>${s.study_description || '-'}</td>
+                        <td>${s.accession_number || '-'}</td>
+                        <td><span class="modality-badge">${s.modality || 'OT'}</span></td>
+                        <td>${statusBadge}</td>
+                        <td style="max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${sopOrErr}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (err) {
+                console.error('Error fetching studies:', err);
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: var(--danger); padding: 2rem;">Lỗi nạp dữ liệu lịch sử ca khám.</td></tr>';
+            }
+        }
+
+        // Set today date as default for worklist search
+        const todayDateStr = new Date().toISOString().substring(0, 10);
+        if (document.getElementById('wl-search-date')) {
+            document.getElementById('wl-search-date').value = todayDateStr;
+        }
+
+        // Init
+        fetchStatus();
+        fetchConfig();
+        setInterval(fetchStatus, 5000);
+    </script>
+</body>
+</html>

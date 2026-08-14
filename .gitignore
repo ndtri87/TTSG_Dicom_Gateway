@@ -1,0 +1,45 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+*.egg
+
+# Virtual Environments
+.venv/
+venv/
+env/
+.venv_client/
+Client/.venv_client/
+
+# Pytest / Cache
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Editor / IDE
+.vscode/
+.idea/
+.claude/
+*.swp
+*.swo
+
+# Runtime Data and Logs
+logs/*
+!logs/.gitkeep
+data/*
+!data/.gitkeep
+Client/export/sent/*
+!Client/export/sent/.gitkeep
+Client/export/failed/*
+!Client/export/failed/.gitkeep
+*.sqlite3
+*.db
+
+# OS generated
+.DS_Store
+Thumbs.db

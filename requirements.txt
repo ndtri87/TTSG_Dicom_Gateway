@@ -1,0 +1,9 @@
+pydicom>=2.4,<4
+pynetdicom>=2.0,<3
+watchdog>=3.0,<5
+PyYAML>=6.0,<7
+Pillow>=10.0,<11
+pywin32>=306; sys_platform == 'win32'
+pytest>=7.4,<9
+flask>=3.0,<4
+requests>=2.31,<3

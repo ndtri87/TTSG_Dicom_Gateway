@@ -1,0 +1,22 @@
+# Cấu hình Client Agent dành cho Máy Trạm Thiết Bị Y Tế (10.4.140.x)
+
+# Địa chỉ URL của Gateway Server trung tâm (IP 192.168.0.3)
+server_url: "http://192.168.0.3:5000"
+
+# Thư mục xuất ảnh từ thiết bị local (máy siêu âm, điện tim, nội soi, X-quang)
+watch_folder: "./export"
+
+# Thư mục lưu lưu trữ file sau khi đã gửi thành công
+sent_folder: "./export/sent"
+
+# Thư mục lưu file lỗi khi gửi thất bại quá số lần quy định
+failed_folder: "./export/failed"
+
+# Chu kỳ quét thư mục xuất ảnh (giây)
+poll_interval_sec: 3
+
+# Số lần thử lại tối đa khi ngắt kết nối với Server
+max_retries: 10
+
+# Thời gian chờ giữa các lần thử lại (giây)
+retry_delay_sec: 10

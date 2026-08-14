@@ -1,0 +1,51 @@
+filename_pattern:
+  date_format: '%Y%m%d'
+  regex: ^(?P<patient_id>[A-Za-z0-9]+)_(?P<patient_name>[^_]+)_(?P<study_date>\d{8})
+logging:
+  level: INFO
+  log_folder: ./logs
+  retention_days: 90
+metadata:
+  default_value: UNKNOWN
+  institution_name: My Clinic
+  modality: OT
+  specific_character_set: ISO_IR 192
+pacs:
+  called_ae_title: PACSTTSG
+  calling_ae_title: DICOM_GATEWAY
+  connect_timeout_sec: 10
+  ip: 192.168.6.213
+  port: 6002
+paths:
+  dicom_staging_folder: ./data/dicom_staging
+  duplicates_folder: ./data/duplicates
+  failed_folder: ./data/failed
+  processed_folder: ./data/processed
+  registry_db: ./data/registry.sqlite3
+  retry_queue_folder: ./data/queue/retry
+retry:
+  backoff_schedule_sec:
+  - 300
+  - 900
+  - 3600
+  - 7200
+  - 21600
+  max_attempts: 10
+  scan_interval_sec: 300
+ris:
+  called_ae_title: RISTTSG
+  calling_ae_title: DICOM_GATEWAY
+  connect_timeout_sec: 10
+  enabled: true
+  ip: 192.168.6.211
+  port: 6002
+watcher:
+  stability_check_count: 3
+  stability_check_interval_sec: 2
+  watch_folders:
+  - modality: US
+    path: ./data/inbox
+web_ui:
+  enabled: true
+  host: 0.0.0.0
+  port: 5000
