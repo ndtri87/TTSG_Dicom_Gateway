@@ -1316,10 +1316,10 @@
             const cleanPName = cleanName(item.patient_name);
             document.getElementById('manual-patient-id').value = item.patient_id || '';
             document.getElementById('manual-patient-name').value = cleanPName;
-            if (item.patient_birth_date && item.patient_birth_date.length === 8) {
-                const y = item.patient_birth_date.substring(0, 4);
-                const m = item.patient_birth_date.substring(4, 6);
-                const d = item.patient_birth_date.substring(6, 8);
+            if (item.scheduled_date && item.scheduled_date.length === 8) {
+                const y = item.scheduled_date.substring(0, 4);
+                const m = item.scheduled_date.substring(4, 6);
+                const d = item.scheduled_date.substring(6, 8);
                 document.getElementById('manual-study-date').value = `${y}-${m}-${d}`;
             } else {
                 document.getElementById('manual-study-date').value = new Date().toISOString().substring(0, 10);

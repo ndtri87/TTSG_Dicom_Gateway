@@ -122,11 +122,13 @@ class WorklistClient:
                 if status.Status in (0xFF00, 0xFF01) and identifier is not None:
                     study_desc = getattr(identifier, 'StudyDescription', '') or ''
                     mod = ''
+                    scheduled_date = ''
                     if 'ScheduledProcedureStepSequence' in identifier and len(identifier.ScheduledProcedureStepSequence) > 0:
                         step = identifier.ScheduledProcedureStepSequence[0]
                         if not study_desc:
                             study_desc = getattr(step, 'ScheduledProcedureStepDescription', '') or getattr(step, 'ScheduledProcedureDescription', '')
                         mod = getattr(step, 'Modality', '')
+                        scheduled_date = getattr(step, 'ScheduledProcedureStepStartDate', '') or ''
 
                     raw_pname = str(getattr(identifier, 'PatientName', ''))
                     clean_pname = ' '.join(raw_pname.replace('^', ' ').split())
@@ -140,6 +142,9 @@ class WorklistClient:
                         'study_instance_uid': str(getattr(identifier, 'StudyInstanceUID', '')),
                         'study_description': str(study_desc),
                         'modality': str(mod),
+                        # Ngày chỉ định thực tế (0040,0002) — KHÔNG phải PatientBirthDate.
+                        # Dùng để tự động điền đúng StudyDate khi nạp ca từ Worklist.
+                        'scheduled_date': str(scheduled_date),
                     })
         except Exception as exc:
             if self.logger:
