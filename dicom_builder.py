@@ -229,16 +229,22 @@ def build_dicom_from_file(source_path, metadata, config):
         try:
             import pypdfium2 as pdfium
             pdf = pdfium.PdfDocument(source_path)
-            if len(pdf) > 0:
-                page = pdf[0]
-                image = page.render(scale=3).to_pil()
-                temp_img_path = os.path.join(output_dir, f"temp_{filename_no_ext}.png")
-                image.save(temp_img_path)
-                try:
-                    return build_secondary_capture_image(temp_img_path, merged_metadata, output_path)
-                finally:
-                    if os.path.exists(temp_img_path):
-                        os.remove(temp_img_path)
+            try:
+                if len(pdf) > 0:
+                    page = pdf[0]
+                    image = page.render(scale=3).to_pil()
+                    temp_img_path = os.path.join(output_dir, f"temp_{filename_no_ext}.png")
+                    image.save(temp_img_path)
+                    try:
+                        return build_secondary_capture_image(temp_img_path, merged_metadata, output_path)
+                    finally:
+                        if os.path.exists(temp_img_path):
+                            os.remove(temp_img_path)
+            finally:
+                # Đóng file handle native của pypdfium2 tới source_path — nếu không,
+                # trên Windows file gốc sẽ bị khóa (WinError 32) khi caller cố
+                # move/xóa file ngay sau khi build_dicom_from_file trả về.
+                pdf.close()
         except Exception:
             pass
         return build_encapsulated_pdf(source_path, merged_metadata, output_path)
