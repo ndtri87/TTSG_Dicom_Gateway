@@ -226,27 +226,34 @@ def build_dicom_from_file(source_path, metadata, config):
     if ext in ('.png', '.jpg', '.jpeg'):
         return build_secondary_capture_image(source_path, merged_metadata, output_path)
     elif ext == '.pdf':
-        try:
-            import pypdfium2 as pdfium
-            pdf = pdfium.PdfDocument(source_path)
+        # Mặc định đóng gói PDF theo đúng chuẩn Encapsulated PDF (PRD mục 4.1).
+        # Chỉ rasterize PDF thành ảnh Secondary Capture khi cấu hình bật tường minh
+        # metadata.pdf_rasterize_to_image: true — dùng cho trường hợp PACS cụ thể
+        # không hỗ trợ hiển thị Encapsulated PDF (chưa có bằng chứng xác nhận với
+        # PACS hiện tại; GE Dicom Gateway Pro đẩy thành công cùng PACS này mà
+        # không cần rasterize).
+        if config.get('metadata', {}).get('pdf_rasterize_to_image', False):
             try:
-                if len(pdf) > 0:
-                    page = pdf[0]
-                    image = page.render(scale=3).to_pil()
-                    temp_img_path = os.path.join(output_dir, f"temp_{filename_no_ext}.png")
-                    image.save(temp_img_path)
-                    try:
-                        return build_secondary_capture_image(temp_img_path, merged_metadata, output_path)
-                    finally:
-                        if os.path.exists(temp_img_path):
-                            os.remove(temp_img_path)
-            finally:
-                # Đóng file handle native của pypdfium2 tới source_path — nếu không,
-                # trên Windows file gốc sẽ bị khóa (WinError 32) khi caller cố
-                # move/xóa file ngay sau khi build_dicom_from_file trả về.
-                pdf.close()
-        except Exception:
-            pass
+                import pypdfium2 as pdfium
+                pdf = pdfium.PdfDocument(source_path)
+                try:
+                    if len(pdf) > 0:
+                        page = pdf[0]
+                        image = page.render(scale=3).to_pil()
+                        temp_img_path = os.path.join(output_dir, f"temp_{filename_no_ext}.png")
+                        image.save(temp_img_path)
+                        try:
+                            return build_secondary_capture_image(temp_img_path, merged_metadata, output_path)
+                        finally:
+                            if os.path.exists(temp_img_path):
+                                os.remove(temp_img_path)
+                finally:
+                    # Đóng file handle native của pypdfium2 tới source_path — nếu không,
+                    # trên Windows file gốc sẽ bị khóa (WinError 32) khi caller cố
+                    # move/xóa file ngay sau khi build_dicom_from_file trả về.
+                    pdf.close()
+            except Exception:
+                pass
         return build_encapsulated_pdf(source_path, merged_metadata, output_path)
     else:
         raise DicomBuildError(f"Định dạng không hỗ trợ: {ext}")
