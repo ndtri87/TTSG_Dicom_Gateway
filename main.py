@@ -144,11 +144,11 @@ class GatewayWorker(threading.Thread):
             else:
                 self.logger.info(f"Gửi PACS thành công: {filename} (SOPInstanceUID={sop_uid})")
             self.registry.mark_processed(file_hash, filename, sop_uid)
-            self.registry.record_study(filename, metadata, 'SUCCESS', sop_uid=sop_uid, file_hash=file_hash)
+            self.registry.record_study(filename, metadata, 'SUCCESS', sop_instance_uid=sop_uid, file_hash=file_hash)
             self._archive_dicom(dicom_path)
         else:
             self.logger.warning(f"Gửi PACS thất bại cho {filename}: {error}. Chuyển vào hàng đợi retry.")
-            self.registry.record_study(filename, metadata, 'RETRYING', sop_uid=sop_uid, file_hash=file_hash, last_error=error)
+            self.registry.record_study(filename, metadata, 'RETRYING', sop_instance_uid=sop_uid, file_hash=file_hash, last_error=error)
             self._enqueue_retry(dicom_path, file_hash, filename, sop_uid, error)
 
     def _move_original(self, path, dest_folder):
@@ -177,7 +177,7 @@ class GatewayWorker(threading.Thread):
             'attempts': 1,
             'max_attempts': self.config['retry']['max_attempts'],
             'last_error': error,
-            'next_retry_at': (datetime.now() + timedelta(seconds=backoff_schedule[0])).isoformat(),
+            'next_attempt_at': (datetime.now() + timedelta(seconds=backoff_schedule[0])).isoformat(),
         }
         json_path = os.path.splitext(dest_dcm_path)[0] + '.json'
         with open(json_path, 'w', encoding='utf-8') as f:
