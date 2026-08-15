@@ -16,6 +16,16 @@ pacs:
   connect_timeout_sec: 10
   ip: 192.168.6.213
   port: 6002
+  # Storage Commitment (N-ACTION/N-EVENT-REPORT): một số PACS chỉ thực sự
+  # index/hiển thị study sau khi nhận xác nhận này, không chỉ dựa vào C-STORE
+  # thành công (xem GE MUSE DICOM Gateway Pro làm tương tự với port 105).
+  # CHỈ bật khi đã: (1) mở Inbound Firewall cho listen_port, và (2) nhờ PACS
+  # admin đăng ký AE Title/IP/port này làm địa chỉ callback Storage Commitment
+  # cho calling_ae_title ở trên — nếu không PACS sẽ không biết gửi phản hồi về đâu.
+  storage_commitment:
+    enabled: false
+    listen_port: 105
+    listen_ae_title: DICOM_GATEWAY
 paths:
   dicom_staging_folder: ./data/dicom_staging
   duplicates_folder: ./data/duplicates

@@ -22,6 +22,7 @@ from watchdog.observers import Observer
 from dicom_builder import DicomBuildError, build_dicom_from_file
 from dicom_sender import DicomSender
 from retry_worker import RetryWorker
+from storage_commitment_listener import StorageCommitmentListener
 from utils import (
     ConfigError,
     ProcessedRegistry,
@@ -223,6 +224,9 @@ def main():
     retry_worker = RetryWorker(config, retry_sender, registry, logger)
     retry_worker.start()
 
+    storage_commitment_listener = StorageCommitmentListener(config, logger)
+    storage_commitment_listener.start()
+
     observer = Observer()
     for item in watch_folders_list:
         handler = InboxHandler(work_queue, folder_modality=item.get('modality', 'OT'))
@@ -253,6 +257,7 @@ def main():
         observer.join()
         worker.stop()
         retry_worker.stop()
+        storage_commitment_listener.stop()
         sender.close()
         retry_sender.close()
         registry.close()
