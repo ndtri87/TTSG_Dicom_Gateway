@@ -223,10 +223,26 @@ def extract_metadata_from_filename(filename, pattern_config, default_value):
         parts = [p.strip() for p in re.split(r'[-_]', name_without_ext) if p.strip()]
         if len(parts) >= 1 and any(c.isdigit() for c in parts[0]):
             groups['patient_id'] = parts[0]
-            if len(parts) >= 2:
-                groups['patient_name'] = parts[1]
-            if len(parts) >= 3 and re.match(r'^\d{8}$', parts[2]):
-                groups['study_date'] = parts[2]
+            remaining = parts[1:]
+            # Lấy phần đầu tiên KHÔNG phải toàn số làm PatientName — bỏ qua các mã
+            # số xen giữa (VD năm sinh/mã nội bộ '1961' trong
+            # '2200857_1961_Tieu Thi Van Ha_...').
+            name_part = next((p for p in remaining if not p.isdigit()), None)
+            if name_part:
+                groups['patient_name'] = name_part
+            # Chỉ nhận StudyDate nếu CHỈ CÓ ĐÚNG MỘT chuỗi 8 số trong tên file. Nếu
+            # có nhiều hơn 1 (không rõ cái nào là ngày chỉ định thật, ví dụ tên file
+            # có cả ngày chỉ định lẫn ngày xuất file), để trống thay vì đoán sai —
+            # build_dicom_from_file sẽ tự dùng ngày hôm nay, an toàn hơn nhiều so
+            # với gán nhầm StudyDate khiến ca khám "biến mất" trên PACS do lệch bộ lọc.
+            date_candidates = [p for p in remaining if re.match(r'^\d{8}$', p)]
+            if len(date_candidates) == 1:
+                groups['study_date'] = date_candidates[0]
+            elif len(date_candidates) > 1:
+                warnings.append(
+                    f"Tên file có nhiều chuỗi ngày mơ hồ {date_candidates}, "
+                    f"không thể xác định StudyDate chắc chắn — để trống, dùng ngày hôm nay"
+                )
 
     patient_id = groups.get('patient_id') or default_value
     if not groups.get('patient_id'):
