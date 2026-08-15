@@ -116,7 +116,18 @@ class DicomSender:
             return False, f"PACS trả về status lỗi: 0x{status.Status:04X}"
 
         if self.storage_commitment_enabled and assoc.is_alive():
-            self._request_storage_commitment(assoc, ds.SOPClassUID, ds.SOPInstanceUID)
+            # C-STORE đã thành công thật sự tới đây — Storage Commitment chỉ là bước
+            # bổ sung để xác nhận sau. TUYỆT ĐỐI không để lỗi/exception ở bước này
+            # (VD PACS từ chối context, không hỗ trợ SOP Class) biến kết quả C-STORE
+            # đã thành công thành báo THẤT BẠI.
+            try:
+                self._request_storage_commitment(assoc, ds.SOPClassUID, ds.SOPInstanceUID)
+            except Exception:
+                if self.logger:
+                    self.logger.exception(
+                        "[StorageCommitment] Lỗi không mong đợi khi gửi N-ACTION — "
+                        "bỏ qua, không ảnh hưởng kết quả C-STORE đã thành công"
+                    )
 
         if assoc.is_alive():
             assoc.release()
@@ -144,10 +155,20 @@ class DicomSender:
                 self.logger.warning(f"[StorageCommitment] Lỗi gửi N-ACTION cho SOPInstanceUID={sop_instance_uid}: {exc}")
             return
 
-        if status is None:
+        # status có thể là Dataset rỗng (không có .Status) nếu PACS từ chối
+        # presentation context của Storage Commitment ngay từ lúc thiết lập
+        # association — dùng getattr thay vì status.Status để không bao giờ
+        # crash vì AttributeError ở bước bổ sung này.
+        status_code = getattr(status, 'Status', None) if status is not None else None
+
+        if status is None or status_code is None:
             if self.logger:
-                self.logger.warning(f"[StorageCommitment] Không nhận được phản hồi N-ACTION cho SOPInstanceUID={sop_instance_uid}")
-        elif status.Status == 0x0000:
+                self.logger.warning(
+                    f"[StorageCommitment] Không nhận được phản hồi N-ACTION hợp lệ cho "
+                    f"SOPInstanceUID={sop_instance_uid} — có thể PACS không hỗ trợ/từ chối "
+                    f"SOP Class Storage Commitment Push Model trong association này"
+                )
+        elif status_code == 0x0000:
             if self.logger:
                 self.logger.info(
                     f"[StorageCommitment] PACS CHẤP NHẬN yêu cầu N-ACTION (TransactionUID={transaction_uid}) cho "
@@ -156,7 +177,7 @@ class DicomSender:
         else:
             if self.logger:
                 self.logger.warning(
-                    f"[StorageCommitment] PACS TỪ CHỐI yêu cầu N-ACTION (status=0x{status.Status:04X}) "
+                    f"[StorageCommitment] PACS TỪ CHỐI yêu cầu N-ACTION (status=0x{status_code:04X}) "
                     f"cho SOPInstanceUID={sop_instance_uid}"
                 )
 
