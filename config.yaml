@@ -23,7 +23,7 @@ pacs:
   # admin đăng ký AE Title/IP/port này làm địa chỉ callback Storage Commitment
   # cho calling_ae_title ở trên — nếu không PACS sẽ không biết gửi phản hồi về đâu.
   storage_commitment:
-    enabled: false
+    enabled: true
     listen_port: 105
     listen_ae_title: DICOM_GATEWAY
 paths:

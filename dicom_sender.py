@@ -141,22 +141,22 @@ class DicomSender:
             )
         except Exception as exc:
             if self.logger:
-                self.logger.warning(f"Lỗi gửi N-ACTION Storage Commitment cho SOPInstanceUID={sop_instance_uid}: {exc}")
+                self.logger.warning(f"[StorageCommitment] Lỗi gửi N-ACTION cho SOPInstanceUID={sop_instance_uid}: {exc}")
             return
 
         if status is None:
             if self.logger:
-                self.logger.warning(f"Không nhận được phản hồi N-ACTION Storage Commitment cho SOPInstanceUID={sop_instance_uid}")
+                self.logger.warning(f"[StorageCommitment] Không nhận được phản hồi N-ACTION cho SOPInstanceUID={sop_instance_uid}")
         elif status.Status == 0x0000:
             if self.logger:
                 self.logger.info(
-                    f"Đã gửi yêu cầu Storage Commitment (TransactionUID={transaction_uid}) cho "
-                    f"SOPInstanceUID={sop_instance_uid}, chờ PACS xác nhận qua N-EVENT-REPORT"
+                    f"[StorageCommitment] PACS CHẤP NHẬN yêu cầu N-ACTION (TransactionUID={transaction_uid}) cho "
+                    f"SOPInstanceUID={sop_instance_uid}, chờ xác nhận committed qua N-EVENT-REPORT"
                 )
         else:
             if self.logger:
                 self.logger.warning(
-                    f"PACS từ chối N-ACTION Storage Commitment (status=0x{status.Status:04X}) "
+                    f"[StorageCommitment] PACS TỪ CHỐI yêu cầu N-ACTION (status=0x{status.Status:04X}) "
                     f"cho SOPInstanceUID={sop_instance_uid}"
                 )
 
