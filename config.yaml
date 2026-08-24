@@ -59,3 +59,45 @@ web_ui:
   enabled: true
   host: 0.0.0.0
   port: 5000
+
+auth:
+  enabled: true
+  session_lifetime_days: 30
+  secret_key: "TTSG_DICOM_GATEWAY_SUPER_SECRET_KEY_2026"
+  users:
+    - username: trind
+      password_hash: "scrypt:32768:8:1$UrmQhPzkp2t5PgFk$bd54e06b5cf6655d2aa25d5cbb7d8fa52b906d498a5813156c3ce8dd1eb208db0d60867f823390e1f786fd10da77bc635045254b1e95042d820b74c7c65108ee"
+      full_name: "Nguyễn Đình Trí"
+      department: "Công nghệ thông tin"
+      role: "ADMIN"
+      allowed_modalities: ["*"]
+
+    - username: ktv_sieuam
+      password_hash: "scrypt:32768:8:1$wlhfiV7jlgp2kvmv$7d0fc9827ba850853f1a7d4411c26deecb5bc2d0b8d1b1bacbf8aef93aa7c99668a82ec57740315bd7198ec18e3e5c96d384d51c293394cf87fa74af065adfa1"
+      full_name: "KTV Phòng Siêu Âm"
+      role: "TECHNICIAN"
+      allowed_modalities: ["US"]
+
+    - username: ktv_noisoi
+      password_hash: "scrypt:32768:8:1$wlhfiV7jlgp2kvmv$7d0fc9827ba850853f1a7d4411c26deecb5bc2d0b8d1b1bacbf8aef93aa7c99668a82ec57740315bd7198ec18e3e5c96d384d51c293394cf87fa74af065adfa1"
+      full_name: "KTV Phòng Nội Soi"
+      role: "TECHNICIAN"
+      allowed_modalities: ["ES"]
+
+    - username: ktv_xquang
+      password_hash: "scrypt:32768:8:1$wlhfiV7jlgp2kvmv$7d0fc9827ba850853f1a7d4411c26deecb5bc2d0b8d1b1bacbf8aef93aa7c99668a82ec57740315bd7198ec18e3e5c96d384d51c293394cf87fa74af065adfa1"
+      full_name: "KTV Phòng X-Quang"
+      role: "TECHNICIAN"
+      allowed_modalities: ["DR", "CR"]
+
+    - username: ktv_ctmri
+      password_hash: "scrypt:32768:8:1$wlhfiV7jlgp2kvmv$7d0fc9827ba850853f1a7d4411c26deecb5bc2d0b8d1b1bacbf8aef93aa7c99668a82ec57740315bd7198ec18e3e5c96d384d51c293394cf87fa74af065adfa1"
+      full_name: "KTV Phòng CT & MRI"
+      role: "TECHNICIAN"
+      allowed_modalities: ["CT", "MR"]
+
+    - username: ktv_thamdo
+      password_hash: "scrypt:32768:8:1$wlhfiV7jlgp2kvmv$7d0fc9827ba850853f1a7d4411c26deecb5bc2d0b8d1b1bacbf8aef93aa7c99668a82ec57740315bd7198ec18e3e5c96d384d51c293394cf87fa74af065adfa1"
+      full_name: "KTV Thăm Dò Chức Năng"
+      role: "TECHNICIAN"
+      allowed_modalities: ["ECG", "EEG", "EMG", "BD", "PFT", "DOC", "OT"]

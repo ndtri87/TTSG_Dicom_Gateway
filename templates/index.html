@@ -594,9 +594,49 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.2);
             animation: fadeIn 0.3s ease-in-out;
         }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(6px); }
-            to { opacity: 1; transform: translateY(0); }
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+            animation: fadeIn 0.2s ease-out;
+        }
+        .modal-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            width: 100%;
+            max-width: 440px;
+            padding: 1.5rem 1.8rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6), 0 0 20px rgba(59, 130, 246, 0.2);
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.2rem;
+            border-bottom: 1px solid var(--card-border);
+            padding-bottom: 0.6rem;
+        }
+        .btn-close {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 18px;
+            cursor: pointer;
+            padding: 4px;
+        }
+        .btn-close:hover {
+            color: #ffffff;
         }
     </style>
 </head>
@@ -610,21 +650,33 @@
                 <small style="color: #38bdf8; font-size: 11.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">DICOM Gateway Service</small>
             </div>
         </div>
-        <div class="status-badge" id="service-status-badge">
-            <div class="status-dot"></div>
-            <span id="service-status-text">Đang chạy</span>
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <div class="status-badge" id="service-status-badge">
+                <div class="status-dot"></div>
+                <span id="service-status-text">Đang chạy</span>
+            </div>
+            <!-- Logged-in User Profile Widget -->
+            <div id="user-profile-widget" style="display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); padding: 4px 10px; border-radius: 8px;">
+                <div style="text-align: right;">
+                    <div style="font-size: 12.5px; font-weight: 700; color: #ffffff;" id="user-display-name">Đang tải...</div>
+                    <div style="font-size: 11px; color: #38bdf8;" id="user-role-badge">Kỹ thuật viên</div>
+                </div>
+                <button class="btn btn-outline" onclick="openChangePasswordModal()" title="Đổi mật khẩu" style="padding: 4px 8px; font-size: 12px;">🔑</button>
+                <button class="btn btn-outline" onclick="logoutUser()" title="Đăng xuất" style="padding: 4px 8px; font-size: 12px; color: var(--danger); border-color: rgba(239,68,68,0.4);">🚪</button>
+            </div>
         </div>
     </header>
 
     <main>
-        <div class="tabs">
-            <button class="tab-btn" id="tab-btn-dashboard" onclick="switchTab('dashboard', this)">🎛️ Modalities Hub</button>
+        <div class="tabs" id="main-navigation-tabs">
+            <button class="tab-btn admin-only" id="tab-btn-dashboard" onclick="switchTab('dashboard', this)">🎛️ Modalities Hub</button>
             <button class="tab-btn active" id="tab-btn-worklist" onclick="switchTab('worklist', this)">1. Worklist</button>
             <button class="tab-btn" id="tab-btn-upload" onclick="switchTab('upload', this)">2. Pacs</button>
             <button class="tab-btn" id="tab-btn-history" onclick="switchTab('history', this)">3. Đã hoàn thành</button>
-            <button class="tab-btn" id="tab-btn-connection" onclick="switchTab('connection', this)">Cấu hình Pacs & Ris</button>
-            <button class="tab-btn" id="tab-btn-folders" onclick="switchTab('folders', this)">Cấu hình thư mục ánh xạ</button>
-            <button class="tab-btn" id="tab-btn-logs" onclick="switchTab('logs', this)">Log</button>
+            <button class="tab-btn admin-only" id="tab-btn-connection" onclick="switchTab('connection', this)">Cấu hình Pacs & Ris</button>
+            <button class="tab-btn admin-only" id="tab-btn-folders" onclick="switchTab('folders', this)">Cấu hình thư mục ánh xạ</button>
+            <button class="tab-btn admin-only" id="tab-btn-users" onclick="switchTab('users', this)">👥 Quản lý người dùng</button>
+            <button class="tab-btn admin-only" id="tab-btn-logs" onclick="switchTab('logs', this)">Log</button>
         </div>
 
         <!-- Tab 1: Dashboard / Modality Operations Hub -->
@@ -1130,7 +1182,34 @@
             </div>
         </div>
 
-        <!-- Tab 4: Logs -->
+        <!-- Tab 5: User Management (Admin Only) -->
+        <div id="tab-users" class="tab-content">
+            <div class="card" style="margin-bottom: 1rem;">
+                <div class="section-title">
+                    <span>👥 Quản Lý Tài Khoản & Phân Quyền Modality</span>
+                    <button class="btn" onclick="openAddUserModal()">➕ Thêm Tài Khoản Mới</button>
+                </div>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Tên Đăng Nhập</th>
+                                <th>Họ và Tên</th>
+                                <th>Khoa / Phòng Ban</th>
+                                <th>Vai Trò (Role)</th>
+                                <th>Phân Hệ Cho Phép (Allowed Modalities)</th>
+                                <th>Thao Tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="users-table-body">
+                            <tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 2rem;">⏳ Đang tải danh sách tài khoản...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 6: Logs -->
         <div id="tab-logs" class="tab-content">
             <div class="card">
                 <div class="section-title">
@@ -1144,9 +1223,83 @@
         </div>
     </main>
 
+    <!-- Modal: Đổi Mật Khẩu -->
+    <div id="modal-change-password" class="modal-overlay" style="display: none;">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 style="font-size: 16px; font-weight: 700; color: var(--text-main);">🔑 Đổi Mật Khẩu Tài Khoản</h3>
+                <button class="btn-close" onclick="closeModal('modal-change-password')">✕</button>
+            </div>
+            <form onsubmit="handleChangePassword(event)">
+                <div class="form-group" style="margin-bottom: 0.8rem;">
+                    <label style="font-size: 13px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">Mật khẩu hiện tại</label>
+                    <input type="password" id="change-pwd-old" class="form-control" required placeholder="Nhập mật khẩu cũ">
+                </div>
+                <div class="form-group" style="margin-bottom: 0.8rem;">
+                    <label style="font-size: 13px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">Mật khẩu mới (tối thiểu 4 ký tự)</label>
+                    <input type="password" id="change-pwd-new" class="form-control" required placeholder="Nhập mật khẩu mới">
+                </div>
+                <div class="form-group" style="margin-bottom: 1.2rem;">
+                    <label style="font-size: 13px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">Xác nhận mật khẩu mới</label>
+                    <input type="password" id="change-pwd-confirm" class="form-control" required placeholder="Nhập lại mật khẩu mới">
+                </div>
+                <div style="display: flex; justify-content: flex-end; gap: 8px;">
+                    <button type="button" class="btn btn-outline" onclick="closeModal('modal-change-password')">Hủy</button>
+                    <button type="submit" class="btn btn-success">💾 Cập Nhật Mật Khẩu</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Thêm / Sửa Người Dùng (Admin) -->
+    <div id="modal-edit-user" class="modal-overlay" style="display: none;">
+        <div class="modal-card" style="max-width: 540px;">
+            <div class="modal-header">
+                <h3 id="modal-user-title" style="font-size: 16px; font-weight: 700; color: var(--text-main);">➕ Thêm Tài Khoản Mới</h3>
+                <button class="btn-close" onclick="closeModal('modal-edit-user')">✕</button>
+            </div>
+            <form onsubmit="handleSaveUser(event)">
+                <div class="form-group" style="margin-bottom: 0.75rem;">
+                    <label style="font-size: 13px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">Tên đăng nhập (username)</label>
+                    <input type="text" id="edit-user-name" class="form-control" required placeholder="Ví dụ: ktv_sieuam2">
+                </div>
+                <div class="form-group" style="margin-bottom: 0.75rem;">
+                    <label style="font-size: 13px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">Họ và tên hiển thị</label>
+                    <input type="text" id="edit-user-fullname" class="form-control" required placeholder="Ví dụ: Nguyễn Văn A">
+                </div>
+                <div class="form-group" style="margin-bottom: 0.75rem;">
+                    <label style="font-size: 13px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">Khoa / Phòng ban</label>
+                    <input type="text" id="edit-user-department" class="form-control" placeholder="Ví dụ: Công nghệ thông tin">
+                </div>
+                <div class="form-group" style="margin-bottom: 0.75rem;">
+                    <label style="font-size: 13px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">Mật khẩu <span id="edit-user-pwd-hint" style="font-size: 11px; color: var(--text-muted);">(Để trống nếu không đổi)</span></label>
+                    <input type="password" id="edit-user-pwd" class="form-control" placeholder="Nhập mật khẩu">
+                </div>
+                <div class="form-group" style="margin-bottom: 0.75rem;">
+                    <label style="font-size: 13px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">Vai trò hệ thống</label>
+                    <select id="edit-user-role" class="form-control" onchange="toggleModalitySelect(this.value)">
+                        <option value="TECHNICIAN">TECHNICIAN (Kỹ thuật viên phòng máy - Bị giới hạn Tab)</option>
+                        <option value="ADMIN">ADMIN (Super Admin IT - Toàn quyền 7 Tab)</option>
+                    </select>
+                </div>
+                <div class="form-group" id="edit-user-modalities-group" style="margin-bottom: 1.2rem;">
+                    <label style="font-size: 13px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">Các Modality được cấp quyền</label>
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; background: rgba(15,23,42,0.6); padding: 8px 12px; border-radius: 6px; border: 1px solid var(--card-border);" id="modalities-checkboxes-container">
+                        <!-- Checkboxes dynamically generated -->
+                    </div>
+                </div>
+                <div style="display: flex; justify-content: flex-end; gap: 8px;">
+                    <button type="button" class="btn btn-outline" onclick="closeModal('modal-edit-user')">Hủy</button>
+                    <button type="submit" class="btn btn-success">💾 Lưu Tài Khoản</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <div id="toast">Thông báo</div>
 
     <script>
+        let currentUser = null;
         let currentConfig = null;
         let currentModalitiesData = [];
         let activeFocusModality = null;
@@ -1189,6 +1342,8 @@
                 fetchStudiesHistory();
             } else if (tabId === 'worklist') {
                 fetchWorklist();
+            } else if (tabId === 'users') {
+                fetchAdminUsers();
             }
         }
 
@@ -2169,16 +2324,349 @@
             }
         }
 
+        // ================= AUTHENTICATION & RBAC LOGIC =================
+        const ALL_MODALITIES_LIST = [
+            { code: 'US', name: 'US - Siêu âm' },
+            { code: 'ES', name: 'ES - Nội soi' },
+            { code: 'ECG', name: 'ECG - Điện tâm đồ' },
+            { code: 'EEG', name: 'EEG - Điện não đồ' },
+            { code: 'EMG', name: 'EMG - Điện cơ' },
+            { code: 'BD', name: 'BD - Đo loãng xương (DEXA)' },
+            { code: 'MR', name: 'MR - Cộng hưởng từ (MRI)' },
+            { code: 'CT', name: 'CT - Cắt lớp vi tính' },
+            { code: 'DR', name: 'DR - X-quang số trực tiếp' },
+            { code: 'CR', name: 'CR - X-quang kỹ thuật số' },
+            { code: 'PFT', name: 'PFT - Đo chức năng hô hấp' },
+            { code: 'DOC', name: 'DOC - Báo cáo PDF' },
+            { code: 'OT', name: 'OT - Cận lâm sàng khác' }
+        ];
+
+        async function fetchCurrentUserProfile() {
+            try {
+                const res = await fetch('/api/auth/me');
+                if (res.status === 401) {
+                    window.location.href = '/login';
+                    return;
+                }
+                const data = await res.json();
+                if (!data.success || !data.user) {
+                    window.location.href = '/login';
+                    return;
+                }
+                currentUser = data.user;
+                renderUserProfile();
+            } catch (err) {
+                console.error('Error fetching user profile:', err);
+            }
+        }
+
+        function renderUserProfile() {
+            if (!currentUser) return;
+            const nameEl = document.getElementById('user-display-name');
+            const badgeEl = document.getElementById('user-role-badge');
+            if (nameEl) nameEl.innerText = currentUser.full_name || currentUser.username;
+
+            const isAdmin = currentUser.role === 'ADMIN';
+            if (badgeEl) {
+                const deptStr = currentUser.department ? ` • ${currentUser.department}` : '';
+                if (isAdmin) {
+                    badgeEl.innerHTML = `👑 <span style="color: #c084fc; font-weight: 700;">Super Admin${deptStr}</span>`;
+                } else {
+                    const mods = (currentUser.allowed_modalities || []).join(', ');
+                    badgeEl.innerHTML = `🩺 <span style="color: #38bdf8; font-weight: 600;">KTV (${mods || 'Chưa gán'})${deptStr}</span>`;
+                }
+            }
+
+            // Apply Tab Visibility: Ẩn các Tab cấu hình & log nếu không phải Admin
+            const adminTabs = document.querySelectorAll('.admin-only');
+            adminTabs.forEach(el => {
+                el.style.display = isAdmin ? '' : 'none';
+            });
+
+            // If Technician: Filter Dropdowns in Tab 1 (Worklist) & Tab 2 (Pacs)
+            if (!isAdmin && currentUser.allowed_modalities && currentUser.allowed_modalities.length > 0) {
+                const allowed = currentUser.allowed_modalities;
+
+                // Tab 1: Worklist dropdown
+                const wlSelect = document.getElementById('wl-search-modality');
+                if (wlSelect) {
+                    wlSelect.innerHTML = '';
+                    if (allowed.length > 1) {
+                        wlSelect.innerHTML += `<option value="">Tất cả phân hệ (${allowed.join(', ')})</option>`;
+                    }
+                    allowed.forEach(m => {
+                        const found = ALL_MODALITIES_LIST.find(x => x.code === m);
+                        const text = found ? found.name : m;
+                        wlSelect.innerHTML += `<option value="${m}">${text}</option>`;
+                    });
+                    wlSelect.value = allowed[0];
+                }
+
+                // Tab 2: Pacs dropdown
+                const pacsSelect = document.getElementById('manual-modality');
+                if (pacsSelect) {
+                    pacsSelect.innerHTML = '';
+                    allowed.forEach(m => {
+                        const found = ALL_MODALITIES_LIST.find(x => x.code === m);
+                        const text = found ? found.name : m;
+                        pacsSelect.innerHTML += `<option value="${m}">${text}</option>`;
+                    });
+                    pacsSelect.value = allowed[0];
+                }
+            }
+        }
+
+        function openChangePasswordModal() {
+            document.getElementById('change-pwd-old').value = '';
+            document.getElementById('change-pwd-new').value = '';
+            document.getElementById('change-pwd-confirm').value = '';
+            document.getElementById('modal-change-password').style.display = 'flex';
+        }
+
+        function closeModal(modalId) {
+            const el = document.getElementById(modalId);
+            if (el) el.style.display = 'none';
+        }
+
+        async function handleChangePassword(e) {
+            e.preventDefault();
+            const oldPass = document.getElementById('change-pwd-old').value;
+            const newPass = document.getElementById('change-pwd-new').value;
+            const confirmPass = document.getElementById('change-pwd-confirm').value;
+
+            if (newPass !== confirmPass) {
+                showToast('Mật khẩu xác nhận không khớp!', false);
+                return;
+            }
+            if (newPass.length < 4) {
+                showToast('Mật khẩu mới phải có ít nhất 4 ký tự!', false);
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/auth/change-password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ old_password: oldPass, new_password: newPass })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showToast(data.message || 'Đổi mật khẩu thành công!', true);
+                    closeModal('modal-change-password');
+                } else {
+                    showToast(data.message || 'Lỗi đổi mật khẩu', false);
+                }
+            } catch (err) {
+                showToast('Lỗi kết nối: ' + err.message, false);
+            }
+        }
+
+        async function logoutUser() {
+            if (!confirm('Bạn có chắc chắn muốn đăng xuất khỏi hệ thống?')) return;
+            try {
+                await fetch('/api/auth/logout', { method: 'POST' });
+                window.location.href = '/login';
+            } catch {
+                window.location.href = '/login';
+            }
+        }
+
+        // ================= USER MANAGEMENT (ADMIN ONLY) =================
+        let allAdminUsers = [];
+
+        async function fetchAdminUsers() {
+            const tbody = document.getElementById('users-table-body');
+            if (!tbody) return;
+            try {
+                const res = await fetch('/api/admin/users');
+                if (res.status === 403) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--danger); padding: 2rem;">⛔ Bạn không có quyền truy cập mục này.</td></tr>';
+                    return;
+                }
+                const data = await res.json();
+                if (data.success) {
+                    allAdminUsers = data.users || [];
+                    renderAdminUsersTable();
+                }
+            } catch (err) {
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--danger); padding: 2rem;">Lỗi tải người dùng: ${err.message}</td></tr>`;
+            }
+        }
+
+        function renderAdminUsersTable() {
+            const tbody = document.getElementById('users-table-body');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            if (allAdminUsers.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 2rem;">Chưa có tài khoản nào.</td></tr>';
+                return;
+            }
+
+            const adminCount = allAdminUsers.filter(x => x.role === 'ADMIN').length;
+
+            allAdminUsers.forEach(u => {
+                const tr = document.createElement('tr');
+                const isAdm = u.role === 'ADMIN';
+                const roleBadge = isAdm
+                    ? '<span class="status-badge" style="background: rgba(168,85,247,0.15); color: #c084fc; border-color: rgba(168,85,247,0.3);">👑 Super Admin</span>'
+                    : '<span class="status-badge" style="background: rgba(59,130,246,0.15); color: #60a5fa; border-color: rgba(59,130,246,0.3);">🩺 Technician</span>';
+
+                const mods = (u.allowed_modalities || []).map(m => `<span class="modality-badge" style="margin: 2px;">${m}</span>`).join(' ');
+                const isSelf = (currentUser && currentUser.username === u.username);
+                const canDelete = !isSelf && !(u.role === 'ADMIN' && adminCount <= 1);
+
+                tr.innerHTML = `
+                    <td><strong style="color: var(--text-main);">${u.username}</strong></td>
+                    <td>${u.full_name || '-'}</td>
+                    <td><span style="color: #cbd5e1;">${u.department || '-'}</span></td>
+                    <td>${roleBadge}</td>
+                    <td>${isAdm ? '<em style="color: #c084fc;">Tất cả Modality (*)</em>' : (mods || '<em style="color: var(--text-muted);">Chưa gán</em>')}</td>
+                    <td>
+                        <button class="btn btn-outline" style="padding: 3px 8px; font-size: 11.5px; margin-right: 4px;" onclick="openEditUserModal('${u.username}')">✏️ Sửa</button>
+                        ${canDelete ? `<button class="btn btn-outline" style="padding: 3px 8px; font-size: 11.5px; color: var(--danger); border-color: rgba(239,68,68,0.4);" onclick="deleteUserAccount('${u.username}')">🗑️ Xóa</button>` : ''}
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function renderModalityCheckboxes(selectedMods = []) {
+            const container = document.getElementById('modalities-checkboxes-container');
+            if (!container) return;
+            container.innerHTML = '';
+
+            ALL_MODALITIES_LIST.forEach(m => {
+                const isChecked = selectedMods.includes(m.code) || selectedMods.includes('*');
+                const label = document.createElement('label');
+                label.style.cssText = 'display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-main); cursor: pointer;';
+                label.innerHTML = `
+                    <input type="checkbox" value="${m.code}" class="user-mod-cb" ${isChecked ? 'checked' : ''}>
+                    <span>${m.code}</span>
+                `;
+                container.appendChild(label);
+            });
+        }
+
+        function toggleModalitySelect(role) {
+            const group = document.getElementById('edit-user-modalities-group');
+            if (group) {
+                group.style.display = (role === 'ADMIN') ? 'none' : 'block';
+            }
+        }
+
+        function openAddUserModal() {
+            document.getElementById('modal-user-title').innerText = '➕ Thêm Tài Khoản Mới';
+            document.getElementById('edit-user-name').value = '';
+            document.getElementById('edit-user-name').disabled = false;
+            document.getElementById('edit-user-fullname').value = '';
+            document.getElementById('edit-user-department').value = '';
+            document.getElementById('edit-user-pwd').value = '';
+            document.getElementById('edit-user-pwd-hint').innerText = '(Mặc định nếu để trống: 123456)';
+            document.getElementById('edit-user-role').value = 'TECHNICIAN';
+            toggleModalitySelect('TECHNICIAN');
+            renderModalityCheckboxes(['US']);
+            document.getElementById('modal-edit-user').style.display = 'flex';
+        }
+
+        function openEditUserModal(username) {
+            const user = allAdminUsers.find(u => u.username === username);
+            if (!user) return;
+
+            document.getElementById('modal-user-title').innerText = `✏️ Chỉnh Sửa Tài Khoản [${username}]`;
+            document.getElementById('edit-user-name').value = user.username;
+            document.getElementById('edit-user-name').disabled = true;
+            document.getElementById('edit-user-fullname').value = user.full_name || '';
+            document.getElementById('edit-user-department').value = user.department || '';
+            document.getElementById('edit-user-pwd').value = '';
+            document.getElementById('edit-user-pwd-hint').innerText = '(Để trống nếu không đổi mật khẩu)';
+            document.getElementById('edit-user-role').value = user.role;
+            toggleModalitySelect(user.role);
+            renderModalityCheckboxes(user.allowed_modalities || []);
+            document.getElementById('modal-edit-user').style.display = 'flex';
+        }
+
+        async function handleSaveUser(e) {
+            e.preventDefault();
+            const uname = document.getElementById('edit-user-name').value.trim();
+            const fullname = document.getElementById('edit-user-fullname').value.trim();
+            const department = document.getElementById('edit-user-department').value.trim();
+            const pwd = document.getElementById('edit-user-pwd').value;
+            const role = document.getElementById('edit-user-role').value;
+
+            let allowedModalities = [];
+            if (role === 'ADMIN') {
+                allowedModalities = ['*'];
+            } else {
+                const cbs = document.querySelectorAll('.user-mod-cb:checked');
+                cbs.forEach(cb => allowedModalities.push(cb.value));
+                if (allowedModalities.length === 0) {
+                    showToast('Vui lòng chọn ít nhất 1 Modality cho Kỹ thuật viên!', false);
+                    return;
+                }
+            }
+
+            const payload = {
+                username: uname,
+                full_name: fullname,
+                department: department,
+                role: role,
+                allowed_modalities: allowedModalities,
+            };
+            if (pwd) payload.password = pwd;
+
+            try {
+                const res = await fetch('/api/admin/users', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showToast(data.message || 'Lưu tài khoản thành công!', true);
+                    closeModal('modal-edit-user');
+                    fetchAdminUsers();
+                } else {
+                    showToast(data.message || 'Lỗi lưu tài khoản', false);
+                }
+            } catch (err) {
+                showToast('Lỗi: ' + err.message, false);
+            }
+        }
+
+        async function deleteUserAccount(username) {
+            if (!confirm(`Bạn có chắc chắn muốn xóa tài khoản [${username}]?`)) return;
+            try {
+                const res = await fetch(`/api/admin/users/${username}`, { method: 'DELETE' });
+                const data = await res.json();
+                if (data.success) {
+                    showToast(data.message || 'Đã xóa tài khoản', true);
+                    fetchAdminUsers();
+                } else {
+                    showToast(data.message || 'Lỗi xóa tài khoản', false);
+                }
+            } catch (err) {
+                showToast('Lỗi: ' + err.message, false);
+            }
+        }
+
         // Set today date as default for worklist search
         const todayDateStr = new Date().toISOString().substring(0, 10);
         if (document.getElementById('wl-search-date')) {
             document.getElementById('wl-search-date').value = todayDateStr;
         }
 
-        // Init - Mặc định load Worklist
-        fetchStatus();
-        fetchWorklist();
-        fetchConfig();
+        // Init - Xác thực User trước rồi mới load data
+        async function initializeApp() {
+            await fetchCurrentUserProfile();
+            fetchStatus();
+            fetchWorklist();
+            if (currentUser && currentUser.role === 'ADMIN') {
+                fetchConfig();
+            }
+        }
+
+        initializeApp();
         setInterval(() => {
             fetchStatus();
         }, 5000);

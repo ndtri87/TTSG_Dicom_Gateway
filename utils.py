@@ -11,6 +11,7 @@ import time
 from datetime import datetime
 
 import yaml
+from werkzeug.security import check_password_hash, generate_password_hash
 
 
 class ConfigError(Exception):
@@ -542,3 +543,136 @@ class ProcessedRegistry:
     def close(self):
         with self._lock:
             self._conn.close()
+
+
+def hash_password(password: str) -> str:
+    """Tạo chuỗi băm mật khẩu an toàn."""
+    return generate_password_hash(password)
+
+
+def verify_password(password: str, password_hash: str) -> bool:
+    """Kiểm tra mật khẩu nhập vào khớp với password_hash."""
+    if not password_hash or not password:
+        return False
+    return check_password_hash(password_hash, password)
+
+
+def get_auth_config(config: dict) -> dict:
+    """Lấy cấu hình auth, tự khởi tạo nếu chưa có."""
+    if not config:
+        return {'enabled': False, 'users': []}
+    return config.get('auth', {'enabled': False, 'users': []})
+
+
+def get_user_by_username(config: dict, username: str) -> dict | None:
+    """Tìm thông tin tài khoản theo username."""
+    auth = get_auth_config(config)
+    users = auth.get('users', [])
+    for u in users:
+        if u.get('username', '').lower() == (username or '').strip().lower():
+            return u
+    return None
+
+
+def authenticate_user(config: dict, username: str, password: str) -> dict | None:
+    """Xác thực tài khoản và mật khẩu, trả về thông tin an toàn (bỏ hash)."""
+    user = get_user_by_username(config, username)
+    if not user:
+        return None
+    if not verify_password(password, user.get('password_hash', '')):
+        return None
+    return {
+        'username': user.get('username'),
+        'full_name': user.get('full_name', user.get('username')),
+        'department': user.get('department', ''),
+        'role': user.get('role', 'TECHNICIAN'),
+        'allowed_modalities': user.get('allowed_modalities', []),
+    }
+
+
+def list_users(config: dict) -> list[dict]:
+    """Trả về danh sách tất cả người dùng (không bao gồm password_hash)."""
+    auth = get_auth_config(config)
+    users = auth.get('users', [])
+    clean_list = []
+    for u in users:
+        clean_list.append({
+            'username': u.get('username'),
+            'full_name': u.get('full_name', ''),
+            'department': u.get('department', ''),
+            'role': u.get('role', 'TECHNICIAN'),
+            'allowed_modalities': u.get('allowed_modalities', []),
+        })
+    return clean_list
+
+
+def update_user_password(config: dict, config_path: str, username: str, new_password: str) -> bool:
+    """Cập nhật mật khẩu mới cho tài khoản."""
+    user = get_user_by_username(config, username)
+    if not user:
+        return False
+    user['password_hash'] = hash_password(new_password)
+    save_config(config, config_path)
+    return True
+
+
+def upsert_user(config: dict, config_path: str, user_data: dict) -> dict:
+    """Thêm mới hoặc cập nhật thông tin tài khoản."""
+    if 'auth' not in config:
+        config['auth'] = {'enabled': True, 'users': []}
+    if 'users' not in config['auth']:
+        config['auth']['users'] = []
+
+    username = (user_data.get('username') or '').strip()
+    if not username:
+        raise ValueError("Tên đăng nhập (username) không được để trống")
+
+    existing = get_user_by_username(config, username)
+    if existing:
+        if user_data.get('full_name') is not None:
+            existing['full_name'] = user_data['full_name']
+        if user_data.get('department') is not None:
+            existing['department'] = user_data['department']
+        if user_data.get('role') is not None:
+            existing['role'] = user_data['role']
+        if user_data.get('allowed_modalities') is not None:
+            existing['allowed_modalities'] = user_data['allowed_modalities']
+        if user_data.get('password'):
+            existing['password_hash'] = hash_password(user_data['password'])
+    else:
+        password = user_data.get('password') or '123456'
+        new_u = {
+            'username': username,
+            'password_hash': hash_password(password),
+            'full_name': user_data.get('full_name', username),
+            'department': user_data.get('department', ''),
+            'role': user_data.get('role', 'TECHNICIAN'),
+            'allowed_modalities': user_data.get('allowed_modalities', []),
+        }
+        config['auth']['users'].append(new_u)
+
+    save_config(config, config_path)
+    return get_user_by_username(config, username)
+
+
+def delete_user(config: dict, config_path: str, username: str) -> bool:
+    """Xóa tài khoản khỏi danh sách (chặn xóa tài khoản admin cuối cùng)."""
+    auth = get_auth_config(config)
+    users = auth.get('users', [])
+    target = None
+    admin_count = 0
+    for u in users:
+        if u.get('role') == 'ADMIN':
+            admin_count += 1
+        if u.get('username', '').lower() == (username or '').strip().lower():
+            target = u
+
+    if not target:
+        return False
+    if target.get('role') == 'ADMIN' and admin_count <= 1:
+        raise ValueError("Không thể xóa tài khoản Admin duy nhất của hệ thống")
+
+    users.remove(target)
+    save_config(config, config_path)
+    return True
+

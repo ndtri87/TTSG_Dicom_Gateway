@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng Nhập - Bệnh viện Đa khoa Tâm Trí Sài Gòn | DICOM Gateway</title>
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+    <link rel="shortcut icon" type="image/x-icon" href="/static/favicon.ico">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0b1120;
+            --card-bg: #1e293b;
+            --card-border: #334155;
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --success: #10b981;
+            --danger: #ef4444;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --input-bg: #0f172a;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: radial-gradient(circle at top center, #1e293b 0%, #0b1120 100%);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+        }
+
+        .login-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 14px;
+            width: 100%;
+            max-width: 440px;
+            padding: 2.2rem;
+            box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.6), 0 0 25px rgba(59, 130, 246, 0.15);
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .logo-header {
+            text-align: center;
+            margin-bottom: 1.8rem;
+        }
+
+        .logo-img {
+            height: 64px;
+            width: auto;
+            object-fit: contain;
+            background: #ffffff;
+            padding: 4px 8px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            margin-bottom: 12px;
+        }
+
+        .logo-header h1 {
+            font-size: 17px;
+            font-weight: 700;
+            color: var(--text-main);
+            line-height: 1.3;
+        }
+
+        .logo-header p {
+            font-size: 12px;
+            font-weight: 600;
+            color: #38bdf8;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-top: 4px;
+        }
+
+        .form-group {
+            margin-bottom: 1.1rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 12px;
+            color: var(--text-muted);
+            font-size: 16px;
+            pointer-events: none;
+        }
+
+        .form-control {
+            width: 100%;
+            background: var(--input-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            padding: 10px 12px 10px 38px;
+            color: var(--text-main);
+            font-size: 14px;
+            font-family: inherit;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+            background: #090d16;
+        }
+
+        .btn-toggle-pwd {
+            position: absolute;
+            right: 12px;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 15px;
+        }
+
+        .btn-toggle-pwd:hover {
+            color: var(--text-main);
+        }
+
+        .remember-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.4rem;
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .remember-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+        }
+
+        .remember-label input {
+            cursor: pointer;
+        }
+
+        .btn-submit {
+            width: 100%;
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 14.5px;
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 4px 14px rgba(59, 130, 246, 0.4);
+            transition: all 0.2s ease;
+        }
+
+        .btn-submit:hover {
+            background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 18px rgba(59, 130, 246, 0.5);
+        }
+
+        .btn-submit:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .alert-box {
+            padding: 10px 14px;
+            border-radius: 6px;
+            font-size: 13px;
+            margin-bottom: 1.1rem;
+            display: none;
+        }
+
+        .alert-error {
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            color: #fca5a5;
+        }
+
+        .quick-accounts {
+            margin-top: 1.8rem;
+            padding-top: 1.2rem;
+            border-top: 1px solid var(--card-border);
+        }
+
+        .quick-accounts-title {
+            font-size: 11.5px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+
+        .quick-account-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            justify-content: center;
+        }
+
+        .account-chip {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 4px 10px;
+            font-size: 11.5px;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .account-chip:hover {
+            background: rgba(59, 130, 246, 0.15);
+            color: #60a5fa;
+            border-color: rgba(59, 130, 246, 0.4);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-card">
+        <div class="logo-header">
+            <img src="/static/logo_icon.png" class="logo-img" alt="Logo BV Tâm Trí Sài Gòn">
+            <h1>Bệnh viện Đa khoa Tâm Trí Sài Gòn</h1>
+            <p>DICOM Gateway Service</p>
+        </div>
+
+        <div id="alert-msg" class="alert-box alert-error"></div>
+
+        <form id="login-form" onsubmit="handleLogin(event)">
+            <div class="form-group">
+                <label for="username">Tên đăng nhập</label>
+                <div class="input-wrapper">
+                    <span class="input-icon">👤</span>
+                    <input type="text" id="username" class="form-control" placeholder="Ví dụ: ktv_sieuam hoặc trind" required autofocus autocomplete="username">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Mật khẩu</label>
+                <div class="input-wrapper">
+                    <span class="input-icon">🔒</span>
+                    <input type="password" id="password" class="form-control" placeholder="Nhập mật khẩu" required autocomplete="current-password">
+                    <button type="button" class="btn-toggle-pwd" onclick="togglePasswordVisibility()" title="Ẩn/Hiện mật khẩu">👁️</button>
+                </div>
+            </div>
+
+            <div class="remember-row">
+                <label class="remember-label">
+                    <input type="checkbox" id="remember-me" checked>
+                    <span>Ghi nhớ phiên đăng nhập (30 ngày)</span>
+                </label>
+            </div>
+
+            <button type="submit" class="btn-submit" id="btn-login-submit">
+                <span>🔐 Đăng Nhập Hệ Thống</span>
+            </button>
+        </form>
+
+        <div class="quick-accounts">
+            <div class="quick-accounts-title">⚡ Chọn tài khoản nhanh theo chuyên khoa:</div>
+            <div class="quick-account-chips">
+                <button type="button" class="account-chip" onclick="fillAccount('ktv_sieuam', '123456')">🩺 Siêu Âm (US)</button>
+                <button type="button" class="account-chip" onclick="fillAccount('ktv_noisoi', '123456')">🔬 Nội Soi (ES)</button>
+                <button type="button" class="account-chip" onclick="fillAccount('ktv_xquang', '123456')">📸 X-Quang (DR/CR)</button>
+                <button type="button" class="account-chip" onclick="fillAccount('ktv_ctmri', '123456')">🌀 CT / MRI</button>
+                <button type="button" class="account-chip" onclick="fillAccount('ktv_thamdo', '123456')">💓 Thăm Dò (ECG/EEG)</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function togglePasswordVisibility() {
+            const pwd = document.getElementById('password');
+            pwd.type = (pwd.type === 'password') ? 'text' : 'password';
+        }
+
+        function fillAccount(uname, pwd) {
+            document.getElementById('username').value = uname;
+            document.getElementById('password').value = pwd;
+            document.getElementById('alert-msg').style.display = 'none';
+        }
+
+        async function handleLogin(e) {
+            e.preventDefault();
+            const uname = document.getElementById('username').value.trim();
+            const pwd = document.getElementById('password').value;
+            const remember = document.getElementById('remember-me').checked;
+            const alertBox = document.getElementById('alert-msg');
+            const submitBtn = document.getElementById('btn-login-submit');
+
+            if (!uname || !pwd) {
+                alertBox.innerText = 'Vui lòng nhập đầy đủ tên đăng nhập và mật khẩu!';
+                alertBox.style.display = 'block';
+                return;
+            }
+
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '⏳ Đang xác thực...';
+            alertBox.style.display = 'none';
+
+            try {
+                const res = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        username: uname,
+                        password: pwd,
+                        remember: remember
+                    })
+                });
+
+                const data = await res.json();
+                if (data.success) {
+                    window.location.href = '/';
+                } else {
+                    alertBox.innerText = data.message || 'Đăng nhập thất bại. Vui lòng kiểm tra lại!';
+                    alertBox.style.display = 'block';
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '🔐 Đăng Nhập Hệ Thống';
+                }
+            } catch (err) {
+                alertBox.innerText = 'Lỗi kết nối máy chủ: ' + err.message;
+                alertBox.style.display = 'block';
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '🔐 Đăng Nhập Hệ Thống';
+            }
+        }
+    </script>
+</body>
+</html>

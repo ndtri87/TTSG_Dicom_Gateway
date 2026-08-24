@@ -5,23 +5,33 @@ xem thống kê, nhật ký log thời gian thực và theo dõi hoạt động 
 """
 import os
 import threading
-from flask import Flask, jsonify, render_template, request
+from datetime import timedelta
+from functools import wraps
+from flask import Flask, jsonify, redirect, render_template, request, session, url_for
 
 from dicom_builder import DicomBuildError, build_dicom_from_file
 from dicom_sender import DicomSender
 from utils import (
     ConfigError,
+    authenticate_user,
     dedupe_destination,
+    delete_user,
     extract_metadata_from_filename,
+    get_auth_config,
     get_system_stats,
+    get_user_by_username,
     get_watch_folders_list,
+    list_users,
     load_config,
     save_config,
     test_ris_connection,
+    update_user_password,
+    upsert_user,
 )
 from worklist_client import WorklistClient
 
 app = Flask(__name__, template_folder='templates', static_folder='static')
+app.secret_key = 'TTSG_DICOM_GATEWAY_SUPER_SECRET_KEY_2026'
 
 # Global references set by main.py
 app_config = None
@@ -41,6 +51,77 @@ def init_web_app(config, cfg_path, retry_worker=None, logger=None, app_start_tim
     start_time = app_start_time
     registry_ref = registry
 
+    auth_cfg = get_auth_config(config)
+    app.secret_key = auth_cfg.get('secret_key', 'TTSG_DICOM_GATEWAY_SUPER_SECRET_KEY_2026')
+    lifetime_days = int(auth_cfg.get('session_lifetime_days', 30))
+    app.permanent_session_lifetime = timedelta(days=lifetime_days)
+
+
+def get_current_user():
+    """Lấy thông tin người dùng hiện tại từ session."""
+    if not app_config:
+        return None
+    auth_cfg = get_auth_config(app_config)
+    if not auth_cfg.get('enabled', True):
+        return {
+            'username': 'trind',
+            'full_name': 'Nguyễn Đình Trí (No Auth)',
+            'department': 'Công nghệ thông tin',
+            'role': 'ADMIN',
+            'allowed_modalities': ['*']
+        }
+    username = session.get('username')
+    if not username:
+        return None
+    user = get_user_by_username(app_config, username)
+    if not user:
+        return None
+    return {
+        'username': user.get('username'),
+        'full_name': user.get('full_name', user.get('username')),
+        'department': user.get('department', ''),
+        'role': user.get('role', 'TECHNICIAN'),
+        'allowed_modalities': user.get('allowed_modalities', []),
+    }
+
+
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not app_config:
+            return f(*args, **kwargs)
+        auth_cfg = get_auth_config(app_config)
+        if not auth_cfg.get('enabled', True):
+            return f(*args, **kwargs)
+
+        user = get_current_user()
+        if not user:
+            if request.path.startswith('/api/'):
+                return jsonify({'success': False, 'message': 'Vui lòng đăng nhập để tiếp tục', 'code': 'UNAUTHORIZED'}), 401
+            return redirect(url_for('login_page'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+
+def admin_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not app_config:
+            return f(*args, **kwargs)
+        auth_cfg = get_auth_config(app_config)
+        if not auth_cfg.get('enabled', True):
+            return f(*args, **kwargs)
+
+        user = get_current_user()
+        if not user:
+            if request.path.startswith('/api/'):
+                return jsonify({'success': False, 'message': 'Vui lòng đăng nhập', 'code': 'UNAUTHORIZED'}), 401
+            return redirect(url_for('login_page'))
+        if user.get('role') != 'ADMIN':
+            return jsonify({'success': False, 'message': 'Chức năng chỉ dành riêng cho Super Admin', 'code': 'FORBIDDEN'}), 403
+        return f(*args, **kwargs)
+    return decorated_function
+
 
 @app.after_request
 def add_no_cache_header(response):
@@ -53,9 +134,139 @@ def add_no_cache_header(response):
     return response
 
 
+@app.route('/login')
+def login_page():
+    if get_current_user():
+        return redirect(url_for('index'))
+    return render_template('login.html')
+
+
 @app.route('/')
+@login_required
 def index():
     return render_template('index.html')
+
+
+@app.route('/api/auth/login', methods=['POST'])
+def api_auth_login():
+    if not app_config:
+        return jsonify({'success': False, 'message': 'Hệ thống chưa sẵn sàng'}), 500
+    data = request.get_json(silent=True) or {}
+    username = (data.get('username') or '').strip()
+    password = data.get('password') or ''
+    remember = bool(data.get('remember', True))
+
+    user = authenticate_user(app_config, username, password)
+    if not user:
+        return jsonify({'success': False, 'message': 'Tên đăng nhập hoặc mật khẩu không chính xác'}), 401
+
+    session.permanent = remember
+    session['username'] = user['username']
+    session['role'] = user['role']
+
+    if logger_ref:
+        logger_ref.info(f"Người dùng [{user['username']}] ({user['full_name']}) đã đăng nhập thành công")
+
+    return jsonify({
+        'success': True,
+        'message': f"Đăng nhập thành công! Xin chào {user['full_name']}",
+        'user': user
+    })
+
+
+@app.route('/api/auth/logout', methods=['POST'])
+def api_auth_logout():
+    uname = session.get('username', 'Unknown')
+    session.clear()
+    if logger_ref:
+        logger_ref.info(f"Người dùng [{uname}] đã đăng xuất")
+    return jsonify({'success': True, 'message': 'Đã đăng xuất thành công'})
+
+
+@app.route('/api/auth/me', methods=['GET'])
+def api_auth_me():
+    auth_cfg = get_auth_config(app_config) if app_config else {}
+    if not auth_cfg.get('enabled', True):
+        return jsonify({
+            'success': True,
+            'auth_enabled': False,
+            'user': {
+                'username': 'trind',
+                'full_name': 'Nguyễn Đình Trí',
+                'department': 'Công nghệ thông tin',
+                'role': 'ADMIN',
+                'allowed_modalities': ['*']
+            }
+        })
+    user = get_current_user()
+    if not user:
+        return jsonify({'success': False, 'message': 'Chưa đăng nhập', 'code': 'UNAUTHORIZED'}), 401
+    return jsonify({'success': True, 'auth_enabled': True, 'user': user})
+
+
+@app.route('/api/auth/change-password', methods=['POST'])
+@login_required
+def api_auth_change_password():
+    user = get_current_user()
+    if not user:
+        return jsonify({'success': False, 'message': 'Chưa đăng nhập'}), 401
+
+    data = request.get_json(silent=True) or {}
+    old_pass = data.get('old_password', '')
+    new_pass = data.get('new_password', '')
+
+    if not new_pass or len(new_pass) < 4:
+        return jsonify({'success': False, 'message': 'Mật khẩu mới phải có ít nhất 4 ký tự'}), 400
+
+    check_u = authenticate_user(app_config, user['username'], old_pass)
+    if not check_u:
+        return jsonify({'success': False, 'message': 'Mật khẩu cũ không chính xác'}), 400
+
+    ok = update_user_password(app_config, config_path, user['username'], new_pass)
+    if ok:
+        if logger_ref:
+            logger_ref.info(f"Người dùng [{user['username']}] đã đổi mật khẩu thành công")
+        return jsonify({'success': True, 'message': 'Đổi mật khẩu thành công!'})
+    return jsonify({'success': False, 'message': 'Lỗi cập nhật mật khẩu'}), 500
+
+
+@app.route('/api/admin/users', methods=['GET'])
+@admin_required
+def api_admin_list_users():
+    return jsonify({'success': True, 'users': list_users(app_config)})
+
+
+@app.route('/api/admin/users', methods=['POST'])
+@admin_required
+def api_admin_upsert_user():
+    data = request.get_json(silent=True) or {}
+    try:
+        u = upsert_user(app_config, config_path, data)
+        return jsonify({
+            'success': True,
+            'message': f"Đã cập nhật thông tin tài khoản [{u['username']}]",
+            'user': {
+                'username': u.get('username'),
+                'full_name': u.get('full_name'),
+                'department': u.get('department', ''),
+                'role': u.get('role'),
+                'allowed_modalities': u.get('allowed_modalities', []),
+            }
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 400
+
+
+@app.route('/api/admin/users/<username>', methods=['DELETE'])
+@admin_required
+def api_admin_delete_user(username):
+    try:
+        ok = delete_user(app_config, config_path, username)
+        if ok:
+            return jsonify({'success': True, 'message': f"Đã xóa tài khoản [{username}]"})
+        return jsonify({'success': False, 'message': 'Không tìm thấy tài khoản'}), 404
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 400
 
 
 @app.route('/api/status', methods=['GET'])
@@ -209,6 +420,7 @@ MODALITY_CATALOG = [
 
 
 @app.route('/api/modalities/summary', methods=['GET'])
+@login_required
 def api_modalities_summary():
     date_param = request.args.get('date', '').strip()
     raw_stats = registry_ref.get_modality_stats(date_param) if registry_ref else {}
@@ -286,11 +498,13 @@ def api_modalities_summary():
 
 
 @app.route('/api/config', methods=['GET'])
+@admin_required
 def api_get_config():
     return jsonify(app_config)
 
 
 @app.route('/api/config', methods=['POST'])
+@admin_required
 def api_update_config():
     global app_config
     new_data = request.json
@@ -310,6 +524,7 @@ def api_update_config():
 
 
 @app.route('/api/test-pacs', methods=['POST'])
+@admin_required
 def api_test_pacs():
     pacs_cfg = request.json if request.is_json and request.json else app_config['pacs']
     sender = DicomSender(pacs_cfg, logger_ref)
@@ -320,6 +535,7 @@ def api_test_pacs():
 
 
 @app.route('/api/test-ris', methods=['POST'])
+@admin_required
 def api_test_ris():
     ris_cfg = request.json if request.is_json and request.json else app_config['ris']
     success, message = test_ris_connection(ris_cfg)
@@ -327,18 +543,34 @@ def api_test_ris():
 
 
 @app.route('/api/worklist', methods=['GET'])
+@login_required
 def api_worklist():
     if not app_config or not app_config.get('ris', {}).get('enabled', False):
         return jsonify({'success': False, 'message': 'Tính năng RIS Worklist đang bị tắt trong config.yaml', 'items': []})
 
+    user = get_current_user()
+    user_role = user.get('role', 'TECHNICIAN') if user else 'ADMIN'
+    allowed_modalities = user.get('allowed_modalities', ['*']) if user else ['*']
+
     date_str = request.args.get('date', '').strip().replace('-', '')
     patient_id = request.args.get('patient_id', '').strip()
     patient_name = request.args.get('patient_name', '').strip()
-    modality = request.args.get('modality', '').strip()
+    modality = request.args.get('modality', '').strip().upper()
+
+    # Scope restriction for technician
+    if user_role != 'ADMIN' and '*' not in allowed_modalities:
+        if modality and modality not in allowed_modalities:
+            modality = allowed_modalities[0]
+        elif not modality and len(allowed_modalities) == 1:
+            modality = allowed_modalities[0]
 
     try:
         client = WorklistClient(app_config['ris'], logger_ref)
         items = client.query_worklist(date_str=date_str, patient_id=patient_id, patient_name=patient_name, modality=modality)
+
+        if user_role != 'ADMIN' and '*' not in allowed_modalities:
+            items = [it for it in items if (it.get('modality') or '').upper() in allowed_modalities]
+
         return jsonify({'success': True, 'items': items})
     except Exception as exc:
         if logger_ref:
@@ -347,24 +579,36 @@ def api_worklist():
 
 
 @app.route('/api/studies', methods=['GET'])
+@login_required
 def api_studies():
     if not registry_ref:
         return jsonify({'success': False, 'message': 'Registry chưa khởi tạo', 'studies': []})
+
+    user = get_current_user()
+    user_role = user.get('role', 'TECHNICIAN') if user else 'ADMIN'
+    allowed_modalities = user.get('allowed_modalities', ['*']) if user else ['*']
 
     status_filter = request.args.get('status', 'ALL').strip()
     search = request.args.get('search', '').strip()
 
     try:
         studies = registry_ref.get_studies(status_filter=status_filter, search_keyword=search)
+        if user_role != 'ADMIN' and '*' not in allowed_modalities:
+            studies = [s for s in studies if (s.get('modality') or '').upper() in allowed_modalities]
         return jsonify({'success': True, 'studies': studies})
     except Exception as exc:
         return jsonify({'success': False, 'message': f"Lỗi lấy lịch sử ca chụp: {exc}", 'studies': []})
 
 
 @app.route('/api/upload-manual', methods=['POST'])
+@login_required
 def api_upload_manual():
     if not app_config:
         return jsonify({'success': False, 'message': 'Hệ thống chưa tải cấu hình'}), 500
+
+    user = get_current_user()
+    user_role = user.get('role', 'TECHNICIAN') if user else 'ADMIN'
+    allowed_modalities = user.get('allowed_modalities', ['*']) if user else ['*']
 
     uploaded_files = request.files.getlist('files') or request.files.getlist('file')
     if not uploaded_files or all(f.filename == '' for f in uploaded_files):
@@ -374,10 +618,17 @@ def api_upload_manual():
     form_patient_name = request.form.get('patient_name', '').strip()
     form_study_date = request.form.get('study_date', '').strip()
     form_accession_number = request.form.get('accession_number', '').strip()
-    form_modality = request.form.get('modality', '').strip()
+    form_modality = request.form.get('modality', '').strip().upper()
     form_study_description = request.form.get('study_description', '').strip()
     form_study_instance_uid = request.form.get('study_instance_uid', '').strip()
     main_report_filename = request.form.get('main_report_filename', '').strip()
+
+    # Scope validation for technician
+    if user_role != 'ADMIN' and '*' not in allowed_modalities:
+        if form_modality and form_modality not in allowed_modalities:
+            return jsonify({'success': False, 'message': f'Bạn không có quyền đẩy ca thuộc Modality [{form_modality}]'}), 403
+        if not form_modality and len(allowed_modalities) >= 1:
+            form_modality = allowed_modalities[0]
 
     staging_dir = app_config.get('paths', {}).get('dicom_staging_folder', './data/dicom_staging')
     processed_dir = app_config.get('paths', {}).get('processed_folder', './data/processed')
@@ -535,6 +786,7 @@ def api_upload_manual():
 
 
 @app.route('/api/logs', methods=['GET'])
+@admin_required
 def api_get_logs():
     log_folder = app_config.get('logging', {}).get('log_folder', './logs')
     log_path = os.path.join(log_folder, 'gateway.log')
@@ -551,6 +803,7 @@ def api_get_logs():
 
 
 @app.route('/api/retry-now', methods=['POST'])
+@login_required
 def api_retry_now():
     if retry_worker_ref and hasattr(retry_worker_ref, 'trigger_immediate_scan'):
         retry_worker_ref.trigger_immediate_scan()
