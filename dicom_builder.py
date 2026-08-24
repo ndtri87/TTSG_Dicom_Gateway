@@ -10,6 +10,8 @@ SECONDARY_CAPTURE_SOP_CLASS = '1.2.840.10008.5.1.4.1.1.7'
 ULTRASOUND_IMAGE_STORAGE_SOP_CLASS = '1.2.840.10008.5.1.4.1.1.6.1'
 CR_IMAGE_STORAGE_SOP_CLASS = '1.2.840.10008.5.1.4.1.1.1'
 DIGITAL_XRAY_IMAGE_STORAGE_SOP_CLASS = '1.2.840.10008.5.1.4.1.1.1.1'
+CT_IMAGE_STORAGE_SOP_CLASS = '1.2.840.10008.5.1.4.1.1.2'
+MR_IMAGE_STORAGE_SOP_CLASS = '1.2.840.10008.5.1.4.1.1.4'
 ENCAPSULATED_PDF_SOP_CLASS = '1.2.840.10008.5.1.4.1.1.104.1'
 
 
@@ -122,8 +124,12 @@ def build_secondary_capture_image(image_path, metadata, output_path):
         sop_class_uid = ULTRASOUND_IMAGE_STORAGE_SOP_CLASS
     elif modality == 'CR':
         sop_class_uid = CR_IMAGE_STORAGE_SOP_CLASS
-    elif modality in ('DX', 'XQ'):
+    elif modality in ('DX', 'DR', 'XQ'):
         sop_class_uid = DIGITAL_XRAY_IMAGE_STORAGE_SOP_CLASS
+    elif modality == 'CT':
+        sop_class_uid = CT_IMAGE_STORAGE_SOP_CLASS
+    elif modality in ('MR', 'MRI'):
+        sop_class_uid = MR_IMAGE_STORAGE_SOP_CLASS
     else:
         sop_class_uid = SECONDARY_CAPTURE_SOP_CLASS
 

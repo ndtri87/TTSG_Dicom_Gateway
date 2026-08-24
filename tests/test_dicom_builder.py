@@ -130,3 +130,40 @@ def test_build_dicom_with_report_metadata():
         assert ds.SeriesDescription == 'Diagnostic Report'
         assert ds.DocumentTitle == 'PHIẾU KẾT QUẢ CẬN LÂM SÀNG'
 
+
+def test_build_dicom_modalities():
+    from PIL import Image
+    from dicom_builder import (
+        CT_IMAGE_STORAGE_SOP_CLASS,
+        DIGITAL_XRAY_IMAGE_STORAGE_SOP_CLASS,
+        MR_IMAGE_STORAGE_SOP_CLASS,
+        SECONDARY_CAPTURE_SOP_CLASS,
+        ULTRASOUND_IMAGE_STORAGE_SOP_CLASS,
+    )
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        img_path = os.path.join(tmp_dir, 'sample.png')
+        Image.new('RGB', (20, 20), color='blue').save(img_path)
+        config = _make_config(tmp_dir)
+
+        test_cases = [
+            ('CT', CT_IMAGE_STORAGE_SOP_CLASS),
+            ('MR', MR_IMAGE_STORAGE_SOP_CLASS),
+            ('DR', DIGITAL_XRAY_IMAGE_STORAGE_SOP_CLASS),
+            ('DX', DIGITAL_XRAY_IMAGE_STORAGE_SOP_CLASS),
+            ('US', ULTRASOUND_IMAGE_STORAGE_SOP_CLASS),
+            ('EEG', SECONDARY_CAPTURE_SOP_CLASS),
+            ('EMG', SECONDARY_CAPTURE_SOP_CLASS),
+            ('BD', SECONDARY_CAPTURE_SOP_CLASS),
+            ('ES', SECONDARY_CAPTURE_SOP_CLASS),
+        ]
+
+        for mod, expected_sop in test_cases:
+            meta = dict(METADATA_TEMPLATE)
+            meta['modality'] = mod
+            meta['patient_id'] = f'BN_{mod}'
+            out_path, _ = build_dicom_from_file(img_path, meta, config)
+            ds = pydicom.dcmread(out_path)
+            assert ds.Modality == mod
+            assert ds.SOPClassUID == expected_sop
+
+

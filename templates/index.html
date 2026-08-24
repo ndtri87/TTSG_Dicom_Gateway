@@ -265,28 +265,46 @@
             background-color: #dc2626;
         }
 
-        /* Table */
+        /* Table & Overflow Controls */
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            margin-top: 0.5rem;
+            border-radius: 8px;
+        }
+
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 1rem;
+            white-space: nowrap;
         }
 
         th, td {
             text-align: left;
-            padding: 12px 16px;
+            padding: 10px 14px;
             border-bottom: 1px solid var(--card-border);
+            white-space: nowrap;
         }
 
         th {
             color: var(--text-muted);
-            font-weight: 500;
-            font-size: 13px;
+            font-weight: 600;
+            font-size: 12px;
             text-transform: uppercase;
+            letter-spacing: 0.5px;
+            background: rgba(15, 23, 42, 0.4);
         }
 
         td {
-            font-size: 14px;
+            font-size: 13.5px;
+        }
+
+        .truncate-cell {
+            max-width: 250px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         .modality-badge {
@@ -296,6 +314,9 @@
             border-radius: 6px;
             font-weight: 600;
             font-size: 12px;
+            white-space: nowrap;
+            display: inline-flex;
+            align-items: center;
         }
 
         /* Terminal Console */
@@ -372,6 +393,189 @@
             border: 1px solid var(--card-border);
             font-size: 13px;
         }
+
+        /* Modality Hub Styles */
+        .modality-kpi-bar {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .modality-kpi-card {
+            background: linear-gradient(145deg, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.95));
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 1.2rem 1.4rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            transition: transform 0.2s, border-color 0.2s;
+        }
+        .modality-kpi-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(59, 130, 246, 0.5);
+        }
+
+        .modality-kpi-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            flex-shrink: 0;
+        }
+
+        .modality-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .modality-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 14px;
+            padding: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            position: relative;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .modality-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px -3px rgba(0, 0, 0, 0.25);
+            border-color: var(--primary);
+        }
+        .modality-card.selected {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.4), 0 10px 25px rgba(0,0,0,0.3);
+            background: linear-gradient(180deg, rgba(30, 41, 59, 1) 0%, rgba(15, 23, 42, 1) 100%);
+        }
+
+        .modality-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modality-badge-code {
+            font-size: 14px;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 6px;
+            letter-spacing: 0.5px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .modality-status-pill {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .modality-status-pill.ACTIVE { background: rgba(16, 185, 129, 0.15); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.3); }
+        .modality-status-pill.WARNING { background: rgba(245, 158, 11, 0.15); color: var(--warning); border: 1px solid rgba(245, 158, 11, 0.3); }
+        .modality-status-pill.DANGER { background: rgba(239, 68, 68, 0.15); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.3); }
+        .modality-status-pill.IDLE { background: rgba(148, 163, 184, 0.15); color: var(--text-muted); border: 1px solid rgba(148, 163, 184, 0.2); }
+
+        .modality-title-group h3 {
+            font-size: 17px;
+            font-weight: 600;
+            color: var(--text-main);
+            margin-bottom: 2px;
+        }
+        .modality-title-group small {
+            font-size: 12px;
+            color: var(--text-muted);
+            display: block;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .modality-stats-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            background: rgba(15, 23, 42, 0.6);
+            border-radius: 8px;
+            padding: 8px 10px;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.04);
+        }
+        .modality-stat-item .num {
+            font-size: 16px;
+            font-weight: 700;
+            display: block;
+        }
+        .modality-stat-item .lbl {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .modality-card-footer {
+            display: flex;
+            gap: 6px;
+            margin-top: 4px;
+            padding-top: 8px;
+            border-top: 1px solid rgba(255,255,255,0.06);
+        }
+        .modality-btn {
+            flex: 1;
+            padding: 6px 8px;
+            font-size: 12px;
+            font-weight: 500;
+            border-radius: 6px;
+            border: 1px solid var(--card-border);
+            background: rgba(255,255,255,0.04);
+            color: var(--text-main);
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+        .modality-btn:hover {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: #fff;
+        }
+        .modality-btn-primary {
+            background: rgba(59, 130, 246, 0.15);
+            border-color: rgba(59, 130, 246, 0.3);
+            color: var(--primary);
+        }
+        .modality-btn-primary:hover {
+            background: var(--primary);
+            color: #fff;
+        }
+
+        .modality-focus-box {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 14px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
     </style>
 </head>
 <body>
@@ -381,7 +585,7 @@
             <div class="logo-icon">D</div>
             <div>
                 <h1>DICOM Gateway Service</h1>
-                <small style="color: var(--text-muted);">Web Control Panel</small>
+                <small style="color: var(--text-muted);">Medical Modalities & Operations Hub</small>
             </div>
         </div>
         <div class="status-badge" id="service-status-badge">
@@ -392,7 +596,7 @@
 
     <main>
         <div class="tabs">
-            <button class="tab-btn active" onclick="switchTab('dashboard', this)">📊 Tổng quan</button>
+            <button class="tab-btn active" onclick="switchTab('dashboard', this)">🎛️ Modalities Hub</button>
             <button class="tab-btn" onclick="switchTab('worklist', this)">📋 RIS Worklist</button>
             <button class="tab-btn" onclick="switchTab('upload', this)">📤 Tải lên & Đẩy PACS</button>
             <button class="tab-btn" onclick="switchTab('history', this)">📜 Lịch sử Ca Khám</button>
@@ -401,40 +605,125 @@
             <button class="tab-btn" onclick="switchTab('logs', this)">📜 Nhật ký Log</button>
         </div>
 
-        <!-- Tab 1: Dashboard -->
+        <!-- Tab 1: Dashboard / Modality Operations Hub -->
         <div id="tab-dashboard" class="tab-content active">
-            <div class="grid-4">
-                <div class="card stat-card">
-                    <span class="stat-label">Đã gửi PACS thành công</span>
-                    <span class="stat-val processed" id="stat-processed">0</span>
+            <!-- Modality Top KPI Summary Bar -->
+            <div class="modality-kpi-bar">
+                <div class="modality-kpi-card">
+                    <div class="modality-kpi-icon" style="background: rgba(59, 130, 246, 0.15); color: #3b82f6;">📊</div>
+                    <div>
+                        <div style="font-size: 12px; color: var(--text-muted); text-transform: uppercase;">Ca Chụp Hôm Nay</div>
+                        <div style="font-size: 24px; font-weight: 700; color: var(--text-main);" id="kpi-today-count">0</div>
+                        <div style="font-size: 11px; color: var(--success);" id="kpi-success-rate">Tỷ lệ: 100% Thành công</div>
+                    </div>
                 </div>
-                <div class="card stat-card">
-                    <span class="stat-label">Đang chờ thử lại (Retry)</span>
-                    <span class="stat-val retry" id="stat-retry">0</span>
+                <div class="modality-kpi-card">
+                    <div class="modality-kpi-icon" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">🏥</div>
+                    <div>
+                        <div style="font-size: 12px; color: var(--text-muted); text-transform: uppercase;">Phân Hệ Kích Hoạt</div>
+                        <div style="font-size: 24px; font-weight: 700; color: var(--success);" id="kpi-active-modalities">0 / 9</div>
+                        <div style="font-size: 11px; color: var(--text-muted);">Sẵn sàng tiếp nhận ảnh</div>
+                    </div>
                 </div>
-                <div class="card stat-card">
-                    <span class="stat-label">File lỗi (Failed)</span>
-                    <span class="stat-val failed" id="stat-failed">0</span>
+                <div class="modality-kpi-card">
+                    <div class="modality-kpi-icon" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b;">⏳</div>
+                    <div>
+                        <div style="font-size: 12px; color: var(--text-muted); text-transform: uppercase;">Hàng Đợi Chờ Gửi</div>
+                        <div style="font-size: 24px; font-weight: 700; color: var(--warning);" id="kpi-retry-count">0</div>
+                        <div style="font-size: 11px; color: var(--text-muted);" id="kpi-retry-subtext">0 ca cần thử lại</div>
+                    </div>
                 </div>
-                <div class="card stat-card">
-                    <span class="stat-label">File trùng (Duplicates)</span>
-                    <span class="stat-val duplicates" id="stat-duplicates">0</span>
+                <div class="modality-kpi-card">
+                    <div class="modality-kpi-icon" style="background: rgba(139, 92, 246, 0.15); color: #8b5cf6;">🗄️</div>
+                    <div>
+                        <div style="font-size: 12px; color: var(--text-muted); text-transform: uppercase;">Lưu Trữ PACS (All-Time)</div>
+                        <div style="font-size: 24px; font-weight: 700; color: #a78bfa;" id="kpi-alltime-count">0</div>
+                        <div style="font-size: 11px; color: var(--text-muted);">Tổng ca đã hoàn tất</div>
+                    </div>
                 </div>
             </div>
 
+            <!-- Modality Operations Fleet Grid -->
             <div class="card" style="margin-bottom: 1.5rem;">
                 <div class="section-title">
-                    <span>⚡ Thao tác nhanh</span>
+                    <span>🎛️ Ma Trận Thiết Bị & Chuyên Khoa (Modality Fleet Grid)</span>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="btn btn-outline" onclick="fetchModalitySummary()" style="padding: 6px 12px; font-size: 13px;">🔄 Làm Mới Trạng Thái</button>
+                        <button class="btn btn-outline" onclick="triggerRetry()" style="padding: 6px 12px; font-size: 13px;">🔁 Thử Lại Toàn Bộ</button>
+                    </div>
                 </div>
-                <div style="display: flex; gap: 1rem;">
-                    <button class="btn btn-outline" onclick="fetchStatus()">🔄 Cập nhật thống kê</button>
-                    <button class="btn btn-outline" onclick="triggerRetry()">🔁 Thử lại ngay các file kẹt</button>
+                <div id="modality-grid-container" class="modality-grid">
+                    <!-- Dynamic Modality Cards loaded via JS -->
+                    <div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 2rem;">
+                        ⏳ Đang tải dữ liệu trạng thái các Modality...
+                    </div>
                 </div>
             </div>
 
+            <!-- Modality Focus Detail Panel -->
+            <div id="modality-focus-panel" class="modality-focus-box" style="display: none;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; border-bottom: 1px solid var(--card-border); padding-bottom: 0.75rem;">
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span id="focus-mod-icon" style="font-size: 24px;">🩺</span>
+                            <h3 id="focus-mod-title" style="font-size: 18px; font-weight: 700; color: var(--text-main);">Siêu Âm (US)</h3>
+                            <span id="focus-mod-status" class="modality-status-pill ACTIVE">ACTIVE</span>
+                        </div>
+                        <p id="focus-mod-desc" style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">
+                            SOP Class: Ultrasound Image Storage (1.2.840.10008.5.1.4.1.1.6.1) | Thư mục: ./data/inbox
+                        </p>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="btn" id="focus-btn-worklist" style="padding: 6px 14px; font-size: 13px;">📋 Xem Worklist</button>
+                        <button class="btn btn-outline" id="focus-btn-upload" style="padding: 6px 14px; font-size: 13px;">📤 Đẩy Ca Mới</button>
+                        <button class="btn btn-outline" onclick="closeModalityFocus()" style="padding: 6px 10px; font-size: 13px;">✕</button>
+                    </div>
+                </div>
+
+                <div>
+                    <h4 style="font-size: 14px; font-weight: 600; margin-bottom: 0.75rem; color: var(--text-muted);">
+                        📋 Danh sách ca chụp gần nhất thuộc phân hệ này (Mới nhất ở đầu):
+                    </h4>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Thời Gian</th>
+                                    <th>Mã Bệnh Nhân</th>
+                                    <th>Họ và Tên</th>
+                                    <th>Số Chỉ Định</th>
+                                    <th>Tên Dịch Vụ</th>
+                                    <th>Trạng Thái</th>
+                                </tr>
+                            </thead>
+                            <tbody id="focus-studies-body">
+                                <tr>
+                                    <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">
+                                        Chưa có ca chụp nào được ghi nhận cho Modality này hôm nay.
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Target Connection Info -->
             <div class="card">
-                <div class="section-title">📌 PACS Đích hiện tại</div>
-                <p id="pacs-target-info" style="color: var(--text-muted); font-size: 15px;">Đang tải...</p>
+                <div class="section-title">
+                    <span>📌 Thông Tin Kết Nối Y Tế Đích</span>
+                    <span class="status-badge" style="padding: 4px 10px; font-size: 12px;">Dual-NIC Isolated</span>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; font-size: 14px; color: var(--text-muted);">
+                    <div>
+                        <strong style="color: var(--text-main);">🏥 PACS Server Đích:</strong>
+                        <div id="pacs-target-info" style="margin-top: 4px;">Đang tải...</div>
+                    </div>
+                    <div>
+                        <strong style="color: var(--text-main);">📋 RIS Modality Worklist:</strong>
+                        <div id="ris-target-info" style="margin-top: 4px;">Đang tải...</div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -473,12 +762,19 @@
                         <label style="font-size: 12px; margin-bottom: 4px; display: block; color: var(--text-muted);">Loại Thiết Bị (Modality)</label>
                         <select id="wl-search-modality" class="form-control" style="padding: 6px 10px; font-size: 13px;">
                             <option value="">Tất cả Modality</option>
-                            <option value="CR">CR - X-quang</option>
                             <option value="US">US - Siêu âm</option>
-                            <option value="ECG">ECG - Điện tim</option>
                             <option value="ES">ES - Nội soi</option>
-                            <option value="PFT">PFT - Đo hô hấp</option>
-                            <option value="BD">BD - Đo loãng xương</option>
+                            <option value="ECG">ECG - Điện tâm đồ</option>
+                            <option value="EEG">EEG - Điện não đồ</option>
+                            <option value="EMG">EMG - Điện cơ</option>
+                            <option value="BD">BD - Đo loãng xương (DEXA)</option>
+                            <option value="MR">MR - Cộng hưởng từ (MRI)</option>
+                            <option value="CT">CT - Cắt lớp vi tính</option>
+                            <option value="DR">DR - X-quang số trực tiếp</option>
+                            <option value="CR">CR - X-quang KTS</option>
+                            <option value="PFT">PFT - Đo chức năng hô hấp</option>
+                            <option value="DOC">DOC - Báo cáo PDF</option>
+                            <option value="OT">OT - Cận lâm sàng khác</option>
                         </select>
                     </div>
                     <button class="btn" onclick="fetchWorklist()" style="padding: 7px 18px; font-size: 13px; white-space: nowrap;">
@@ -489,29 +785,32 @@
 
             <div class="card">
                 <div class="section-title">
-                    <span>📋 Danh sách ca chỉ định từ RIS</span>
+                    <span>📋 Danh sách ca chỉ định từ RIS (Mới nhất ở đầu)</span>
                     <span style="font-size: 13px; color: var(--text-muted);" id="wl-count-text">0 ca</span>
                 </div>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Mã Bệnh Nhân</th>
-                            <th>Họ và Tên</th>
-                            <th>Ngày Sinh / GT</th>
-                            <th>Số Chỉ Định</th>
-                            <th>Tên Dịch Vụ Khám</th>
-                            <th>Modality</th>
-                            <th>Thao tác</th>
-                        </tr>
-                    </thead>
-                    <tbody id="worklist-table-body">
-                        <tr>
-                            <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 2rem;">
-                                Bấm nút "Load Worklist từ RIS" để tải danh sách chỉ định ca khám.
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Thời Gian Chỉ Định</th>
+                                <th>Mã Bệnh Nhân</th>
+                                <th>Họ và Tên</th>
+                                <th>Ngày Sinh / GT</th>
+                                <th>Số Chỉ Định</th>
+                                <th>Tên Dịch Vụ Khám</th>
+                                <th>Modality</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="worklist-table-body">
+                            <tr>
+                                <td colspan="8" style="text-align: center; color: var(--text-muted); padding: 2rem;">
+                                    Bấm nút "Load Worklist từ RIS" để tải danh sách chỉ định ca khám.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
 
@@ -580,14 +879,20 @@
                         <select id="manual-service-preset" class="form-control" onchange="applyServicePreset()">
                             <option value="">-- Chọn loại dịch vụ mẫu --</option>
                             <option value="Sieu am o bung tong quat|US">Siêu âm ổ bụng tổng quát (US)</option>
-                            <option value="Sieu am tim mau|US">Siêu âm tim màu (US)</option>
-                            <option value="Sieu am giap - vu|US">Siêu âm tuyến giáp / vú (US)</option>
-                            <option value="Dien tim thuong|ECG">Điện tâm đồ (ECG)</option>
-                            <option value="X-quang nguc thang|CR">X-quang ngực thẳng (CR)</option>
-                            <option value="Noi soi da day|ES">Nội soi dạ dày (ES)</option>
-                            <option value="Do chuc nang ho hap|PFT">Đo chức năng hô hấp (PFT)</option>
-                            <option value="Do mat do xuong|BD">Đo mật độ xương (BD)</option>
-                            <option value="Bao cao ket qua PDF|DOC">Báo cáo kết quả PDF (DOC)</option>
+                            <option value="Sieu am tim Doppler mau|US">Siêu âm tim Doppler màu (US)</option>
+                            <option value="Sieu am tuyen giap - vu|US">Siêu âm tuyến giáp / vú (US)</option>
+                            <option value="Noi soi da day - dai trang|ES">Nội soi dạ dày - đại tràng (ES)</option>
+                            <option value="Dien tim thuong 12 chuyen dao|ECG">Điện tâm đồ 12 chuyển đạo (ECG)</option>
+                            <option value="Dien nao do vi tinh (EEG)|EEG">Điện não đồ vi tính (EEG)</option>
+                            <option value="Dien co va dan truyen than kinh (EMG)|EMG">Điện cơ & Dẫn truyền thần kinh (EMG)</option>
+                            <option value="Do mat do xuong toan than DEXA|BD">Đo loãng xương toàn thân DEXA (BD)</option>
+                            <option value="Chup cong huong tu (MRI)|MR">Chụp cộng hưởng từ MRI (MR)</option>
+                            <option value="Chup cat lop vi tinh CT Scanner|CT">Chụp cắt lớp vi tính CT Scanner (CT)</option>
+                            <option value="X-quang so truc tiep (DR)|DR">X-quang số trực tiếp (DR)</option>
+                            <option value="X-quang nguc thang (CR)|CR">X-quang ngực thẳng (CR)</option>
+                            <option value="Do chuc nang ho hap (PFT)|PFT">Đo chức năng hô hấp (PFT)</option>
+                            <option value="Bao cao ket qua chan doan PDF|DOC">Báo cáo kết quả PDF (DOC)</option>
+                            <option value="Dich vu can lam sang khac|OT">Dịch vụ cận lâm sàng khác (OT)</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -598,14 +903,18 @@
                         <label>Loại Thiết Bị (Modality)</label>
                         <select id="manual-modality" class="form-control">
                             <option value="">Tự động (Tự nhận dạng)</option>
-                            <option value="CR">CR - X-quang kỹ thuật số (Computed Radiography)</option>
-                            <option value="DX">DX - X-quang số trực tiếp (Digital Radiography)</option>
-                            <option value="ES">ES - Nội soi (Endoscopy)</option>
                             <option value="US">US - Siêu âm (Ultrasound)</option>
+                            <option value="ES">ES - Nội soi (Endoscopy)</option>
                             <option value="ECG">ECG - Điện tâm đồ (Electrocardiogram)</option>
+                            <option value="EEG">EEG - Điện não đồ (Electroencephalogram)</option>
+                            <option value="EMG">EMG - Điện cơ (Electromyogram)</option>
+                            <option value="BD">BD - Đo loãng xương (Bone Density / DEXA)</option>
+                            <option value="MR">MR - Cộng hưởng từ (Magnetic Resonance)</option>
+                            <option value="CT">CT - Cắt lớp vi tính (Computed Tomography)</option>
+                            <option value="DR">DR - X-quang số trực tiếp (Digital Radiography)</option>
+                            <option value="CR">CR - X-quang kỹ thuật số (Computed Radiography)</option>
                             <option value="PFT">PFT - Đo chức năng hô hấp (Pulmonary Function Test)</option>
-                            <option value="BD">BD - Đo loãng xương (Bone Density)</option>
-                            <option value="DOC">DOC - Tài liệu PDF</option>
+                            <option value="DOC">DOC - Tài liệu / Báo cáo PDF</option>
                             <option value="OT">OT - Khác (Other)</option>
                         </select>
                     </div>
@@ -630,7 +939,7 @@
         <div id="tab-history" class="tab-content">
             <div class="card" style="margin-bottom: 1.5rem;">
                 <div class="section-title">
-                    <span>📜 Lịch sử & Trạng thái Ca Khám</span>
+                    <span>📜 Lịch sử & Trạng thái Ca Khám (Mới nhất ở đầu)</span>
                     <button class="btn btn-outline" onclick="fetchStudiesHistory()">🔄 Làm mới</button>
                 </div>
                 <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
@@ -647,27 +956,29 @@
             </div>
 
             <div class="card">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Thời gian</th>
-                            <th>Mã BN</th>
-                            <th>Họ và Tên</th>
-                            <th>Tên Dịch Vụ Khám</th>
-                            <th>Số Chỉ Định</th>
-                            <th>Modality</th>
-                            <th>Trạng Thái</th>
-                            <th>SOPInstanceUID / Ghi chú</th>
-                        </tr>
-                    </thead>
-                    <tbody id="history-table-body">
-                        <tr>
-                            <td colspan="8" style="text-align: center; color: var(--text-muted); padding: 2rem;">
-                                Đang tải danh sách lịch sử ca khám...
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Thời Gian</th>
+                                <th>Mã BN</th>
+                                <th>Họ và Tên</th>
+                                <th>Tên Dịch Vụ Khám</th>
+                                <th>Số Chỉ Định</th>
+                                <th>Modality</th>
+                                <th>Trạng Thái</th>
+                                <th>SOPInstanceUID / Ghi chú</th>
+                            </tr>
+                        </thead>
+                        <tbody id="history-table-body">
+                            <tr>
+                                <td colspan="8" style="text-align: center; color: var(--text-muted); padding: 2rem;">
+                                    Đang tải danh sách lịch sử ca khám...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
 
@@ -742,31 +1053,39 @@
                     Mỗi thư mục đại diện cho một thiết bị y tế. Gán mã Modality tương ứng để PACS phân loại đúng dịch vụ khám (Siêu âm, Hô hấp, Loãng xương...).
                 </p>
 
-                <table id="folders-table">
-                    <thead>
-                        <tr>
-                            <th>Đường dẫn thư mục</th>
-                            <th>Mã Modality</th>
-                            <th>Thao tác</th>
-                        </tr>
-                    </thead>
-                    <tbody id="folders-list">
-                        <!-- Rendered by JS -->
-                    </tbody>
-                </table>
+                <div class="table-responsive">
+                    <table id="folders-table">
+                        <thead>
+                            <tr>
+                                <th>Đường dẫn thư mục</th>
+                                <th>Mã Modality</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="folders-list">
+                            <!-- Rendered by JS -->
+                        </tbody>
+                    </table>
+                </div>
 
                 <div style="margin-top: 1.5rem; background-color: var(--input-bg); padding: 1rem; border-radius: 8px; border: 1px dashed var(--card-border);">
                     <h4 style="font-size: 14px; margin-bottom: 0.8rem;">➕ Thêm thư mục theo dõi mới</h4>
                     <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                         <input type="text" id="new-folder-path" class="form-control" style="flex: 1; min-width: 250px;" placeholder="Ví dụ: D:/May_SieuAm/Output">
-                        <select id="new-folder-modality" class="form-control" style="width: 200px;">
-                            <option value="US">US - Siêu âm (Ultrasound)</option>
-                            <option value="BD">BD - Đo loãng xương (Bone Density)</option>
-                            <option value="RESP">RESP - Thăm dò hô hấp</option>
+                        <select id="new-folder-modality" class="form-control" style="width: 220px;">
+                            <option value="US">US - Siêu âm</option>
+                            <option value="ES">ES - Nội soi</option>
                             <option value="ECG">ECG - Điện tâm đồ</option>
-                            <option value="ES">ES - Nội soi (Endoscopy)</option>
-                            <option value="DX">DX - X-quang kỹ thuật số</option>
-                            <option value="OT">OT - Loại khác (Other)</option>
+                            <option value="EEG">EEG - Điện não đồ</option>
+                            <option value="EMG">EMG - Điện cơ</option>
+                            <option value="BD">BD - Đo loãng xương (DEXA)</option>
+                            <option value="MR">MR - Cộng hưởng từ (MRI)</option>
+                            <option value="CT">CT - Cắt lớp vi tính</option>
+                            <option value="DR">DR - X-quang số trực tiếp</option>
+                            <option value="CR">CR - X-quang kỹ thuật số</option>
+                            <option value="PFT">PFT - Đo chức năng hô hấp</option>
+                            <option value="DOC">DOC - Báo cáo PDF</option>
+                            <option value="OT">OT - Cận lâm sàng khác</option>
                         </select>
                         <button class="btn" onclick="addWatchFolder()">Thêm vào danh sách</button>
                     </div>
@@ -796,6 +1115,8 @@
 
     <script>
         let currentConfig = null;
+        let currentModalitiesData = [];
+        let activeFocusModality = null;
 
         function showToast(message, isSuccess = true) {
             const toast = document.getElementById('toast');
@@ -826,7 +1147,10 @@
                 btnElement.classList.add('active');
             }
 
-            if (tabId === 'logs') {
+            if (tabId === 'dashboard') {
+                fetchModalitySummary();
+                fetchStatus();
+            } else if (tabId === 'logs') {
                 fetchLogs();
             } else if (tabId === 'history') {
                 fetchStudiesHistory();
@@ -835,16 +1159,230 @@
             }
         }
 
+        async function fetchModalitySummary() {
+            try {
+                const res = await fetch('/api/modalities/summary');
+                const data = await res.json();
+                if (data.success) {
+                    currentModalitiesData = data.modalities || [];
+                    renderModalityKPIs(data.summary);
+                    renderModalityGrid(currentModalitiesData);
+                    if (activeFocusModality) {
+                        updateModalityFocus(activeFocusModality);
+                    }
+                }
+            } catch (err) {
+                console.error('Error fetching modality summary:', err);
+            }
+        }
+
+        function renderModalityKPIs(summary) {
+            if (!summary) return;
+            if (document.getElementById('kpi-today-count')) {
+                document.getElementById('kpi-today-count').innerText = summary.total_studies_today || 0;
+            }
+            if (document.getElementById('kpi-success-rate')) {
+                document.getElementById('kpi-success-rate').innerText = `Tỷ lệ: ${summary.success_rate_percent}% Thành công`;
+            }
+            if (document.getElementById('kpi-active-modalities')) {
+                document.getElementById('kpi-active-modalities').innerText = `${summary.active_modalities_count} / ${summary.total_modalities_count}`;
+            }
+            if (document.getElementById('kpi-retry-count')) {
+                document.getElementById('kpi-retry-count').innerText = summary.retrying_studies_today || 0;
+            }
+            if (document.getElementById('kpi-retry-subtext')) {
+                document.getElementById('kpi-retry-subtext').innerText = `${summary.retrying_studies_today || 0} ca chờ retry`;
+            }
+        }
+
+        function renderModalityGrid(modalities) {
+            const container = document.getElementById('modality-grid-container');
+            if (!container) return;
+            container.innerHTML = '';
+
+            modalities.forEach(mod => {
+                const card = document.createElement('div');
+                card.className = `modality-card ${activeFocusModality === mod.code ? 'selected' : ''}`;
+                card.onclick = (e) => {
+                    if (e.target.tagName !== 'BUTTON') {
+                        selectModalityFocus(mod.code);
+                    }
+                };
+
+                const today = mod.stats_today || { total: 0, success: 0, retrying: 0, failed: 0 };
+                const lastSeen = mod.last_activity ? formatRelativeTime(mod.last_activity) : 'Chưa có ca hôm nay';
+
+                card.innerHTML = `
+                    <div class="modality-card-header">
+                        <span class="modality-badge-code" style="background: ${mod.color}20; color: ${mod.color}; border: 1px solid ${mod.color}40;">
+                            ${mod.icon} ${mod.code}
+                        </span>
+                        <span class="modality-status-pill ${mod.status}">${mod.status}</span>
+                    </div>
+                    <div class="modality-title-group">
+                        <h3>${mod.name_vi}</h3>
+                        <small>${mod.sop_name}</small>
+                    </div>
+                    <div class="modality-stats-row">
+                        <div class="modality-stat-item">
+                            <span class="num" style="color: var(--success);">${today.success}</span>
+                            <span class="lbl">Thành công</span>
+                        </div>
+                        <div class="modality-stat-item">
+                            <span class="num" style="color: var(--warning);">${today.retrying}</span>
+                            <span class="lbl">Retry</span>
+                        </div>
+                        <div class="modality-stat-item">
+                            <span class="num" style="color: var(--danger);">${today.failed}</span>
+                            <span class="lbl">Lỗi</span>
+                        </div>
+                    </div>
+                    <div style="font-size: 12px; color: var(--text-muted); display: flex; align-items: center; gap: 4px;">
+                        <span>⏱️ Gần nhất:</span>
+                        <strong style="color: var(--text-main);">${lastSeen}</strong>
+                    </div>
+                    <div class="modality-card-footer">
+                        <button class="modality-btn modality-btn-primary" onclick="quickFilterWorklist('${mod.code}')" title="Xem danh sách ca chờ chỉ định của ${mod.name_vi}">
+                            📋 Worklist
+                        </button>
+                        <button class="modality-btn" onclick="quickUploadForModality('${mod.code}')" title="Đẩy ca nhanh cho ${mod.name_vi}">
+                            📤 Đẩy Ca
+                        </button>
+                        <button class="modality-btn" onclick="selectModalityFocus('${mod.code}')" title="Xem chi tiết thiết bị">
+                            🔍 Chi Tiết
+                        </button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function selectModalityFocus(modCode) {
+            activeFocusModality = modCode;
+            renderModalityGrid(currentModalitiesData);
+            updateModalityFocus(modCode);
+        }
+
+        async function updateModalityFocus(modCode) {
+            const mod = currentModalitiesData.find(m => m.code === modCode);
+            if (!mod) return;
+
+            const panel = document.getElementById('modality-focus-panel');
+            if (!panel) return;
+            panel.style.display = 'block';
+            document.getElementById('focus-mod-icon').innerText = mod.icon;
+            document.getElementById('focus-mod-title').innerText = `${mod.name_vi} (${mod.code})`;
+            
+            const statusPill = document.getElementById('focus-mod-status');
+            statusPill.className = `modality-status-pill ${mod.status}`;
+            statusPill.innerText = mod.status;
+
+            const folderStr = (mod.watch_folders && mod.watch_folders.length > 0) ? mod.watch_folders.join(', ') : 'Chưa gán thư mục riêng (Nhận qua Client Agent / Web)';
+            document.getElementById('focus-mod-desc').innerText = `SOP Class: ${mod.sop_name} (${mod.sop_class}) | Thư mục: ${folderStr}`;
+
+            document.getElementById('focus-btn-worklist').onclick = () => quickFilterWorklist(mod.code);
+            document.getElementById('focus-btn-upload').onclick = () => quickUploadForModality(mod.code);
+
+            try {
+                const res = await fetch(`/api/studies?status=ALL`);
+                const data = await res.json();
+                const tbody = document.getElementById('focus-studies-body');
+                tbody.innerHTML = '';
+
+                const modStudies = (data.studies || []).filter(s => (s.modality || '').toUpperCase() === modCode).slice(0, 5);
+                if (modStudies.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">Chưa có ca nào thuộc Modality ${modCode}.</td></tr>`;
+                } else {
+                    modStudies.forEach(s => {
+                        const tr = document.createElement('tr');
+                        let statusBadge = '<span class="badge" style="background: rgba(16, 185, 129, 0.15); color: var(--success);">🟢 Thành công</span>';
+                        if (s.status === 'RETRYING') statusBadge = '<span class="badge" style="background: rgba(245, 158, 11, 0.15); color: var(--warning);">🟠 Đang thử lại</span>';
+                        else if (s.status === 'FAILED') statusBadge = '<span class="badge" style="background: rgba(239, 68, 68, 0.15); color: var(--danger);">🔴 Thất bại</span>';
+
+                        tr.innerHTML = `
+                            <td><strong style="color: var(--text-main); font-size: 12.5px;">${formatRelativeTime(s.created_at)}</strong></td>
+                            <td><strong>${s.patient_id || 'N/A'}</strong></td>
+                            <td>${s.patient_name || 'N/A'}</td>
+                            <td>${s.accession_number || 'N/A'}</td>
+                            <td class="truncate-cell" title="${s.study_description || mod.default_service || 'N/A'}">${s.study_description || mod.default_service || 'N/A'}</td>
+                            <td>${statusBadge}</td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                }
+            } catch (err) {
+                console.error('Error fetching modality studies:', err);
+            }
+        }
+
+        function closeModalityFocus() {
+            activeFocusModality = null;
+            document.getElementById('modality-focus-panel').style.display = 'none';
+            renderModalityGrid(currentModalitiesData);
+        }
+
+        function quickFilterWorklist(modCode) {
+            const wlTabBtn = Array.from(document.querySelectorAll('.tab-btn')).find(b => b.innerText.includes('Worklist'));
+            switchTab('worklist', wlTabBtn);
+            const modSelect = document.getElementById('wl-search-modality');
+            if (modSelect) {
+                modSelect.value = modCode;
+            }
+            fetchWorklist();
+            showToast(`Đã nạp danh sách Worklist cho Modality [${modCode}]`);
+        }
+
+        function quickUploadForModality(modCode) {
+            const uploadTabBtn = Array.from(document.querySelectorAll('.tab-btn')).find(b => b.innerText.includes('Tải lên'));
+            switchTab('upload', uploadTabBtn);
+            const modSelect = document.getElementById('manual-modality');
+            if (modSelect) {
+                modSelect.value = modCode;
+            }
+            const presetSelect = document.getElementById('manual-service-preset');
+            if (presetSelect) {
+                for (let i = 0; i < presetSelect.options.length; i++) {
+                    if (presetSelect.options[i].value.endsWith(`|${modCode}`)) {
+                        presetSelect.selectedIndex = i;
+                        applyServicePreset();
+                        break;
+                    }
+                }
+            }
+            showToast(`Đã sẵn sàng tải lên file cho Modality [${modCode}]`);
+        }
+
+        function formatRelativeTime(isoStr) {
+            if (!isoStr) return '';
+            try {
+                const d = new Date(isoStr);
+                const now = new Date();
+                const diffMs = now - d;
+                const diffMins = Math.floor(diffMs / 60000);
+                if (diffMins < 1) return 'Vừa xong';
+                if (diffMins < 60) return `${diffMins} phút trước`;
+                const diffHours = Math.floor(diffMins / 60);
+                if (diffHours < 24) return `${diffHours} giờ trước`;
+                return d.toLocaleDateString('vi-VN') + ' ' + d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+            } catch {
+                return isoStr;
+            }
+        }
+
         async function fetchStatus() {
             try {
                 const res = await fetch('/api/status');
                 const data = await res.json();
                 
-                document.getElementById('stat-processed').innerText = data.stats.processed_count || 0;
-                document.getElementById('stat-retry').innerText = data.stats.retry_count || 0;
-                document.getElementById('stat-failed').innerText = data.stats.failed_count || 0;
-                document.getElementById('stat-duplicates').innerText = data.stats.duplicates_count || 0;
-                document.getElementById('pacs-target-info').innerText = data.pacs_target;
+                if (document.getElementById('pacs-target-info')) {
+                    document.getElementById('pacs-target-info').innerText = data.pacs_target || 'Chưa cấu hình';
+                }
+                if (document.getElementById('ris-target-info')) {
+                    document.getElementById('ris-target-info').innerText = data.ris_enabled ? 'Đang kích hoạt (C-FIND sẵn sàng)' : 'Đang tắt trong config.yaml';
+                }
+                if (document.getElementById('kpi-alltime-count')) {
+                    document.getElementById('kpi-alltime-count').innerText = data.stats ? (data.stats.processed_count || 0) : 0;
+                }
             } catch (err) {
                 console.error('Error fetching status:', err);
             }
@@ -1264,7 +1802,7 @@
             if (modalityVal) params.append('modality', modalityVal);
 
             const tbody = document.getElementById('worklist-table-body');
-            tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 2rem;">⏳ Đang truy vấn RIS Worklist Server...</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: var(--text-muted); padding: 2rem;">⏳ Đang truy vấn RIS Worklist Server...</td></tr>';
 
             try {
                 const res = await fetch('/api/worklist?' + params.toString());
@@ -1278,7 +1816,7 @@
                 document.getElementById('wl-count-text').innerText = `${items.length} ca`;
 
                 if (items.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 2rem;">Không tìm thấy ca chỉ định nào khớp với điều kiện tìm kiếm.</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: var(--text-muted); padding: 2rem;">Không tìm thấy ca chỉ định nào khớp với điều kiện tìm kiếm.</td></tr>';
                     return;
                 }
 
@@ -1286,12 +1824,33 @@
                 items.forEach(item => {
                     const tr = document.createElement('tr');
                     const itemJson = JSON.stringify(item).replace(/'/g, "&apos;").replace(/"/g, '&quot;');
+
+                    let datePart = '';
+                    if (item.scheduled_date && item.scheduled_date.length === 8) {
+                        datePart = `${item.scheduled_date.substring(6, 8)}/${item.scheduled_date.substring(4, 6)}/${item.scheduled_date.substring(0, 4)}`;
+                    } else if (item.scheduled_date) {
+                        datePart = item.scheduled_date;
+                    }
+
+                    let timePart = '';
+                    if (item.scheduled_time && item.scheduled_time.length >= 4) {
+                        timePart = `${item.scheduled_time.substring(0, 2)}:${item.scheduled_time.substring(2, 4)}`;
+                        if (item.scheduled_time.length >= 6) {
+                            timePart += `:${item.scheduled_time.substring(4, 6)}`;
+                        }
+                    } else if (item.scheduled_time) {
+                        timePart = item.scheduled_time;
+                    }
+
+                    const timeDisplay = (timePart ? `${timePart} ${datePart}` : datePart).trim() || '-';
+
                     tr.innerHTML = `
+                        <td><strong style="color: var(--text-main); font-size: 13px;">${timeDisplay}</strong></td>
                         <td><strong>${item.patient_id || '-'}</strong></td>
                         <td>${item.patient_name || '-'}</td>
                         <td>${item.patient_birth_date || '-'} (${item.patient_sex || '-'})</td>
                         <td>${item.accession_number || '-'}</td>
-                        <td>${item.study_description || 'Khám bệnh'}</td>
+                        <td class="truncate-cell" title="${item.study_description || 'Khám bệnh'}">${item.study_description || 'Khám bệnh'}</td>
                         <td><span class="modality-badge">${item.modality || 'OT'}</span></td>
                         <td>
                             <button class="btn" style="padding: 6px 14px; font-size: 12px; font-weight: 600;" onclick='selectWorklistItem(${itemJson})'>
@@ -1303,7 +1862,7 @@
                 });
             } catch (err) {
                 showToast('Lỗi kết nối khi tải RIS Worklist', false);
-                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--danger); padding: 2rem;">Lỗi kết nối RIS Server.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: var(--danger); padding: 2rem;">Lỗi kết nối RIS Server.</td></tr>';
             }
         }
 
@@ -1379,14 +1938,14 @@
                     const sopOrErr = s.sop_instance_uid ? `<code style="font-size: 11px; color: #38bdf8;">${s.sop_instance_uid}</code>` : (s.last_error || '-');
 
                     tr.innerHTML = `
-                        <td style="font-size: 12px; color: var(--text-muted);">${timeStr}</td>
+                        <td><strong style="color: var(--text-main); font-size: 13px;">${timeStr}</strong></td>
                         <td><strong>${s.patient_id || '-'}</strong></td>
                         <td>${s.patient_name || '-'}</td>
-                        <td>${s.study_description || '-'}</td>
+                        <td class="truncate-cell" title="${s.study_description || '-'}">${s.study_description || '-'}</td>
                         <td>${s.accession_number || '-'}</td>
                         <td><span class="modality-badge">${s.modality || 'OT'}</span></td>
                         <td>${statusBadge}</td>
-                        <td style="max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${sopOrErr}</td>
+                        <td class="truncate-cell" title="${s.sop_instance_uid || s.last_error || ''}">${sopOrErr}</td>
                     `;
                     tbody.appendChild(tr);
                 });
@@ -1404,8 +1963,12 @@
 
         // Init
         fetchStatus();
+        fetchModalitySummary();
         fetchConfig();
-        setInterval(fetchStatus, 5000);
+        setInterval(() => {
+            fetchStatus();
+            fetchModalitySummary();
+        }, 5000);
     </script>
 </body>
 </html>

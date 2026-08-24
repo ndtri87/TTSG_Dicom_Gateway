@@ -422,6 +422,123 @@ class ProcessedRegistry:
             rows = cur.fetchall()
             return [dict(row) for row in rows]
 
+    def get_modality_stats(self, date_str=None):
+        """Tổng hợp thống kê theo từng Modality (tổng ca, thành công, retry, lỗi, lần hoạt động cuối)."""
+        import re
+        if not date_str:
+            today_date = datetime.now().strftime('%Y%m%d')
+            today_iso = datetime.now().strftime('%Y-%m-%d')
+        else:
+            clean_date = re.sub(r'\D', '', str(date_str))
+            today_date = clean_date if len(clean_date) == 8 else date_str
+            today_iso = f"{clean_date[:4]}-{clean_date[4:6]}-{clean_date[6:8]}" if len(clean_date) == 8 else date_str
+
+        with self._lock:
+            # Lấy thống kê hôm nay
+            sql_today = """
+                SELECT 
+                    COALESCE(NULLIF(UPPER(TRIM(modality)), ''), 'OT') as mod_code,
+                    status,
+                    COUNT(*) as count,
+                    MAX(created_at) as last_seen
+                FROM studies
+                WHERE study_date = ? OR created_at LIKE ?
+                GROUP BY mod_code, status
+            """
+            cur = self._conn.execute(sql_today, (today_date, f"{today_iso}%"))
+            rows_today = cur.fetchall()
+
+            # Lấy thống kê toàn thời gian (All-Time)
+            sql_all = """
+                SELECT 
+                    COALESCE(NULLIF(UPPER(TRIM(modality)), ''), 'OT') as mod_code,
+                    status,
+                    COUNT(*) as count,
+                    MAX(created_at) as last_seen
+                FROM studies
+                GROUP BY mod_code, status
+            """
+            cur = self._conn.execute(sql_all)
+            rows_all = cur.fetchall()
+
+            # Lấy ca chụp gần nhất của từng modality
+            sql_recent = """
+                SELECT 
+                    s1.id, s1.modality, s1.patient_id, s1.patient_name, s1.accession_number,
+                    s1.study_description, s1.status, s1.created_at
+                FROM studies s1
+                INNER JOIN (
+                    SELECT COALESCE(NULLIF(UPPER(TRIM(modality)), ''), 'OT') as mod_code, MAX(id) as max_id
+                    FROM studies
+                    GROUP BY mod_code
+                ) s2 ON s1.id = s2.max_id
+            """
+            cur = self._conn.execute(sql_recent)
+            rows_recent = cur.fetchall()
+
+            stats = {}
+
+            def _get_entry(code):
+                if code not in stats:
+                    stats[code] = {
+                        'modality': code,
+                        'today': {'total': 0, 'success': 0, 'retrying': 0, 'failed': 0, 'duplicate': 0},
+                        'all_time': {'total': 0, 'success': 0, 'retrying': 0, 'failed': 0, 'duplicate': 0},
+                        'last_activity': None,
+                        'last_patient': None,
+                    }
+                return stats[code]
+
+            for r in rows_today:
+                code = r['mod_code']
+                status = str(r['status']).upper()
+                cnt = r['count']
+                entry = _get_entry(code)
+                entry['today']['total'] += cnt
+                if status == 'SUCCESS':
+                    entry['today']['success'] += cnt
+                elif status == 'RETRYING':
+                    entry['today']['retrying'] += cnt
+                elif status == 'FAILED':
+                    entry['today']['failed'] += cnt
+                elif status == 'DUPLICATE':
+                    entry['today']['duplicate'] += cnt
+
+                if r['last_seen'] and (not entry['last_activity'] or r['last_seen'] > entry['last_activity']):
+                    entry['last_activity'] = r['last_seen']
+
+            for r in rows_all:
+                code = r['mod_code']
+                status = str(r['status']).upper()
+                cnt = r['count']
+                entry = _get_entry(code)
+                entry['all_time']['total'] += cnt
+                if status == 'SUCCESS':
+                    entry['all_time']['success'] += cnt
+                elif status == 'RETRYING':
+                    entry['all_time']['retrying'] += cnt
+                elif status == 'FAILED':
+                    entry['all_time']['failed'] += cnt
+                elif status == 'DUPLICATE':
+                    entry['all_time']['duplicate'] += cnt
+
+                if r['last_seen'] and (not entry['last_activity'] or r['last_seen'] > entry['last_activity']):
+                    entry['last_activity'] = r['last_seen']
+
+            for r in rows_recent:
+                code = (r['modality'] or 'OT').strip().upper() or 'OT'
+                entry = _get_entry(code)
+                entry['last_patient'] = {
+                    'patient_id': r['patient_id'],
+                    'patient_name': r['patient_name'],
+                    'accession_number': r['accession_number'],
+                    'study_description': r['study_description'],
+                    'status': r['status'],
+                    'created_at': r['created_at'],
+                }
+
+            return stats
+
     def close(self):
         with self._lock:
             self._conn.close()

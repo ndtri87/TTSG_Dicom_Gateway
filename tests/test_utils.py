@@ -133,3 +133,27 @@ def test_load_config_missing_file_raises():
         assert False, "Kỳ vọng ConfigError"
     except ConfigError:
         pass
+
+
+def test_processed_registry_modality_stats():
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        db_path = os.path.join(tmp_dir, 'registry.sqlite3')
+        registry = ProcessedRegistry(db_path)
+        try:
+            registry.record_study('us_file.png', {'patient_id': 'BN01', 'patient_name': 'Nguyen A', 'modality': 'US'}, 'SUCCESS')
+            registry.record_study('es_file.png', {'patient_id': 'BN02', 'patient_name': 'Tran B', 'modality': 'ES'}, 'RETRYING')
+            registry.record_study('cr_file.png', {'patient_id': 'BN03', 'patient_name': 'Le C', 'modality': 'CR'}, 'FAILED')
+
+            stats = registry.get_modality_stats()
+            assert 'US' in stats
+            assert stats['US']['today']['success'] == 1
+            assert stats['US']['last_patient']['patient_id'] == 'BN01'
+
+            assert 'ES' in stats
+            assert stats['ES']['today']['retrying'] == 1
+
+            assert 'CR' in stats
+            assert stats['CR']['today']['failed'] == 1
+        finally:
+            registry.close()
+

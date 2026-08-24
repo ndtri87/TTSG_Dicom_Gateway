@@ -74,6 +74,217 @@ def api_status():
     })
 
 
+MODALITY_CATALOG = [
+    {
+        'code': 'US',
+        'name_vi': 'Siêu âm',
+        'name_en': 'Ultrasound',
+        'icon': '🩺',
+        'sop_class': '1.2.840.10008.5.1.4.1.1.6.1',
+        'sop_name': 'Ultrasound Image Storage',
+        'color': '#06b6d4',
+        'default_service': 'Siêu âm ổ bụng tổng quát',
+    },
+    {
+        'code': 'ES',
+        'name_vi': 'Nội soi',
+        'name_en': 'Endoscopy',
+        'icon': '🔬',
+        'sop_class': '1.2.840.10008.5.1.4.1.1.7',
+        'sop_name': 'Secondary Capture Image Storage',
+        'color': '#10b981',
+        'default_service': 'Nội soi dạ dày / đại tràng',
+    },
+    {
+        'code': 'ECG',
+        'name_vi': 'Điện tâm đồ',
+        'name_en': 'Electrocardiogram',
+        'icon': '🫀',
+        'sop_class': '1.2.840.10008.5.1.4.1.1.7',
+        'sop_name': 'Secondary Capture Image Storage',
+        'color': '#f43f5e',
+        'default_service': 'Điện tâm đồ thường 12 chuyển đạo',
+    },
+    {
+        'code': 'EEG',
+        'name_vi': 'Điện não đồ',
+        'name_en': 'Electroencephalogram',
+        'icon': '🧠',
+        'sop_class': '1.2.840.10008.5.1.4.1.1.7',
+        'sop_name': 'Secondary Capture Image Storage',
+        'color': '#d946ef',
+        'default_service': 'Điện não đồ vi tính (EEG)',
+    },
+    {
+        'code': 'EMG',
+        'name_vi': 'Điện cơ',
+        'name_en': 'Electromyogram',
+        'icon': '⚡',
+        'sop_class': '1.2.840.10008.5.1.4.1.1.7',
+        'sop_name': 'Secondary Capture Image Storage',
+        'color': '#0ea5e9',
+        'default_service': 'Điện cơ & Dẫn truyền thần kinh',
+    },
+    {
+        'code': 'BD',
+        'name_vi': 'Đo loãng xương',
+        'name_en': 'Bone Density / DEXA',
+        'icon': '🦴',
+        'sop_class': '1.2.840.10008.5.1.4.1.1.7',
+        'sop_name': 'Secondary Capture Image Storage',
+        'color': '#f59e0b',
+        'default_service': 'Đo mật độ xương DEXA',
+    },
+    {
+        'code': 'MR',
+        'name_vi': 'Cộng hưởng từ',
+        'name_en': 'Magnetic Resonance (MRI)',
+        'icon': '🧲',
+        'sop_class': '1.2.840.10008.5.1.4.1.1.4',
+        'sop_name': 'MR Image Storage',
+        'color': '#6366f1',
+        'default_service': 'Chụp cộng hưởng từ MRI',
+    },
+    {
+        'code': 'CT',
+        'name_vi': 'Cắt lớp vi tính',
+        'name_en': 'Computed Tomography (CT)',
+        'icon': '🌀',
+        'sop_class': '1.2.840.10008.5.1.4.1.1.2',
+        'sop_name': 'CT Image Storage',
+        'color': '#ec4899',
+        'default_service': 'Chụp cắt lớp vi tính CT Scanner',
+    },
+    {
+        'code': 'DR',
+        'name_vi': 'X-quang số trực tiếp',
+        'name_en': 'Digital Radiography (DR)',
+        'icon': '🩻',
+        'sop_class': '1.2.840.10008.5.1.4.1.1.1.1',
+        'sop_name': 'Digital X-Ray Image Storage',
+        'color': '#0284c7',
+        'default_service': 'X-quang số trực tiếp DR',
+    },
+    {
+        'code': 'CR',
+        'name_vi': 'X-quang kỹ thuật số',
+        'name_en': 'Computed Radiography (CR)',
+        'icon': '📷',
+        'sop_class': '1.2.840.10008.5.1.4.1.1.1',
+        'sop_name': 'CR Image Storage',
+        'color': '#3b82f6',
+        'default_service': 'X-quang ngực thẳng CR',
+    },
+    {
+        'code': 'PFT',
+        'name_vi': 'Đo chức năng hô hấp',
+        'name_en': 'Pulmonary Function Test',
+        'icon': '🫁',
+        'sop_class': '1.2.840.10008.5.1.4.1.1.7',
+        'sop_name': 'Secondary Capture Image Storage',
+        'color': '#8b5cf6',
+        'default_service': 'Đo dung tích phổi / Phế dung kế',
+    },
+    {
+        'code': 'DOC',
+        'name_vi': 'Báo cáo kết quả PDF',
+        'name_en': 'Encapsulated PDF Document',
+        'icon': '📄',
+        'sop_class': '1.2.840.10008.5.1.4.1.1.104.1',
+        'sop_name': 'Encapsulated PDF Storage',
+        'color': '#ea580c',
+        'default_service': 'Phiếu kết quả chẩn đoán PDF',
+    },
+    {
+        'code': 'OT',
+        'name_vi': 'Cận lâm sàng khác',
+        'name_en': 'Other Modality',
+        'icon': '⚙️',
+        'sop_class': '1.2.840.10008.5.1.4.1.1.7',
+        'sop_name': 'Secondary Capture Image Storage',
+        'color': '#64748b',
+        'default_service': 'Dịch vụ cận lâm sàng khác',
+    },
+]
+
+
+@app.route('/api/modalities/summary', methods=['GET'])
+def api_modalities_summary():
+    date_param = request.args.get('date', '').strip()
+    raw_stats = registry_ref.get_modality_stats(date_param) if registry_ref else {}
+    watch_folders = get_watch_folders_list(app_config) if app_config else []
+
+    folder_map = {}
+    for f in watch_folders:
+        mod = (f.get('modality') or 'OT').strip().upper()
+        if mod not in folder_map:
+            folder_map[mod] = []
+        folder_map[mod].append(f.get('path'))
+
+    modalities_list = []
+    total_today = 0
+    success_today = 0
+    retrying_today = 0
+    failed_today = 0
+    active_modalities = 0
+
+    for item in MODALITY_CATALOG:
+        code = item['code']
+        st = raw_stats.get(code, {
+            'today': {'total': 0, 'success': 0, 'retrying': 0, 'failed': 0, 'duplicate': 0},
+            'all_time': {'total': 0, 'success': 0, 'retrying': 0, 'failed': 0, 'duplicate': 0},
+            'last_activity': None,
+            'last_patient': None,
+        })
+
+        t_today = st['today']['total']
+        s_today = st['today']['success']
+        r_today = st['today']['retrying']
+        f_today = st['today']['failed']
+
+        total_today += t_today
+        success_today += s_today
+        retrying_today += r_today
+        failed_today += f_today
+
+        if t_today > 0 or st['all_time']['total'] > 0 or code in folder_map:
+            active_modalities += 1
+
+        status = 'IDLE'
+        if r_today > 0:
+            status = 'WARNING'
+        elif f_today > 0:
+            status = 'DANGER'
+        elif t_today > 0:
+            status = 'ACTIVE'
+
+        mod_entry = dict(item)
+        mod_entry['status'] = status
+        mod_entry['stats_today'] = st['today']
+        mod_entry['stats_all_time'] = st['all_time']
+        mod_entry['last_activity'] = st['last_activity']
+        mod_entry['last_patient'] = st['last_patient']
+        mod_entry['watch_folders'] = folder_map.get(code, [])
+        mod_entry['is_configured'] = code in folder_map
+        modalities_list.append(mod_entry)
+
+    success_rate = round((success_today / total_today * 100), 1) if total_today > 0 else 100.0
+
+    return jsonify({
+        'success': True,
+        'summary': {
+            'total_studies_today': total_today,
+            'success_studies_today': success_today,
+            'retrying_studies_today': retrying_today,
+            'failed_studies_today': failed_today,
+            'success_rate_percent': success_rate,
+            'active_modalities_count': active_modalities,
+            'total_modalities_count': len(MODALITY_CATALOG),
+        },
+        'modalities': modalities_list,
+    })
+
+
 @app.route('/api/config', methods=['GET'])
 def api_get_config():
     return jsonify(app_config)

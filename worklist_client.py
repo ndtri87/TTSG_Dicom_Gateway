@@ -123,12 +123,14 @@ class WorklistClient:
                     study_desc = getattr(identifier, 'StudyDescription', '') or ''
                     mod = ''
                     scheduled_date = ''
+                    scheduled_time = ''
                     if 'ScheduledProcedureStepSequence' in identifier and len(identifier.ScheduledProcedureStepSequence) > 0:
                         step = identifier.ScheduledProcedureStepSequence[0]
                         if not study_desc:
                             study_desc = getattr(step, 'ScheduledProcedureStepDescription', '') or getattr(step, 'ScheduledProcedureDescription', '')
                         mod = getattr(step, 'Modality', '')
                         scheduled_date = getattr(step, 'ScheduledProcedureStepStartDate', '') or ''
+                        scheduled_time = getattr(step, 'ScheduledProcedureStepStartTime', '') or ''
 
                     raw_pname = str(getattr(identifier, 'PatientName', ''))
                     clean_pname = ' '.join(raw_pname.replace('^', ' ').split())
@@ -142,14 +144,17 @@ class WorklistClient:
                         'study_instance_uid': str(getattr(identifier, 'StudyInstanceUID', '')),
                         'study_description': str(study_desc),
                         'modality': str(mod),
-                        # Ngày chỉ định thực tế (0040,0002) — KHÔNG phải PatientBirthDate.
-                        # Dùng để tự động điền đúng StudyDate khi nạp ca từ Worklist.
+                        # Ngày giờ chỉ định thực tế (0040,0002 & 0040,0003)
                         'scheduled_date': str(scheduled_date),
+                        'scheduled_time': str(scheduled_time),
                     })
         except Exception as exc:
             if self.logger:
                 self.logger.warning(f"Lỗi truy vấn RIS Worklist: {exc}")
         finally:
             assoc.release()
+
+        # Mặc định ca mới nhất nằm ở đầu danh sách
+        results.sort(key=lambda x: (x.get('scheduled_date', ''), x.get('scheduled_time', ''), x.get('accession_number', '')), reverse=True)
 
         return results

@@ -156,3 +156,50 @@ def test_api_upload_manual_study_instance_uid_batch():
             assert ds1.InstanceNumber == '1'
             assert ds2.InstanceNumber == '2'
 
+
+def test_api_modalities_summary():
+    from utils import ProcessedRegistry
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        db_path = os.path.join(tmp_dir, 'registry.sqlite3')
+        registry = ProcessedRegistry(db_path)
+        try:
+            registry.record_study('us.png', {'patient_id': 'BN01', 'modality': 'US'}, 'SUCCESS')
+            registry.record_study('es.png', {'patient_id': 'BN02', 'modality': 'ES'}, 'RETRYING')
+
+            config = {
+                'pacs': {'ip': '127.0.0.1', 'port': 6002, 'called_ae_title': 'PACS', 'calling_ae_title': 'GATEWAY'},
+                'ris': {'enabled': False},
+                'watcher': {
+                    'watch_folders': [
+                        {'path': './data/inbox_us', 'modality': 'US'},
+                        {'path': './data/inbox_es', 'modality': 'ES'},
+                    ]
+                }
+            }
+            init_web_app(config, 'config.yaml', None, None, 1000, registry)
+            client = app.test_client()
+
+            res = client.get('/api/modalities/summary')
+            assert res.status_code == 200
+            data = res.get_json()
+            assert data['success'] is True
+            assert 'summary' in data
+            assert data['summary']['total_studies_today'] == 2
+            assert data['summary']['success_studies_today'] == 1
+            assert data['summary']['retrying_studies_today'] == 1
+
+            modalities = data['modalities']
+            us_mod = next((m for m in modalities if m['code'] == 'US'), None)
+            assert us_mod is not None
+            assert us_mod['status'] == 'ACTIVE'
+            assert us_mod['stats_today']['success'] == 1
+            assert us_mod['is_configured'] is True
+
+            es_mod = next((m for m in modalities if m['code'] == 'ES'), None)
+            assert es_mod is not None
+            assert es_mod['status'] == 'WARNING'
+            assert es_mod['stats_today']['retrying'] == 1
+        finally:
+            registry.close()
+
+
