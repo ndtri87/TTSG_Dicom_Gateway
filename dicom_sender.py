@@ -1,11 +1,22 @@
 """DICOM C-STORE client: kết nối tới PACS Server và đẩy file DICOM lên."""
 import pydicom
 from pydicom.dataset import Dataset
-from pydicom.uid import generate_uid
+from pydicom.uid import ExplicitVRLittleEndian, ImplicitVRLittleEndian, generate_uid
 from pynetdicom import AE
-
-from dicom_builder import ENCAPSULATED_PDF_SOP_CLASS, SECONDARY_CAPTURE_SOP_CLASS
-from pynetdicom.sop_class import StorageCommitmentPushModel, Verification
+from pynetdicom.sop_class import (
+    ComputedRadiographyImageStorage,
+    CTImageStorage,
+    DigitalXRayImageStorageForPresentation,
+    EncapsulatedPDFStorage,
+    MRImageStorage,
+    SecondaryCaptureImageStorage,
+    StorageCommitmentPushModel,
+    UltrasoundImageStorage,
+    UltrasoundMultiFrameImageStorage,
+    Verification,
+    VLEndoscopicImageStorage,
+    VLPhotographicImageStorage,
+)
 
 # UID cố định theo chuẩn DICOM PS3.4 J.3 cho SOP Instance của dịch vụ
 # Storage Commitment Push Model (không phải UID tự sinh).
@@ -29,20 +40,7 @@ class DicomSender:
         sc_cfg = pacs_config.get('storage_commitment', {}) or {}
         self.storage_commitment_enabled = sc_cfg.get('enabled', False)
 
-        from pydicom.uid import ExplicitVRLittleEndian, ImplicitVRLittleEndian
-        from pynetdicom.sop_class import (
-            SecondaryCaptureImageStorage,
-            UltrasoundImageStorage,
-            UltrasoundMultiFrameImageStorage,
-            ComputedRadiographyImageStorage,
-            DigitalXRayImageStorageForPresentation,
-            CTImageStorage,
-            MRImageStorage,
-            EncapsulatedPDFStorage,
-            VLEndoscopicImageStorage,
-            VLPhotographicImageStorage,
-        )
-        transfer_syntaxes = [ExplicitVRLittleEndian, ImplicitVRLittleEndian]
+        self.transfer_syntaxes = [ExplicitVRLittleEndian, ImplicitVRLittleEndian]
 
         self.ae = AE(ae_title=self.calling_ae_title)
         sop_classes = [
@@ -58,7 +56,7 @@ class DicomSender:
             VLPhotographicImageStorage,
         ]
         for sop in sop_classes:
-            self.ae.add_requested_context(sop, transfer_syntaxes)
+            self.ae.add_requested_context(sop, self.transfer_syntaxes)
         if self.storage_commitment_enabled:
             self.ae.add_requested_context(StorageCommitmentPushModel)
         self.ae.network_timeout = self.timeout
@@ -94,6 +92,12 @@ class DicomSender:
             ds = pydicom.dcmread(dataset_path)
         except Exception as exc:
             return False, f"Không đọc được file DICOM: {exc}"
+
+        # Tự động đăng ký Presentation Context nếu SOPClassUID chưa có trong danh sách
+        if hasattr(ds, 'SOPClassUID'):
+            existing_abstracts = [cx.abstract_syntax for cx in self.ae.requested_contexts]
+            if ds.SOPClassUID not in existing_abstracts:
+                self.ae.add_requested_context(ds.SOPClassUID, self.transfer_syntaxes)
 
         try:
             assoc = self.ae.associate(self.ip, self.port, ae_title=self.called_ae_title)
