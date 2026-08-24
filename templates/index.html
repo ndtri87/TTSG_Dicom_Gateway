@@ -39,7 +39,7 @@
             background: rgba(30, 41, 59, 0.8);
             backdrop-filter: blur(12px);
             border-bottom: 1px solid var(--card-border);
-            padding: 1rem 2rem;
+            padding: 0.65rem 1.5rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -51,33 +51,33 @@
         .logo-title {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
         }
 
         .logo-icon {
-            width: 36px;
-            height: 36px;
+            width: 32px;
+            height: 32px;
             background: linear-gradient(135deg, #3b82f6, #06b6d4);
-            border-radius: 8px;
+            border-radius: 6px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: 700;
-            font-size: 18px;
+            font-size: 16px;
         }
 
         .logo-title h1 {
-            font-size: 20px;
+            font-size: 18px;
             font-weight: 600;
         }
 
         .status-badge {
             display: inline-flex;
             align-items: center;
-            gap: 8px;
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 13px;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 16px;
+            font-size: 12px;
             font-weight: 500;
             background: rgba(16, 185, 129, 0.15);
             color: var(--success);
@@ -85,16 +85,16 @@
         }
 
         .status-dot {
-            width: 8px;
-            height: 8px;
+            width: 7px;
+            height: 7px;
             border-radius: 50%;
             background-color: var(--success);
-            box-shadow: 0 0 8px var(--success);
+            box-shadow: 0 0 6px var(--success);
         }
 
         main {
             flex: 1;
-            padding: 1.5rem 2rem;
+            padding: 1rem 1.5rem;
             max-width: 1750px;
             margin: 0 auto;
             width: 100%;
@@ -103,9 +103,9 @@
         /* Nav Tabs */
         .tabs {
             display: flex;
-            gap: 10px;
+            gap: 8px;
             border-bottom: 1px solid var(--card-border);
-            margin-bottom: 1.5rem;
+            margin-bottom: 1rem;
             overflow-x: auto;
             white-space: nowrap;
             padding-bottom: 2px;
@@ -116,8 +116,8 @@
             background: none;
             border: none;
             color: var(--text-muted);
-            padding: 10px 18px;
-            font-size: 14.5px;
+            padding: 8px 14px;
+            font-size: 13.5px;
             font-weight: 600;
             cursor: pointer;
             border-bottom: 2px solid transparent;
@@ -149,34 +149,34 @@
         /* Grid Layout */
         .grid-4 {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 0.8rem;
+            margin-bottom: 1rem;
         }
 
         .card {
             background-color: var(--card-bg);
             border: 1px solid var(--card-border);
-            border-radius: 12px;
-            padding: 1.5rem;
+            border-radius: 8px;
+            padding: 0.9rem 1.2rem;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         }
 
         .stat-card {
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 4px;
         }
 
         .stat-label {
-            font-size: 13px;
+            font-size: 12px;
             color: var(--text-muted);
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
 
         .stat-val {
-            font-size: 32px;
+            font-size: 26px;
             font-weight: 700;
         }
 
@@ -186,9 +186,9 @@
         .stat-val.duplicates { color: var(--primary); }
 
         .section-title {
-            font-size: 18px;
+            font-size: 15px;
             font-weight: 600;
-            margin-bottom: 1.2rem;
+            margin-bottom: 0.6rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -197,19 +197,19 @@
         /* Form Controls */
         .form-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 1.5rem;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 0.6rem;
         }
 
         .form-group {
             display: flex;
             flex-direction: column;
-            gap: 6px;
-            margin-bottom: 1rem;
+            gap: 3px;
+            margin-bottom: 0.35rem;
         }
 
         .form-group label {
-            font-size: 14px;
+            font-size: 12px;
             font-weight: 500;
             color: var(--text-muted);
         }
@@ -217,10 +217,10 @@
         .form-control {
             background-color: var(--input-bg);
             border: 1px solid var(--card-border);
-            border-radius: 8px;
-            padding: 10px 14px;
+            border-radius: 6px;
+            padding: 6px 10px;
             color: var(--text-main);
-            font-size: 14px;
+            font-size: 13px;
             outline: none;
             transition: border-color 0.2s;
         }
@@ -234,9 +234,9 @@
             background-color: var(--primary);
             color: white;
             border: none;
-            border-radius: 8px;
-            padding: 10px 18px;
-            font-size: 14px;
+            border-radius: 6px;
+            padding: 7px 14px;
+            font-size: 13px;
             font-weight: 500;
             cursor: pointer;
             display: inline-flex;
@@ -374,51 +374,61 @@
         /* Dropzone & Manual Upload */
         .dropzone {
             border: 2px dashed var(--primary);
-            border-radius: 12px;
-            padding: 2.5rem 1.5rem;
+            border-radius: 8px;
+            padding: 1rem;
             text-align: center;
-            background-color: rgba(59, 130, 246, 0.05);
+            background-color: rgba(59, 130, 246, 0.04);
             cursor: pointer;
             transition: all 0.2s;
-            margin-bottom: 1.5rem;
+            margin-bottom: 0.5rem;
         }
         .dropzone:hover, .dropzone.dragover {
-            background-color: rgba(59, 130, 246, 0.15);
+            background-color: rgba(59, 130, 246, 0.12);
             border-color: var(--primary-hover);
+        }
+        .dropzone-compact {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 0.9rem 0.8rem;
+            min-height: 95px;
         }
         .file-list-preview {
             display: flex;
             flex-direction: column;
-            gap: 8px;
-            margin-top: 1rem;
+            gap: 5px;
+            margin-top: 0.4rem;
+            max-height: 140px;
+            overflow-y: auto;
         }
         .file-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
             background: var(--input-bg);
-            padding: 8px 14px;
-            border-radius: 6px;
+            padding: 5px 10px;
+            border-radius: 5px;
             border: 1px solid var(--card-border);
-            font-size: 13px;
+            font-size: 12px;
         }
 
         /* Modality Hub Styles */
         .modality-kpi-bar {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 1rem;
-            margin-bottom: 1.5rem;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 0.75rem;
+            margin-bottom: 1rem;
         }
 
         .modality-kpi-card {
             background: linear-gradient(145deg, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.95));
             border: 1px solid var(--card-border);
-            border-radius: 12px;
-            padding: 1.2rem 1.4rem;
+            border-radius: 8px;
+            padding: 0.8rem 1rem;
             display: flex;
             align-items: center;
-            gap: 1rem;
+            gap: 10px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
             transition: transform 0.2s, border-color 0.2s;
         }
@@ -825,118 +835,120 @@
 
         <!-- Tab 3: Manual Upload & Push to PACS -->
         <div id="tab-upload" class="tab-content">
-            <div id="selected-patient-banner" class="card" style="display: none; background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.4); margin-bottom: 1.5rem;">
+            <div id="selected-patient-banner" class="card" style="display: none; background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.4); margin-bottom: 0.75rem; padding: 8px 14px;">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <div>
-                        <div style="font-size: 13px; color: var(--primary); font-weight: 600; text-transform: uppercase;">
+                        <div style="font-size: 11.5px; color: var(--primary); font-weight: 700; text-transform: uppercase;">
                             ✅ ĐÃ CHỌN BỆNH NHÂN TỪ RIS WORKLIST (BƯỚC 2/4)
                         </div>
-                        <div style="font-size: 18px; font-weight: 700; margin-top: 4px; color: var(--text-main);" id="banner-patient-name">
+                        <div style="font-size: 15px; font-weight: 700; color: var(--text-main); margin-top: 2px;" id="banner-patient-name">
                             BN18000991 - NGUYEN VAN A
                         </div>
-                        <div style="font-size: 13px; color: var(--text-muted); margin-top: 2px;" id="banner-patient-details">
+                        <div style="font-size: 12px; color: var(--text-muted);" id="banner-patient-details">
                             Mã BN: 18000991 | Dịch vụ: Siêu âm ổ bụng tổng quát | Số CĐ: 3022292 | Modality: US
                         </div>
                     </div>
                     <div>
-                        <span style="font-size: 28px;">🩺</span>
+                        <span style="font-size: 22px;">🩺</span>
                     </div>
                 </div>
             </div>
 
-            <div class="card" style="margin-bottom: 1.5rem;">
-                <div class="section-title">
-                    <span>📸 Bước 3: Đính kèm Kết Quả Cận Lâm Sàng (Ảnh / PDF)</span>
-                </div>
-                <div class="dropzone" id="upload-dropzone" onclick="triggerFileInput()" style="cursor: pointer;">
-                    <div style="font-size: 42px; margin-bottom: 10px;">📁</div>
-                    <div style="font-size: 16px; font-weight: 600; margin-bottom: 6px;">Kéo thả file vào đây hoặc nhấp trực tiếp vào đây để chọn file</div>
-                    <div style="font-size: 13px; color: var(--text-muted);">Hỗ trợ đính kèm nhiều file kết quả cùng lúc: .png, .jpg, .jpeg, .pdf</div>
-                    <input type="file" id="file-input" multiple accept=".png,.jpg,.jpeg,.pdf" style="display: none;" onchange="handleFileSelect(event)">
+            <div style="display: grid; grid-template-columns: 320px 1fr; gap: 0.8rem; align-items: stretch;">
+                <!-- Left: Dropzone & Files -->
+                <div class="card" style="display: flex; flex-direction: column; margin-bottom: 0;">
+                    <div class="section-title" style="margin-bottom: 0.4rem;">
+                        <span>📸 1. File Kết Quả (.png, .jpg, .pdf)</span>
+                    </div>
+                    <div class="dropzone dropzone-compact" id="upload-dropzone" onclick="triggerFileInput()" style="cursor: pointer; flex: 1; min-height: 110px; margin-bottom: 0.4rem;">
+                        <div style="font-size: 30px; margin-bottom: 4px;">📁</div>
+                        <div style="font-size: 13px; font-weight: 600; color: var(--text-main);">Kéo thả hoặc nhấp chọn file</div>
+                        <div style="font-size: 11.5px; color: var(--text-muted); margin-top: 2px;">Ảnh (.png, .jpg) hoặc Báo cáo (.pdf)</div>
+                        <input type="file" id="file-input" multiple accept=".png,.jpg,.jpeg,.pdf" style="display: none;" onchange="handleFileSelect(event)">
+                    </div>
+                    <div id="file-list-container" class="file-list-preview" style="max-height: 130px;"></div>
                 </div>
 
-                <div id="file-list-container" class="file-list-preview"></div>
+                <!-- Right: Patient Info & Fast Action -->
+                <div class="card" style="display: flex; flex-direction: column; justify-content: space-between; margin-bottom: 0;">
+                    <div>
+                        <div class="section-title" style="margin-bottom: 0.4rem;">
+                            <span>👤 2. Thông Tin Ca Khám & Đẩy PACS</span>
+                        </div>
+                        <div class="form-grid" style="grid-template-columns: repeat(3, 1fr); gap: 0.55rem;">
+                            <div class="form-group">
+                                <label>Mã Bệnh Nhân (PatientID)</label>
+                                <input type="text" id="manual-patient-id" class="form-control" placeholder="Ví dụ: BN18000991">
+                            </div>
+                            <div class="form-group">
+                                <label>Họ và Tên (PatientName)</label>
+                                <input type="text" id="manual-patient-name" class="form-control" placeholder="Ví dụ: NGUYEN VAN A">
+                            </div>
+                            <div class="form-group">
+                                <label>Ngày Chụp (StudyDate)</label>
+                                <input type="date" id="manual-study-date" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label>Số Chỉ Định (AccessionNumber)</label>
+                                <input type="text" id="manual-accession" class="form-control" placeholder="Ví dụ: 3022292">
+                                <input type="hidden" id="manual-study-uid">
+                            </div>
+                            <div class="form-group">
+                                <label>Gợi Ý Dịch Vụ Mẫu</label>
+                                <select id="manual-service-preset" class="form-control" onchange="applyServicePreset()">
+                                    <option value="">-- Chọn dịch vụ mẫu --</option>
+                                    <option value="Sieu am o bung tong quat|US">Siêu âm ổ bụng tổng quát (US)</option>
+                                    <option value="Sieu am tim Doppler mau|US">Siêu âm tim Doppler màu (US)</option>
+                                    <option value="Sieu am tuyen giap - vu|US">Siêu âm tuyến giáp / vú (US)</option>
+                                    <option value="Noi soi da day - dai trang|ES">Nội soi dạ dày - đại tràng (ES)</option>
+                                    <option value="Dien tim thuong 12 chuyen dao|ECG">Điện tâm đồ 12 chuyển đạo (ECG)</option>
+                                    <option value="Dien nao do vi tinh (EEG)|EEG">Điện não đồ vi tính (EEG)</option>
+                                    <option value="Dien co va dan truyen than kinh (EMG)|EMG">Điện cơ & Dẫn truyền thần kinh (EMG)</option>
+                                    <option value="Do mat do xuong toan than DEXA|BD">Đo loãng xương toàn thân DEXA (BD)</option>
+                                    <option value="Chup cong huong tu (MRI)|MR">Chụp cộng hưởng từ MRI (MR)</option>
+                                    <option value="Chup cat lop vi tinh CT Scanner|CT">Chụp cắt lớp vi tính CT Scanner (CT)</option>
+                                    <option value="X-quang so truc tiep (DR)|DR">X-quang số trực tiếp (DR)</option>
+                                    <option value="X-quang nguc thang (CR)|CR">X-quang ngực thẳng (CR)</option>
+                                    <option value="Do chuc nang ho hap (PFT)|PFT">Đo chức năng hô hấp (PFT)</option>
+                                    <option value="Bao cao ket qua chan doan PDF|DOC">Báo cáo kết quả PDF (DOC)</option>
+                                    <option value="Dich vu can lam sang khac|OT">Dịch vụ cận lâm sàng khác (OT)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Loại Thiết Bị (Modality)</label>
+                                <select id="manual-modality" class="form-control">
+                                    <option value="">Tự động (Tự nhận dạng)</option>
+                                    <option value="US">US - Siêu âm</option>
+                                    <option value="ES">ES - Nội soi</option>
+                                    <option value="ECG">ECG - Điện tâm đồ</option>
+                                    <option value="EEG">EEG - Điện não đồ</option>
+                                    <option value="EMG">EMG - Điện cơ</option>
+                                    <option value="BD">BD - Đo loãng xương</option>
+                                    <option value="MR">MR - Cộng hưởng từ</option>
+                                    <option value="CT">CT - Cắt lớp vi tính</option>
+                                    <option value="DR">DR - X-quang số trực tiếp</option>
+                                    <option value="CR">CR - X-quang kỹ thuật số</option>
+                                    <option value="PFT">PFT - Đo hô hấp</option>
+                                    <option value="DOC">DOC - Báo cáo PDF</option>
+                                    <option value="OT">OT - Khác</option>
+                                </select>
+                            </div>
+                            <div class="form-group" style="grid-column: span 2;">
+                                <label>Tên Dịch Vụ Khám (StudyDescription)</label>
+                                <input type="text" id="manual-study-desc" class="form-control" placeholder="Ví dụ: Sieu am o bung tong quat">
+                            </div>
+                            <div class="form-group" style="justify-content: flex-end;">
+                                <label style="visibility: hidden; font-size: 12px;">Đẩy PACS</label>
+                                <button class="btn" id="btn-push-pacs" onclick="sendManualUpload()" style="padding: 6px 14px; font-size: 13px; font-weight: 700; width: 100%; height: 32px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);">
+                                    🚀 Đẩy Lên PACS Ngay
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <div class="card" style="margin-bottom: 1.5rem;">
-                <div class="section-title">
-                    <span>👤 Thông tin Bệnh Nhân & Chỉ Định (Tùy chọn)</span>
-                </div>
-                <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 1rem;">
-                    * Lưu ý: Nếu để trống, hệ thống sẽ tự động bóc tách từ tên file (Regex) hoặc tự động tra cứu từ hệ thống RIS.
-                </p>
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label>Mã Bệnh Nhân (PatientID)</label>
-                        <input type="text" id="manual-patient-id" class="form-control" placeholder="Ví dụ: BN18000991">
-                    </div>
-                    <div class="form-group">
-                        <label>Họ và Tên Bệnh Nhân (PatientName)</label>
-                        <input type="text" id="manual-patient-name" class="form-control" placeholder="Ví dụ: NGUYEN VAN A">
-                    </div>
-                    <div class="form-group">
-                        <label>Ngày Chụp (StudyDate)</label>
-                        <input type="date" id="manual-study-date" class="form-control">
-                    </div>
-                    <div class="form-group">
-                        <label>Số Chỉ Định (AccessionNumber)</label>
-                        <input type="text" id="manual-accession" class="form-control" placeholder="Ví dụ: 3022292">
-                        <input type="hidden" id="manual-study-uid">
-                    </div>
-                    <div class="form-group">
-                        <label>Chọn Loại Dịch Vụ Khám Mẫu</label>
-                        <select id="manual-service-preset" class="form-control" onchange="applyServicePreset()">
-                            <option value="">-- Chọn loại dịch vụ mẫu --</option>
-                            <option value="Sieu am o bung tong quat|US">Siêu âm ổ bụng tổng quát (US)</option>
-                            <option value="Sieu am tim Doppler mau|US">Siêu âm tim Doppler màu (US)</option>
-                            <option value="Sieu am tuyen giap - vu|US">Siêu âm tuyến giáp / vú (US)</option>
-                            <option value="Noi soi da day - dai trang|ES">Nội soi dạ dày - đại tràng (ES)</option>
-                            <option value="Dien tim thuong 12 chuyen dao|ECG">Điện tâm đồ 12 chuyển đạo (ECG)</option>
-                            <option value="Dien nao do vi tinh (EEG)|EEG">Điện não đồ vi tính (EEG)</option>
-                            <option value="Dien co va dan truyen than kinh (EMG)|EMG">Điện cơ & Dẫn truyền thần kinh (EMG)</option>
-                            <option value="Do mat do xuong toan than DEXA|BD">Đo loãng xương toàn thân DEXA (BD)</option>
-                            <option value="Chup cong huong tu (MRI)|MR">Chụp cộng hưởng từ MRI (MR)</option>
-                            <option value="Chup cat lop vi tinh CT Scanner|CT">Chụp cắt lớp vi tính CT Scanner (CT)</option>
-                            <option value="X-quang so truc tiep (DR)|DR">X-quang số trực tiếp (DR)</option>
-                            <option value="X-quang nguc thang (CR)|CR">X-quang ngực thẳng (CR)</option>
-                            <option value="Do chuc nang ho hap (PFT)|PFT">Đo chức năng hô hấp (PFT)</option>
-                            <option value="Bao cao ket qua chan doan PDF|DOC">Báo cáo kết quả PDF (DOC)</option>
-                            <option value="Dich vu can lam sang khac|OT">Dịch vụ cận lâm sàng khác (OT)</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Tên Dịch Vụ Khám (StudyDescription)</label>
-                        <input type="text" id="manual-study-desc" class="form-control" placeholder="Ví dụ: Sieu am o bung tong quat">
-                    </div>
-                    <div class="form-group">
-                        <label>Loại Thiết Bị (Modality)</label>
-                        <select id="manual-modality" class="form-control">
-                            <option value="">Tự động (Tự nhận dạng)</option>
-                            <option value="US">US - Siêu âm (Ultrasound)</option>
-                            <option value="ES">ES - Nội soi (Endoscopy)</option>
-                            <option value="ECG">ECG - Điện tâm đồ (Electrocardiogram)</option>
-                            <option value="EEG">EEG - Điện não đồ (Electroencephalogram)</option>
-                            <option value="EMG">EMG - Điện cơ (Electromyogram)</option>
-                            <option value="BD">BD - Đo loãng xương (Bone Density / DEXA)</option>
-                            <option value="MR">MR - Cộng hưởng từ (Magnetic Resonance)</option>
-                            <option value="CT">CT - Cắt lớp vi tính (Computed Tomography)</option>
-                            <option value="DR">DR - X-quang số trực tiếp (Digital Radiography)</option>
-                            <option value="CR">CR - X-quang kỹ thuật số (Computed Radiography)</option>
-                            <option value="PFT">PFT - Đo chức năng hô hấp (Pulmonary Function Test)</option>
-                            <option value="DOC">DOC - Tài liệu / Báo cáo PDF</option>
-                            <option value="OT">OT - Khác (Other)</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div style="margin-top: 1.5rem; display: flex; justify-content: flex-end;">
-                    <button class="btn" id="btn-push-pacs" onclick="sendManualUpload()" style="padding: 12px 24px; font-size: 15px; font-weight: 600;">
-                        🚀 Đẩy Lên PACS Ngay
-                    </button>
-                </div>
-            </div>
-
-            <div class="card" id="upload-results-card" style="display: none;">
+            <div class="card" id="upload-results-card" style="display: none; margin-top: 0.75rem;">
                 <div class="section-title">
                     <span>📋 Kết quả đẩy PACS</span>
                 </div>
@@ -946,21 +958,17 @@
 
         <!-- Tab 4: Study History -->
         <div id="tab-history" class="tab-content">
-            <div class="card" style="margin-bottom: 1.5rem;">
-                <div class="section-title">
-                    <span>📜 Lịch sử & Trạng thái Ca Khám (Mới nhất ở đầu)</span>
-                    <button class="btn btn-outline" onclick="fetchStudiesHistory()">🔄 Làm mới</button>
-                </div>
-                <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-                    <select id="history-status-filter" class="form-control" style="width: 220px;" onchange="fetchStudiesHistory()">
+            <div class="card" style="margin-bottom: 0.75rem; padding: 10px 14px;">
+                <div style="display: flex; gap: 0.6rem; flex-wrap: wrap;">
+                    <select id="history-status-filter" class="form-control" style="width: 200px;" onchange="fetchStudiesHistory()">
                         <option value="ALL">Tất cả trạng thái</option>
                         <option value="SUCCESS">🟢 Đã đẩy PACS (Thành công)</option>
                         <option value="RETRYING">🟠 Đang thử lại (Retry Queue)</option>
                         <option value="FAILED">🔴 Thất bại (Lỗi)</option>
                         <option value="DUPLICATE">🔵 File trùng lặp (Duplicate)</option>
                     </select>
-                    <input type="text" id="history-search-kw" class="form-control" style="flex: 1; min-width: 250px;" placeholder="Tìm kiếm theo Tên BN, Mã BN, Số chỉ định, Tên file..." onkeyup="if(event.key==='Enter') fetchStudiesHistory()">
-                    <button class="btn" onclick="fetchStudiesHistory()">🔍 Tìm kiếm</button>
+                    <input type="text" id="history-search-kw" class="form-control" style="flex: 1; min-width: 220px;" placeholder="Tìm kiếm theo Tên BN, Mã BN, Số chỉ định, Tên file..." onkeyup="if(event.key==='Enter') fetchStudiesHistory()">
+                    <button class="btn" onclick="fetchStudiesHistory()" style="padding: 6px 14px;">🔍 Tìm kiếm</button>
                 </div>
             </div>
 
