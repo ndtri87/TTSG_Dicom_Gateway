@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DICOM Gateway Service - Management Dashboard</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
             --bg-dark: #0f172a;
@@ -625,39 +626,37 @@
         </div>
 
         <!-- Tab 1: Dashboard / Modality Operations Hub -->
-        <div id="tab-dashboard" class="tab-content active">
-            <!-- Modality Top KPI Summary Bar -->
-            <div class="modality-kpi-bar">
-                <div class="modality-kpi-card">
-                    <div class="modality-kpi-icon" style="background: rgba(59, 130, 246, 0.15); color: #3b82f6;">📊</div>
-                    <div>
-                        <div style="font-size: 12px; color: var(--text-muted); text-transform: uppercase;">Ca Chụp Hôm Nay</div>
-                        <div style="font-size: 24px; font-weight: 700; color: var(--text-main);" id="kpi-today-count">0</div>
-                        <div style="font-size: 11px; color: var(--success);" id="kpi-success-rate">Tỷ lệ: 100% Thành công</div>
+            <!-- Biểu Đồ Thống Kê Hoạt Động (Gateway Analytics & Performance Charts) -->
+            <div class="card" style="margin-bottom: 0.8rem; padding: 0.8rem 1.1rem;">
+                <div class="section-title" style="margin-bottom: 0.45rem;">
+                    <span>📊 Biểu Đồ Thống Kê & Hiệu Suất Đẩy PACS</span>
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <span class="status-badge" style="font-size: 11.5px; padding: 2px 8px;" id="chart-kpi-success-rate">⚡ Tỷ lệ: 100% Thành công</span>
+                        <span style="font-size: 12px; color: var(--text-muted);" id="chart-kpi-active-mod">Thiết bị hoạt động: 0 / 13</span>
+                        <button class="btn btn-outline" onclick="fetchModalitySummary()" style="padding: 3px 8px; font-size: 11.5px;">🔄 Cập nhật</button>
                     </div>
                 </div>
-                <div class="modality-kpi-card">
-                    <div class="modality-kpi-icon" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">🏥</div>
-                    <div>
-                        <div style="font-size: 12px; color: var(--text-muted); text-transform: uppercase;">Phân Hệ Kích Hoạt</div>
-                        <div style="font-size: 24px; font-weight: 700; color: var(--success);" id="kpi-active-modalities">0 / 9</div>
-                        <div style="font-size: 11px; color: var(--text-muted);">Sẵn sàng tiếp nhận ảnh</div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem;">
+                    <!-- Biểu đồ 1: Phân Bố Theo Modality (Donut Chart) -->
+                    <div style="background: rgba(15, 23, 42, 0.4); border: 1px solid var(--card-border); border-radius: 6px; padding: 0.6rem 0.8rem; display: flex; flex-direction: column;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                            <strong style="font-size: 12.5px; color: var(--text-main);">🍩 Phân Bố Ca Chụp Theo Modality</strong>
+                            <span style="font-size: 11px; color: var(--text-muted);" id="chart-mod-count-total">Tổng: 0 ca</span>
+                        </div>
+                        <div style="position: relative; height: 165px; display: flex; align-items: center; justify-content: center;">
+                            <canvas id="chartModalityDistribution"></canvas>
+                        </div>
                     </div>
-                </div>
-                <div class="modality-kpi-card">
-                    <div class="modality-kpi-icon" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b;">⏳</div>
-                    <div>
-                        <div style="font-size: 12px; color: var(--text-muted); text-transform: uppercase;">Hàng Đợi Chờ Gửi</div>
-                        <div style="font-size: 24px; font-weight: 700; color: var(--warning);" id="kpi-retry-count">0</div>
-                        <div style="font-size: 11px; color: var(--text-muted);" id="kpi-retry-subtext">0 ca cần thử lại</div>
-                    </div>
-                </div>
-                <div class="modality-kpi-card">
-                    <div class="modality-kpi-icon" style="background: rgba(139, 92, 246, 0.15); color: #8b5cf6;">🗄️</div>
-                    <div>
-                        <div style="font-size: 12px; color: var(--text-muted); text-transform: uppercase;">Lưu Trữ PACS (All-Time)</div>
-                        <div style="font-size: 24px; font-weight: 700; color: #a78bfa;" id="kpi-alltime-count">0</div>
-                        <div style="font-size: 11px; color: var(--text-muted);">Tổng ca đã hoàn tất</div>
+
+                    <!-- Biểu đồ 2: Trạng Thái Xử Lý & Đẩy PACS (Bar Breakdown Chart) -->
+                    <div style="background: rgba(15, 23, 42, 0.4); border: 1px solid var(--card-border); border-radius: 6px; padding: 0.6rem 0.8rem; display: flex; flex-direction: column;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                            <strong style="font-size: 12.5px; color: var(--text-main);">📈 Trạng Thái Lưu Trữ & Hàng Đợi PACS</strong>
+                            <span style="font-size: 11px; color: var(--text-muted);" id="chart-status-count-total">Đã xử lý: 0 ca</span>
+                        </div>
+                        <div style="position: relative; height: 165px; display: flex; align-items: center; justify-content: center;">
+                            <canvas id="chartGatewayStatus"></canvas>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1176,13 +1175,16 @@
             }
         }
 
+        let chartModality = null;
+        let chartStatus = null;
+
         async function fetchModalitySummary() {
             try {
                 const res = await fetch('/api/modalities/summary');
                 const data = await res.json();
                 if (data.success) {
                     currentModalitiesData = data.modalities || [];
-                    renderModalityKPIs(data.summary);
+                    renderAnalyticsCharts(data.summary, currentModalitiesData);
                     renderModalityGrid(currentModalitiesData);
                     if (activeFocusModality) {
                         updateModalityFocus(activeFocusModality);
@@ -1193,22 +1195,157 @@
             }
         }
 
-        function renderModalityKPIs(summary) {
-            if (!summary) return;
-            if (document.getElementById('kpi-today-count')) {
-                document.getElementById('kpi-today-count').innerText = summary.total_studies_today || 0;
+        function renderAnalyticsCharts(summary, modalities) {
+            if (!summary) summary = {};
+            if (!modalities) modalities = [];
+
+            // Update Header KPI Badges
+            const successRate = summary.success_rate_percent !== undefined ? summary.success_rate_percent : 100;
+            const activeCount = summary.active_modalities_count !== undefined ? summary.active_modalities_count : 0;
+            const totalCount = summary.total_modalities_count || 13;
+
+            const rateBadge = document.getElementById('chart-kpi-success-rate');
+            if (rateBadge) {
+                rateBadge.innerHTML = `⚡ Tỷ lệ: ${successRate}% Thành công`;
             }
-            if (document.getElementById('kpi-success-rate')) {
-                document.getElementById('kpi-success-rate').innerText = `Tỷ lệ: ${summary.success_rate_percent}% Thành công`;
+            const activeBadge = document.getElementById('chart-kpi-active-mod');
+            if (activeBadge) {
+                activeBadge.innerText = `Thiết bị hoạt động: ${activeCount} / ${totalCount}`;
             }
-            if (document.getElementById('kpi-active-modalities')) {
-                document.getElementById('kpi-active-modalities').innerText = `${summary.active_modalities_count} / ${summary.total_modalities_count}`;
+
+            const totalStudies = summary.total_studies_today !== undefined ? summary.total_studies_today : 0;
+            const modTotalLabel = document.getElementById('chart-mod-count-total');
+            if (modTotalLabel) {
+                modTotalLabel.innerText = `Hôm nay: ${totalStudies} ca`;
             }
-            if (document.getElementById('kpi-retry-count')) {
-                document.getElementById('kpi-retry-count').innerText = summary.retrying_studies_today || 0;
+
+            // 1. Modality Distribution Chart Data
+            let modLabels = [];
+            let modData = [];
+            let modColors = [];
+
+            modalities.forEach(m => {
+                const t = (m.stats_today && m.stats_today.total) || 0;
+                const a = (m.stats_all_time && m.stats_all_time.total) || 0;
+                const val = t > 0 ? t : a;
+                if (val > 0) {
+                    modLabels.push(`${m.code} (${m.name_vi})`);
+                    modData.push(val);
+                    modColors.push(m.color || '#3b82f6');
+                }
+            });
+
+            if (modData.length === 0) {
+                modLabels = ['Chưa có ca'];
+                modData = [1];
+                modColors = ['rgba(255, 255, 255, 0.08)'];
             }
-            if (document.getElementById('kpi-retry-subtext')) {
-                document.getElementById('kpi-retry-subtext').innerText = `${summary.retrying_studies_today || 0} ca chờ retry`;
+
+            // Render Modality Donut Chart with Chart.js
+            const ctxMod = document.getElementById('chartModalityDistribution');
+            if (ctxMod && typeof Chart !== 'undefined') {
+                if (chartModality) {
+                    chartModality.destroy();
+                }
+                chartModality = new Chart(ctxMod, {
+                    type: 'doughnut',
+                    data: {
+                        labels: modLabels,
+                        datasets: [{
+                            data: modData,
+                            backgroundColor: modColors,
+                            borderWidth: 2,
+                            borderColor: '#1e293b',
+                            hoverOffset: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '68%',
+                        plugins: {
+                            legend: {
+                                display: modData.length > 1,
+                                position: 'right',
+                                labels: {
+                                    boxWidth: 10,
+                                    font: { size: 11 },
+                                    color: '#94a3b8',
+                                    padding: 6
+                                }
+                            },
+                            tooltip: {
+                                enabled: modLabels[0] !== 'Chưa có ca',
+                                callbacks: {
+                                    label: function(context) {
+                                        return ` ${context.label}: ${context.raw} ca`;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // 2. Gateway Status Chart Data
+            const successStudies = summary.success_studies_today || 0;
+            const retryStudies = summary.retrying_studies_today || 0;
+            const failedStudies = summary.failed_studies_today || 0;
+            const dupStudies = summary.duplicates_today || 0;
+
+            const statusTotalLabel = document.getElementById('chart-status-count-total');
+            if (statusTotalLabel) {
+                statusTotalLabel.innerText = `Thành công: ${successStudies} | Chờ: ${retryStudies} | Lỗi: ${failedStudies}`;
+            }
+
+            const ctxStatus = document.getElementById('chartGatewayStatus');
+            if (ctxStatus && typeof Chart !== 'undefined') {
+                if (chartStatus) {
+                    chartStatus.destroy();
+                }
+                chartStatus = new Chart(ctxStatus, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Thành công', 'Chờ Retry', 'Lỗi / Hỏng', 'File trùng'],
+                        datasets: [{
+                            label: 'Số lượng ca',
+                            data: [successStudies, retryStudies, failedStudies, dupStudies],
+                            backgroundColor: [
+                                '#10b981',
+                                '#f59e0b',
+                                '#ef4444',
+                                '#3b82f6'
+                            ],
+                            borderRadius: 4,
+                            barThickness: 16
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return ` ${context.raw} ca`;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                grid: { color: 'rgba(255,255,255,0.05)' },
+                                ticks: { color: '#94a3b8', font: { size: 10 }, precision: 0 }
+                            },
+                            y: {
+                                grid: { display: false },
+                                ticks: { color: '#f8fafc', font: { size: 11, weight: '500' } }
+                            }
+                        }
+                    }
+                });
             }
         }
 
