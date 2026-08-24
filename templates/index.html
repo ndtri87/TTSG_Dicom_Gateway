@@ -94,8 +94,8 @@
 
         main {
             flex: 1;
-            padding: 2rem;
-            max-width: 1300px;
+            padding: 1.5rem 2rem;
+            max-width: 1750px;
             margin: 0 auto;
             width: 100%;
         }
@@ -105,19 +105,28 @@
             display: flex;
             gap: 10px;
             border-bottom: 1px solid var(--card-border);
-            margin-bottom: 2rem;
+            margin-bottom: 1.5rem;
+            overflow-x: auto;
+            white-space: nowrap;
+            padding-bottom: 2px;
+            -webkit-overflow-scrolling: touch;
         }
 
         .tab-btn {
             background: none;
             border: none;
             color: var(--text-muted);
-            padding: 12px 20px;
-            font-size: 15px;
-            font-weight: 500;
+            padding: 10px 18px;
+            font-size: 14.5px;
+            font-weight: 600;
             cursor: pointer;
             border-bottom: 2px solid transparent;
             transition: all 0.2s;
+            white-space: nowrap;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            flex-shrink: 0;
         }
 
         .tab-btn:hover {
@@ -301,7 +310,7 @@
         }
 
         .truncate-cell {
-            max-width: 250px;
+            max-width: 480px;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
@@ -1299,8 +1308,23 @@
                         if (s.status === 'RETRYING') statusBadge = '<span class="badge" style="background: rgba(245, 158, 11, 0.15); color: var(--warning);">🟠 Đang thử lại</span>';
                         else if (s.status === 'FAILED') statusBadge = '<span class="badge" style="background: rgba(239, 68, 68, 0.15); color: var(--danger);">🔴 Thất bại</span>';
 
+                        let formattedFocusTime = '-';
+                        if (s.created_at) {
+                            try {
+                                const d = new Date(s.created_at);
+                                if (!isNaN(d.getTime())) {
+                                    const pad = (n) => String(n).padStart(2, '0');
+                                    formattedFocusTime = `${pad(d.getDate())}/${pad(d.getMonth() + 1)} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+                                } else {
+                                    formattedFocusTime = formatRelativeTime(s.created_at);
+                                }
+                            } catch {
+                                formattedFocusTime = formatRelativeTime(s.created_at);
+                            }
+                        }
+
                         tr.innerHTML = `
-                            <td><strong style="color: var(--text-main); font-size: 12.5px;">${formatRelativeTime(s.created_at)}</strong></td>
+                            <td><strong style="color: var(--text-main); font-size: 12.5px;">${formattedFocusTime}</strong></td>
                             <td><strong>${s.patient_id || 'N/A'}</strong></td>
                             <td>${s.patient_name || 'N/A'}</td>
                             <td>${s.accession_number || 'N/A'}</td>
@@ -1833,16 +1857,25 @@
                     }
 
                     let timePart = '';
-                    if (item.scheduled_time && item.scheduled_time.length >= 4) {
-                        timePart = `${item.scheduled_time.substring(0, 2)}:${item.scheduled_time.substring(2, 4)}`;
-                        if (item.scheduled_time.length >= 6) {
-                            timePart += `:${item.scheduled_time.substring(4, 6)}`;
+                    if (item.scheduled_time) {
+                        const cleanTime = item.scheduled_time.replace(/[^0-9]/g, '');
+                        if (cleanTime.length >= 6) {
+                            timePart = `${cleanTime.substring(0, 2)}:${cleanTime.substring(2, 4)}:${cleanTime.substring(4, 6)}`;
+                        } else if (cleanTime.length >= 4) {
+                            timePart = `${cleanTime.substring(0, 2)}:${cleanTime.substring(2, 4)}:00`;
+                        } else {
+                            timePart = item.scheduled_time;
                         }
-                    } else if (item.scheduled_time) {
-                        timePart = item.scheduled_time;
                     }
 
-                    const timeDisplay = (timePart ? `${timePart} ${datePart}` : datePart).trim() || '-';
+                    let timeDisplay = '-';
+                    if (datePart && timePart) {
+                        timeDisplay = `${datePart} <span style="color: #38bdf8; font-family: monospace; font-size: 12px; margin-left: 4px;">${timePart}</span>`;
+                    } else if (datePart) {
+                        timeDisplay = `${datePart}`;
+                    } else if (timePart) {
+                        timeDisplay = timePart;
+                    }
 
                     tr.innerHTML = `
                         <td><strong style="color: var(--text-main); font-size: 13px;">${timeDisplay}</strong></td>
@@ -1853,7 +1886,7 @@
                         <td class="truncate-cell" title="${item.study_description || 'Khám bệnh'}">${item.study_description || 'Khám bệnh'}</td>
                         <td><span class="modality-badge">${item.modality || 'OT'}</span></td>
                         <td>
-                            <button class="btn" style="padding: 6px 14px; font-size: 12px; font-weight: 600;" onclick='selectWorklistItem(${itemJson})'>
+                            <button class="btn" style="padding: 6px 14px; font-size: 12px; font-weight: 600; white-space: nowrap;" onclick='selectWorklistItem(${itemJson})'>
                                 🩺 Thực hiện CLS (Add kết quả)
                             </button>
                         </td>
@@ -1934,11 +1967,25 @@
                     else if (s.status === 'FAILED') statusBadge = '<span class="status-badge" style="background: rgba(239, 68, 68, 0.15); color: var(--danger); border-color: rgba(239, 68, 68, 0.3);">🔴 Thất bại</span>';
                     else if (s.status === 'DUPLICATE') statusBadge = '<span class="status-badge" style="background: rgba(59, 130, 246, 0.15); color: var(--primary); border-color: rgba(59, 130, 246, 0.3);">🔵 File trùng</span>';
 
-                    const timeStr = s.created_at ? s.created_at.replace('T', ' ').substring(0, 19) : '-';
+                    let formattedTime = '-';
+                    if (s.created_at) {
+                        try {
+                            const d = new Date(s.created_at);
+                            if (!isNaN(d.getTime())) {
+                                const pad = (n) => String(n).padStart(2, '0');
+                                formattedTime = `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+                            } else {
+                                formattedTime = s.created_at.replace('T', ' ').substring(0, 19);
+                            }
+                        } catch {
+                            formattedTime = s.created_at.replace('T', ' ').substring(0, 19);
+                        }
+                    }
+
                     const sopOrErr = s.sop_instance_uid ? `<code style="font-size: 11px; color: #38bdf8;">${s.sop_instance_uid}</code>` : (s.last_error || '-');
 
                     tr.innerHTML = `
-                        <td><strong style="color: var(--text-main); font-size: 13px;">${timeStr}</strong></td>
+                        <td><strong style="color: var(--text-main); font-size: 13px;">${formattedTime}</strong></td>
                         <td><strong>${s.patient_id || '-'}</strong></td>
                         <td>${s.patient_name || '-'}</td>
                         <td class="truncate-cell" title="${s.study_description || '-'}">${s.study_description || '-'}</td>

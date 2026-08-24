@@ -93,10 +93,13 @@ class WorklistClient:
         query.AccessionNumber = ''
         query.StudyInstanceUID = ''
         query.StudyDescription = ''
+        query.StudyDate = ''
+        query.StudyTime = ''
 
         sps = Dataset()
         sps.Modality = modality if modality else ''
         sps.ScheduledProcedureStepStartDate = date_str if date_str else ''
+        sps.ScheduledProcedureStepStartTime = ''
         sps.ScheduledProcedureStepDescription = ''
         sps.ScheduledStationAETitle = ''
         query.ScheduledProcedureStepSequence = [sps]
@@ -131,6 +134,11 @@ class WorklistClient:
                         mod = getattr(step, 'Modality', '')
                         scheduled_date = getattr(step, 'ScheduledProcedureStepStartDate', '') or ''
                         scheduled_time = getattr(step, 'ScheduledProcedureStepStartTime', '') or ''
+
+                    if not scheduled_date:
+                        scheduled_date = getattr(identifier, 'StudyDate', '') or ''
+                    if not scheduled_time:
+                        scheduled_time = getattr(identifier, 'StudyTime', '') or getattr(identifier, 'SeriesTime', '') or ''
 
                     raw_pname = str(getattr(identifier, 'PatientName', ''))
                     clean_pname = ' '.join(raw_pname.replace('^', ' ').split())
