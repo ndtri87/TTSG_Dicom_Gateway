@@ -616,13 +616,13 @@
 
     <main>
         <div class="tabs">
-            <button class="tab-btn active" onclick="switchTab('dashboard', this)">🎛️ Modalities Hub</button>
-            <button class="tab-btn" onclick="switchTab('worklist', this)">📋 RIS Worklist</button>
-            <button class="tab-btn" onclick="switchTab('upload', this)">📤 Tải lên & Đẩy PACS</button>
-            <button class="tab-btn" onclick="switchTab('history', this)">📜 Lịch sử Ca Khám</button>
-            <button class="tab-btn" onclick="switchTab('connection', this)">🔌 PACS & RIS</button>
-            <button class="tab-btn" onclick="switchTab('folders', this)">📁 Thư mục & Modality</button>
-            <button class="tab-btn" onclick="switchTab('logs', this)">📜 Nhật ký Log</button>
+            <button class="tab-btn active" id="tab-btn-dashboard" onclick="switchTab('dashboard', this)">🎛️ Modalities Hub</button>
+            <button class="tab-btn" id="tab-btn-worklist" onclick="switchTab('worklist', this)">1. Worklist</button>
+            <button class="tab-btn" id="tab-btn-upload" onclick="switchTab('upload', this)">2. Pacs</button>
+            <button class="tab-btn" id="tab-btn-history" onclick="switchTab('history', this)">3. Đã hoàn thành</button>
+            <button class="tab-btn" id="tab-btn-connection" onclick="switchTab('connection', this)">Cấu hình Pacs & Ris</button>
+            <button class="tab-btn" id="tab-btn-folders" onclick="switchTab('folders', this)">Cấu hình thư mục ánh xạ</button>
+            <button class="tab-btn" id="tab-btn-logs" onclick="switchTab('logs', this)">Log</button>
         </div>
 
         <!-- Tab 1: Dashboard / Modality Operations Hub -->
@@ -1492,7 +1492,7 @@
         }
 
         function quickFilterWorklist(modCode) {
-            const wlTabBtn = Array.from(document.querySelectorAll('.tab-btn')).find(b => b.innerText.includes('Worklist'));
+            const wlTabBtn = document.getElementById('tab-btn-worklist');
             switchTab('worklist', wlTabBtn);
             const modSelect = document.getElementById('wl-search-modality');
             if (modSelect) {
@@ -1503,7 +1503,7 @@
         }
 
         function quickUploadForModality(modCode) {
-            const uploadTabBtn = Array.from(document.querySelectorAll('.tab-btn')).find(b => b.innerText.includes('Tải lên'));
+            const uploadTabBtn = document.getElementById('tab-btn-upload');
             switchTab('upload', uploadTabBtn);
             const modSelect = document.getElementById('manual-modality');
             if (modSelect) {
@@ -2078,7 +2078,7 @@
             }
 
             renderSelectedFileList();
-            const uploadBtn = document.querySelectorAll('.tab-btn')[2];
+            const uploadBtn = document.getElementById('tab-btn-upload');
             switchTab('upload', uploadBtn);
             showToast(`Đã chọn bệnh nhân ${cleanPName || item.patient_id}. Mời đính kèm ảnh/PDF kết quả CLS để đẩy PACS!`);
         }
