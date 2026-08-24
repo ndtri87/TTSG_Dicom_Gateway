@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DICOM Gateway Service - Management Dashboard</title>
+    <title>Bệnh viện Đa khoa Tâm Trí Sài Gòn - DICOM Gateway Service</title>
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+    <link rel="shortcut icon" type="image/x-icon" href="/static/favicon.ico">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -602,10 +604,10 @@
 
     <header>
         <div class="logo-title">
-            <div class="logo-icon">D</div>
+            <img src="/static/logo_icon.png" style="height: 38px; width: auto; object-fit: contain; border-radius: 6px; background: #ffffff; padding: 2px 4px; box-shadow: 0 2px 6px rgba(0,0,0,0.2);" alt="Logo Tâm Trí Sài Gòn">
             <div>
-                <h1>DICOM Gateway Service</h1>
-                <small style="color: var(--text-muted);">Medical Modalities & Operations Hub</small>
+                <h1 style="font-size: 17px; font-weight: 700; color: #ffffff;">Bệnh viện Đa khoa Tâm Trí Sài Gòn</h1>
+                <small style="color: #38bdf8; font-size: 11.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">DICOM Gateway Service</small>
             </div>
         </div>
         <div class="status-badge" id="service-status-badge">
@@ -616,8 +618,8 @@
 
     <main>
         <div class="tabs">
-            <button class="tab-btn active" id="tab-btn-dashboard" onclick="switchTab('dashboard', this)">🎛️ Modalities Hub</button>
-            <button class="tab-btn" id="tab-btn-worklist" onclick="switchTab('worklist', this)">1. Worklist</button>
+            <button class="tab-btn" id="tab-btn-dashboard" onclick="switchTab('dashboard', this)">🎛️ Modalities Hub</button>
+            <button class="tab-btn active" id="tab-btn-worklist" onclick="switchTab('worklist', this)">1. Worklist</button>
             <button class="tab-btn" id="tab-btn-upload" onclick="switchTab('upload', this)">2. Pacs</button>
             <button class="tab-btn" id="tab-btn-history" onclick="switchTab('history', this)">3. Đã hoàn thành</button>
             <button class="tab-btn" id="tab-btn-connection" onclick="switchTab('connection', this)">Cấu hình Pacs & Ris</button>
@@ -626,7 +628,7 @@
         </div>
 
         <!-- Tab 1: Dashboard / Modality Operations Hub -->
-        <div id="tab-dashboard" class="tab-content active">
+        <div id="tab-dashboard" class="tab-content">
             <!-- Biểu Đồ Thống Kê Hoạt Động (Gateway Analytics & Performance Charts) -->
             <div class="card" style="margin-bottom: 0.8rem; padding: 0.8rem 1.1rem;">
                 <div class="section-title" style="margin-bottom: 0.45rem;">
@@ -747,7 +749,7 @@
         </div>
 
         <!-- Tab 2: RIS Worklist -->
-        <div id="tab-worklist" class="tab-content">
+        <div id="tab-worklist" class="tab-content active">
             <div class="workflow-steps" style="display: flex; gap: 10px; margin-bottom: 1.5rem; background: rgba(255,255,255,0.03); padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.08);">
                 <div class="step-item" style="flex: 1; text-align: center; padding: 8px; background: rgba(59, 130, 246, 0.15); border-radius: 6px; border: 1px solid rgba(59, 130, 246, 0.3);">
                     <strong style="color: var(--primary);">Bước 1</strong>: 🔍 Load Worklist
@@ -2154,13 +2156,12 @@
             document.getElementById('wl-search-date').value = todayDateStr;
         }
 
-        // Init
+        // Init - Mặc định load Worklist
         fetchStatus();
-        fetchModalitySummary();
+        fetchWorklist();
         fetchConfig();
         setInterval(() => {
             fetchStatus();
-            fetchModalitySummary();
         }, 5000);
     </script>
 </body>
