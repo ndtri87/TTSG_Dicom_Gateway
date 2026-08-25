@@ -15,17 +15,22 @@ from utils import (
     ConfigError,
     authenticate_user,
     dedupe_destination,
+    delete_station,
     delete_user,
     extract_metadata_from_filename,
     get_auth_config,
+    get_station_by_id,
+    get_stations_config,
     get_system_stats,
     get_user_by_username,
     get_watch_folders_list,
+    list_stations,
     list_users,
     load_config,
     save_config,
     test_ris_connection,
     update_user_password,
+    upsert_station,
     upsert_user,
 )
 from worklist_client import WorklistClient
@@ -58,7 +63,7 @@ def init_web_app(config, cfg_path, retry_worker=None, logger=None, app_start_tim
 
 
 def get_current_user():
-    """Lấy thông tin người dùng hiện tại từ session."""
+    """Lấy thông tin người dùng hiện tại từ session (hỗ trợ User login và Station login)."""
     if not app_config:
         return None
     auth_cfg = get_auth_config(app_config)
@@ -68,8 +73,31 @@ def get_current_user():
             'full_name': 'Nguyễn Đình Trí (No Auth)',
             'department': 'Công nghệ thông tin',
             'role': 'ADMIN',
-            'allowed_modalities': ['*']
+            'allowed_modalities': ['*'],
+            'is_station': False,
         }
+
+    # 1. Kiểm tra nếu đăng nhập theo Nơi thực hiện / Trạm máy (Station Login)
+    station_id = session.get('station_id')
+    if station_id:
+        st = get_station_by_id(app_config, station_id)
+        if st:
+            tech_name = session.get('technician_name') or ''
+            return {
+                'is_station': True,
+                'station_id': st['id'],
+                'station_name': st['name'],
+                'username': f"station_{st['id'].lower()}",
+                'full_name': f"{st['name']}" + (f" ({tech_name})" if tech_name else ""),
+                'technician_name': tech_name,
+                'department': st.get('department', ''),
+                'role': 'TECHNICIAN',
+                'allowed_modalities': st.get('allowed_modalities', []),
+                'default_modality': st.get('default_modality', ''),
+                'icon': st.get('icon', '🏢'),
+            }
+
+    # 2. Kiểm tra nếu đăng nhập theo Tài khoản User / Super Admin (User Login)
     username = session.get('username')
     if not username:
         return None
@@ -77,6 +105,7 @@ def get_current_user():
     if not user:
         return None
     return {
+        'is_station': False,
         'username': user.get('username'),
         'full_name': user.get('full_name', user.get('username')),
         'department': user.get('department', ''),
@@ -147,6 +176,46 @@ def index():
     return render_template('index.html')
 
 
+@app.route('/api/stations', methods=['GET'])
+def api_list_stations():
+    """Lấy danh sách các trạm thực hiện (công khai cho màn hình đăng nhập)."""
+    if not app_config:
+        return jsonify({'success': False, 'stations': []})
+    return jsonify({'success': True, 'stations': list_stations(app_config)})
+
+
+@app.route('/api/auth/station-login', methods=['POST'])
+def api_auth_station_login():
+    """Đăng nhập trực tiếp theo Nơi thực hiện / Trạm máy mà không cần mật khẩu."""
+    if not app_config:
+        return jsonify({'success': False, 'message': 'Hệ thống chưa sẵn sàng'}), 500
+    data = request.get_json(silent=True) or {}
+    station_id = (data.get('station_id') or '').strip().upper()
+    technician_name = (data.get('technician_name') or '').strip()
+    remember = bool(data.get('remember', True))
+
+    station = get_station_by_id(app_config, station_id)
+    if not station:
+        return jsonify({'success': False, 'message': f'Nơi thực hiện [{station_id}] không tồn tại hoặc đã bị xóa'}), 404
+
+    session.clear()
+    session.permanent = remember
+    session['station_id'] = station['id']
+    session['technician_name'] = technician_name
+    session['role'] = 'TECHNICIAN'
+
+    if logger_ref:
+        tech_str = f" do KTV [{technician_name}] trực" if technician_name else ""
+        logger_ref.info(f"Đăng nhập thành công vào Nơi thực hiện [{station['name']}]{tech_str} (Modality: {station['allowed_modalities']})")
+
+    user_info = get_current_user()
+    return jsonify({
+        'success': True,
+        'message': f"Chào mừng bạn đến với {station['name']}!",
+        'user': user_info
+    })
+
+
 @app.route('/api/auth/login', methods=['POST'])
 def api_auth_login():
     if not app_config:
@@ -160,6 +229,7 @@ def api_auth_login():
     if not user:
         return jsonify({'success': False, 'message': 'Tên đăng nhập hoặc mật khẩu không chính xác'}), 401
 
+    session.clear()
     session.permanent = remember
     session['username'] = user['username']
     session['role'] = user['role']
@@ -176,10 +246,10 @@ def api_auth_login():
 
 @app.route('/api/auth/logout', methods=['POST'])
 def api_auth_logout():
-    uname = session.get('username', 'Unknown')
+    uname = session.get('username') or session.get('station_id') or 'Unknown'
     session.clear()
     if logger_ref:
-        logger_ref.info(f"Người dùng [{uname}] đã đăng xuất")
+        logger_ref.info(f"Phiên làm việc [{uname}] đã đăng xuất")
     return jsonify({'success': True, 'message': 'Đã đăng xuất thành công'})
 
 
@@ -195,7 +265,8 @@ def api_auth_me():
                 'full_name': 'Nguyễn Đình Trí',
                 'department': 'Công nghệ thông tin',
                 'role': 'ADMIN',
-                'allowed_modalities': ['*']
+                'allowed_modalities': ['*'],
+                'is_station': False,
             }
         })
     user = get_current_user()
@@ -210,6 +281,8 @@ def api_auth_change_password():
     user = get_current_user()
     if not user:
         return jsonify({'success': False, 'message': 'Chưa đăng nhập'}), 401
+    if user.get('is_station'):
+        return jsonify({'success': False, 'message': 'Tài khoản Trạm thực hiện không sử dụng mật khẩu'}), 400
 
     data = request.get_json(silent=True) or {}
     old_pass = data.get('old_password', '')
@@ -228,6 +301,50 @@ def api_auth_change_password():
             logger_ref.info(f"Người dùng [{user['username']}] đã đổi mật khẩu thành công")
         return jsonify({'success': True, 'message': 'Đổi mật khẩu thành công!'})
     return jsonify({'success': False, 'message': 'Lỗi cập nhật mật khẩu'}), 500
+
+
+@app.route('/api/admin/stations', methods=['GET'])
+@admin_required
+def api_admin_list_stations():
+    """Lấy danh sách trạm thực hiện đầy đủ cho Super Admin."""
+    return jsonify({'success': True, 'stations': list_stations(app_config)})
+
+
+@app.route('/api/admin/stations', methods=['POST'])
+@admin_required
+def api_admin_upsert_station():
+    """Thêm mới hoặc cập nhật thông tin Trạm thực hiện & Modality được phép."""
+    data = request.get_json(silent=True) or {}
+    try:
+        st = upsert_station(app_config, config_path, data)
+        if logger_ref:
+            logger_ref.info(f"Super Admin đã cập nhật thông tin Nơi thực hiện [{st['name']}] (ID: {st['id']}, Modality: {st['allowed_modalities']})")
+        return jsonify({
+            'success': True,
+            'message': f"Đã lưu thông tin nơi thực hiện [{st['name']}]",
+            'station': st
+        })
+    except ValueError as ve:
+        return jsonify({'success': False, 'message': str(ve)}), 400
+    except Exception as exc:
+        return jsonify({'success': False, 'message': f"Lỗi lưu nơi thực hiện: {exc}"}), 500
+
+
+@app.route('/api/admin/stations/<station_id>', methods=['DELETE'])
+@admin_required
+def api_admin_delete_station(station_id):
+    """Xóa Nơi thực hiện khỏi hệ thống."""
+    try:
+        ok = delete_station(app_config, config_path, station_id)
+        if ok:
+            if logger_ref:
+                logger_ref.info(f"Super Admin đã xóa Nơi thực hiện [{station_id}]")
+            return jsonify({'success': True, 'message': f"Đã xóa nơi thực hiện [{station_id}] thành công"})
+        return jsonify({'success': False, 'message': 'Không tìm thấy nơi thực hiện để xóa'}), 404
+    except ValueError as ve:
+        return jsonify({'success': False, 'message': str(ve)}), 400
+    except Exception as exc:
+        return jsonify({'success': False, 'message': f"Lỗi xóa nơi thực hiện: {exc}"}), 500
 
 
 @app.route('/api/admin/users', methods=['GET'])
@@ -546,7 +663,7 @@ def api_test_ris():
 @login_required
 def api_worklist():
     if not app_config or not app_config.get('ris', {}).get('enabled', False):
-        return jsonify({'success': False, 'message': 'Tính năng RIS Worklist đang bị tắt trong config.yaml', 'items': []})
+        return jsonify({'success': False, 'message': 'Tính năng RIS Worklist đang bị tắt trong config.yaml', 'items': [], 'counts': {'pending': 0, 'completed': 0, 'total': 0}})
 
     user = get_current_user()
     user_role = user.get('role', 'TECHNICIAN') if user else 'ADMIN'
@@ -556,6 +673,9 @@ def api_worklist():
     patient_id = request.args.get('patient_id', '').strip()
     patient_name = request.args.get('patient_name', '').strip()
     modality = request.args.get('modality', '').strip().upper()
+    status_filter = request.args.get('status', 'PENDING').strip().upper()
+    if status_filter not in ('PENDING', 'COMPLETED', 'ALL'):
+        status_filter = 'PENDING'
 
     # Scope restriction for technician
     if user_role != 'ADMIN' and '*' not in allowed_modalities:
@@ -571,11 +691,53 @@ def api_worklist():
         if user_role != 'ADMIN' and '*' not in allowed_modalities:
             items = [it for it in items if (it.get('modality') or '').upper() in allowed_modalities]
 
-        return jsonify({'success': True, 'items': items})
+        # Đối soát với CSDL SQLite để kiểm tra ca nào đã đẩy PACS thành công (status = 'SUCCESS')
+        completed_map = {}
+        if registry_ref and items:
+            acc_list = [str(it.get('accession_number') or '').strip() for it in items if it.get('accession_number')]
+            completed_map = registry_ref.get_completed_accessions(accessions=acc_list, date_str=date_str)
+
+        pending_count = 0
+        completed_count = 0
+        enriched_items = []
+
+        for it in items:
+            acc = str(it.get('accession_number') or '').strip()
+            completed_info = completed_map.get(acc) if acc else None
+            is_completed = completed_info is not None
+
+            it['is_completed'] = is_completed
+            if is_completed:
+                it['completed_at'] = completed_info.get('created_at')
+                it['completed_sop_uid'] = completed_info.get('sop_instance_uid')
+                completed_count += 1
+            else:
+                pending_count += 1
+
+            enriched_items.append(it)
+
+        # Lọc danh sách trả về theo status_filter
+        if status_filter == 'PENDING':
+            filtered_items = [it for it in enriched_items if not it.get('is_completed')]
+        elif status_filter == 'COMPLETED':
+            filtered_items = [it for it in enriched_items if it.get('is_completed')]
+        else:
+            filtered_items = enriched_items
+
+        return jsonify({
+            'success': True,
+            'items': filtered_items,
+            'counts': {
+                'pending': pending_count,
+                'completed': completed_count,
+                'total': len(enriched_items)
+            },
+            'status_filter': status_filter
+        })
     except Exception as exc:
         if logger_ref:
             logger_ref.error(f"Lỗi truy vấn Worklist API: {exc}")
-        return jsonify({'success': False, 'message': f"Lỗi truy vấn RIS: {exc}", 'items': []})
+        return jsonify({'success': False, 'message': f"Lỗi truy vấn RIS: {exc}", 'items': [], 'counts': {'pending': 0, 'completed': 0, 'total': 0}})
 
 
 @app.route('/api/studies', methods=['GET'])

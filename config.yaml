@@ -101,3 +101,54 @@ auth:
       full_name: "KTV Thăm Dò Chức Năng"
       role: "TECHNICIAN"
       allowed_modalities: ["ECG", "EEG", "EMG", "BD", "PFT", "DOC", "OT"]
+
+stations:
+  - id: "US_01"
+    name: "Phòng Siêu âm 01 (Tổng quát)"
+    department: "Khoa Chẩn đoán hình ảnh"
+    allowed_modalities: ["US"]
+    default_modality: "US"
+    icon: "🩺"
+
+  - id: "US_02"
+    name: "Phòng Siêu âm 02 (Tim mạch & Mạch máu)"
+    department: "Khoa Chẩn đoán hình ảnh"
+    allowed_modalities: ["US"]
+    default_modality: "US"
+    icon: "❤️"
+
+  - id: "ES_01"
+    name: "Phòng Nội soi Tiêu hóa"
+    department: "Khoa Thăm dò chức năng"
+    allowed_modalities: ["ES"]
+    default_modality: "ES"
+    icon: "🔬"
+
+  - id: "ECG_EEG"
+    name: "Phòng Điện tâm đồ & Thần kinh (ECG/EEG/EMG)"
+    department: "Khoa Thăm dò chức năng"
+    allowed_modalities: ["ECG", "EEG", "EMG"]
+    default_modality: "ECG"
+    icon: "⚡"
+
+  - id: "BD_01"
+    name: "Phòng Đo loãng xương (DEXA)"
+    department: "Khoa Chẩn đoán hình ảnh"
+    allowed_modalities: ["BD"]
+    default_modality: "BD"
+    icon: "🦴"
+
+  - id: "PFT_01"
+    name: "Phòng Đo chức năng hô hấp"
+    department: "Khoa Thăm dò chức năng"
+    allowed_modalities: ["PFT", "DOC"]
+    default_modality: "PFT"
+    icon: "💨"
+
+  - id: "XRAY_01"
+    name: "Phòng X-quang Kỹ thuật số (DR/CR)"
+    department: "Khoa Chẩn đoán hình ảnh"
+    allowed_modalities: ["DR", "CR"]
+    default_modality: "DR"
+    icon: "📷"
+

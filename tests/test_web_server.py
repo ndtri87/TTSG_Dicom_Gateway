@@ -7,7 +7,7 @@ from unittest.mock import MagicMock, patch
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from PIL import Image  # noqa: E402
-
+from utils import hash_password  # noqa: E402
 from web_server import app, init_web_app  # noqa: E402
 
 
@@ -450,6 +450,224 @@ def test_admin_user_management_with_department():
         assert len(users2) == 2
         es_user = next(u for u in users2 if u['username'] == 'ktv_es')
         assert es_user['department'] == 'Khoa Thăm dò chức năng'
+
+
+def test_api_worklist_filter_status():
+    from utils import ProcessedRegistry
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        db_path = os.path.join(tmp_dir, 'registry.sqlite3')
+        registry = ProcessedRegistry(db_path)
+        try:
+            # Ghi nhận 1 ca đã hoàn thành ACC101
+            registry.record_study(
+                'us.png',
+                {'patient_id': 'BN01', 'patient_name': 'Nguyen A', 'accession_number': 'ACC101', 'modality': 'US'},
+                'SUCCESS',
+                sop_instance_uid='1.2.3.4.99'
+            )
+
+            config = {
+                'paths': {
+                    'dicom_staging_folder': os.path.join(tmp_dir, 'staging'),
+                    'processed_folder': os.path.join(tmp_dir, 'processed'),
+                    'failed_folder': os.path.join(tmp_dir, 'failed'),
+                    'registry_db': db_path,
+                },
+                'filename_pattern': {
+                    'regex': r'^(?P<patient_id>[A-Za-z0-9]+)_(?P<patient_name>[^_]+)_(?P<study_date>\d{8})',
+                    'date_format': '%Y%m%d',
+                },
+                'metadata': {'default_value': 'UNKNOWN', 'specific_character_set': 'ISO_IR 192'},
+                'pacs': {'ip': '127.0.0.1', 'port': 6002, 'called_ae_title': 'PACS', 'calling_ae_title': 'GATEWAY'},
+                'ris': {'enabled': True, 'ip': '127.0.0.1', 'port': 6003, 'called_ae_title': 'RIS', 'calling_ae_title': 'GATEWAY'},
+            }
+            init_web_app(config, 'config.yaml', None, None, 1000, registry=registry)
+            client = app.test_client()
+
+            # Mock WorklistClient.query_worklist returning 2 items (ACC101 - completed, ACC102 - pending)
+            mock_items = [
+                {'patient_id': 'BN01', 'patient_name': 'Nguyen A', 'accession_number': 'ACC101', 'modality': 'US', 'study_description': 'Sieu am'},
+                {'patient_id': 'BN02', 'patient_name': 'Tran B', 'accession_number': 'ACC102', 'modality': 'US', 'study_description': 'Sieu am'},
+            ]
+
+            with patch('web_server.WorklistClient') as MockClient:
+                mock_inst = MagicMock()
+                mock_inst.query_worklist.return_value = mock_items
+                MockClient.return_value = mock_inst
+
+                # 1. Test default / status=PENDING (Chỉ trả về ca chưa làm)
+                res_pending = client.get('/api/worklist?status=PENDING')
+                assert res_pending.status_code == 200
+                data_pending = res_pending.get_json()
+                assert data_pending['success'] is True
+                assert len(data_pending['items']) == 1
+                assert data_pending['items'][0]['accession_number'] == 'ACC102'
+                assert data_pending['counts']['pending'] == 1
+                assert data_pending['counts']['completed'] == 1
+                assert data_pending['counts']['total'] == 2
+
+                # 2. Test status=COMPLETED (Chỉ trả về ca đã đẩy PACS)
+                res_completed = client.get('/api/worklist?status=COMPLETED')
+                assert res_completed.status_code == 200
+                data_completed = res_completed.get_json()
+                assert len(data_completed['items']) == 1
+                assert data_completed['items'][0]['accession_number'] == 'ACC101'
+                assert data_completed['items'][0]['is_completed'] is True
+
+                # 3. Test status=ALL (Trả về tất cả kèm cờ is_completed)
+                res_all = client.get('/api/worklist?status=ALL')
+                assert res_all.status_code == 200
+                data_all = res_all.get_json()
+                assert len(data_all['items']) == 2
+        finally:
+            registry.close()
+
+
+def test_station_authentication_and_rbac():
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        cfg_path = os.path.join(tmp_dir, 'config.yaml')
+        config = {
+            'auth': {
+                'enabled': True,
+                'users': [
+                    {'username': 'trind', 'password_hash': hash_password('admin123'), 'full_name': 'Super Admin', 'role': 'ADMIN', 'allowed_modalities': ['*']}
+                ]
+            },
+            'pacs': {'ip': '127.0.0.1', 'port': 6002, 'called_ae_title': 'PACS', 'calling_ae_title': 'GATEWAY'},
+            'ris': {'enabled': False},
+            'watcher': {
+                'watch_folders': [{'path': os.path.join(tmp_dir, 'inbox'), 'modality': 'US'}],
+                'stability_check_interval_sec': 1,
+                'stability_check_count': 2,
+            },
+            'paths': {
+                'dicom_staging_folder': os.path.join(tmp_dir, 'staging'),
+                'processed_folder': os.path.join(tmp_dir, 'processed'),
+                'failed_folder': os.path.join(tmp_dir, 'failed'),
+                'duplicates_folder': os.path.join(tmp_dir, 'duplicates'),
+                'retry_queue_folder': os.path.join(tmp_dir, 'queue'),
+                'registry_db': os.path.join(tmp_dir, 'registry.sqlite3'),
+            },
+            'filename_pattern': {
+                'regex': r'^(?P<patient_id>[A-Za-z0-9]+)_(?P<patient_name>[^_]+)_(?P<study_date>\d{8})',
+                'date_format': '%Y%m%d',
+            },
+            'metadata': {'default_value': 'UNKNOWN', 'specific_character_set': 'ISO_IR 192'},
+            'retry': {'scan_interval_sec': 300, 'backoff_schedule_sec': [300, 600], 'max_attempts': 3},
+            'logging': {'log_folder': tmp_dir, 'level': 'INFO', 'retention_days': 90},
+            'stations': [
+                {'id': 'US_01', 'name': 'Phòng Siêu âm 01', 'department': 'Khoa CĐHA', 'allowed_modalities': ['US'], 'default_modality': 'US', 'icon': '🩺'}
+            ]
+        }
+        init_web_app(config, cfg_path, None, None, 1000)
+        client = app.test_client()
+
+        # 1. GET /api/stations công khai
+        res_stations = client.get('/api/stations')
+        assert res_stations.status_code == 200
+        st_data = res_stations.get_json()
+        assert st_data['success'] is True
+        assert len(st_data['stations']) >= 1
+        assert st_data['stations'][0]['id'] == 'US_01'
+
+        # 2. Đăng nhập Station không cần mật khẩu
+        res_login = client.post('/api/auth/station-login', json={
+            'station_id': 'US_01',
+            'technician_name': 'KTV Tran Van B',
+            'remember': True
+        })
+        assert res_login.status_code == 200
+        login_data = res_login.get_json()
+        assert login_data['success'] is True
+        assert login_data['user']['is_station'] is True
+        assert login_data['user']['station_id'] == 'US_01'
+        assert login_data['user']['technician_name'] == 'KTV Tran Van B'
+        assert login_data['user']['role'] == 'TECHNICIAN'
+        assert login_data['user']['allowed_modalities'] == ['US']
+
+        # 3. GET /api/auth/me trả về thông tin station
+        res_me = client.get('/api/auth/me')
+        assert res_me.status_code == 200
+        me_data = res_me.get_json()
+        assert me_data['user']['is_station'] is True
+        assert me_data['user']['station_id'] == 'US_01'
+
+        # 4. Station role bị chặn truy cập API Admin
+        res_admin_users = client.get('/api/admin/users')
+        assert res_admin_users.status_code == 403
+        res_admin_stations = client.get('/api/admin/stations')
+        assert res_admin_stations.status_code == 403
+
+        # 5. Station không được đổi mật khẩu
+        res_change_pwd = client.post('/api/auth/change-password', json={'old_password': '1', 'new_password': '2'})
+        assert res_change_pwd.status_code == 400
+
+
+def test_admin_station_management():
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        cfg_path = os.path.join(tmp_dir, 'config.yaml')
+        config = {
+            'auth': {
+                'enabled': True,
+                'users': [
+                    {'username': 'trind', 'password_hash': hash_password('admin123'), 'full_name': 'Super Admin', 'role': 'ADMIN', 'allowed_modalities': ['*']}
+                ]
+            },
+            'pacs': {'ip': '127.0.0.1', 'port': 6002, 'called_ae_title': 'PACS', 'calling_ae_title': 'GATEWAY'},
+            'ris': {'enabled': False},
+            'watcher': {
+                'watch_folders': [{'path': os.path.join(tmp_dir, 'inbox'), 'modality': 'US'}],
+                'stability_check_interval_sec': 1,
+                'stability_check_count': 2,
+            },
+            'paths': {
+                'dicom_staging_folder': os.path.join(tmp_dir, 'staging'),
+                'processed_folder': os.path.join(tmp_dir, 'processed'),
+                'failed_folder': os.path.join(tmp_dir, 'failed'),
+                'duplicates_folder': os.path.join(tmp_dir, 'duplicates'),
+                'retry_queue_folder': os.path.join(tmp_dir, 'queue'),
+                'registry_db': os.path.join(tmp_dir, 'registry.sqlite3'),
+            },
+            'filename_pattern': {
+                'regex': r'^(?P<patient_id>[A-Za-z0-9]+)_(?P<patient_name>[^_]+)_(?P<study_date>\d{8})',
+                'date_format': '%Y%m%d',
+            },
+            'metadata': {'default_value': 'UNKNOWN', 'specific_character_set': 'ISO_IR 192'},
+            'retry': {'scan_interval_sec': 300, 'backoff_schedule_sec': [300, 600], 'max_attempts': 3},
+            'logging': {'log_folder': tmp_dir, 'level': 'INFO', 'retention_days': 90},
+            'stations': [
+                {'id': 'US_01', 'name': 'Phòng Siêu âm 01', 'department': 'Khoa CĐHA', 'allowed_modalities': ['US'], 'default_modality': 'US', 'icon': '🩺'}
+            ]
+        }
+        init_web_app(config, cfg_path, None, None, 1000)
+        client = app.test_client()
+
+        # Đăng nhập Admin bằng mật khẩu
+        client.post('/api/auth/login', json={'username': 'trind', 'password': 'admin123'})
+
+        # 1. Admin lấy danh sách trạm
+        res_list = client.get('/api/admin/stations')
+        assert res_list.status_code == 200
+        assert len(res_list.get_json()['stations']) == 1
+
+        # 2. Admin thêm trạm mới
+        res_add = client.post('/api/admin/stations', json={
+            'id': 'ES_01',
+            'name': 'Phòng Nội Soi 01',
+            'department': 'Khoa TDCN',
+            'icon': '🔬',
+            'allowed_modalities': ['ES']
+        })
+        assert res_add.status_code == 200
+        assert res_add.get_json()['station']['id'] == 'ES_01'
+
+        # 3. Admin xóa trạm
+        res_del = client.delete('/api/admin/stations/ES_01')
+        assert res_del.status_code == 200
+        assert res_del.get_json()['success'] is True
+
+
+
 
 
 

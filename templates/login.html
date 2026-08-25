@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -41,33 +42,39 @@
         .login-card {
             background: var(--card-bg);
             border: 1px solid var(--card-border);
-            border-radius: 14px;
+            border-radius: 16px;
             width: 100%;
-            max-width: 440px;
+            max-width: 460px;
             padding: 2.2rem;
-            box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.6), 0 0 25px rgba(59, 130, 246, 0.15);
-            animation: fadeIn 0.4s ease-out;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6), 0 0 25px rgba(59, 130, 246, 0.15);
+            animation: fadeIn 0.35s ease-out;
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(12px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(12px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .logo-header {
             text-align: center;
-            margin-bottom: 1.8rem;
+            margin-bottom: 1.5rem;
         }
 
         .logo-img {
-            height: 64px;
+            height: 60px;
             width: auto;
             object-fit: contain;
             background: #ffffff;
-            padding: 4px 8px;
+            padding: 4px 10px;
             border-radius: 10px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-            margin-bottom: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            margin-bottom: 10px;
         }
 
         .logo-header h1 {
@@ -78,21 +85,59 @@
         }
 
         .logo-header p {
-            font-size: 12px;
+            font-size: 11.5px;
             font-weight: 600;
             color: #38bdf8;
             text-transform: uppercase;
             letter-spacing: 0.8px;
-            margin-top: 4px;
+            margin-top: 3px;
+        }
+
+        /* Segmented Mode Switch */
+        .login-mode-tabs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            background: rgba(15, 23, 42, 0.8);
+            padding: 4px;
+            border-radius: 10px;
+            border: 1px solid var(--card-border);
+            margin-bottom: 1.5rem;
+            gap: 4px;
+        }
+
+        .mode-tab-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            padding: 8px 12px;
+            font-size: 13px;
+            font-weight: 600;
+            border-radius: 7px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .mode-tab-btn:hover {
+            color: var(--text-main);
+        }
+
+        .mode-tab-btn.active {
+            background: var(--primary);
+            color: #ffffff;
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4);
         }
 
         .form-group {
-            margin-bottom: 1.1rem;
+            margin-bottom: 1.15rem;
         }
 
         .form-group label {
             display: block;
-            font-size: 13px;
+            font-size: 12.5px;
             font-weight: 600;
             color: var(--text-muted);
             margin-bottom: 6px;
@@ -119,7 +164,7 @@
             border-radius: 8px;
             padding: 10px 12px 10px 38px;
             color: var(--text-main);
-            font-size: 14px;
+            font-size: 13.5px;
             font-family: inherit;
             outline: none;
             transition: all 0.2s ease;
@@ -129,6 +174,55 @@
             border-color: var(--primary);
             box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
             background: #090d16;
+        }
+
+        select.form-control {
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2394a3b8'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 16px;
+            padding-right: 36px;
+        }
+
+        .station-preview-box {
+            background: rgba(59, 130, 246, 0.08);
+            border: 1px solid rgba(59, 130, 246, 0.25);
+            border-radius: 8px;
+            padding: 10px 12px;
+            margin-bottom: 1.15rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .station-preview-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .station-preview-dept {
+            font-size: 11.5px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .modality-badges-group {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+        }
+
+        .mod-badge {
+            background: rgba(56, 189, 248, 0.15);
+            color: #38bdf8;
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            border-radius: 4px;
+            padding: 2px 6px;
+            font-size: 11px;
+            font-weight: 700;
         }
 
         .btn-toggle-pwd {
@@ -209,119 +303,244 @@
             border: 1px solid rgba(239, 68, 68, 0.4);
             color: #fca5a5;
         }
-
-        .quick-accounts {
-            margin-top: 1.8rem;
-            padding-top: 1.2rem;
-            border-top: 1px solid var(--card-border);
-        }
-
-        .quick-accounts-title {
-            font-size: 11.5px;
-            font-weight: 600;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            margin-bottom: 8px;
-            text-align: center;
-        }
-
-        .quick-account-chips {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-            justify-content: center;
-        }
-
-        .account-chip {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 20px;
-            padding: 4px 10px;
-            font-size: 11.5px;
-            color: var(--text-muted);
-            cursor: pointer;
-            transition: all 0.15s ease;
-        }
-
-        .account-chip:hover {
-            background: rgba(59, 130, 246, 0.15);
-            color: #60a5fa;
-            border-color: rgba(59, 130, 246, 0.4);
-        }
     </style>
 </head>
+
 <body>
 
     <div class="login-card">
         <div class="logo-header">
-            <img src="/static/logo_icon.png" class="logo-img" alt="Logo BV Tâm Trí Sài Gòn">
+            <img src="/static/logo.png" class="logo-img" alt="Logo BV Tâm Trí Sài Gòn">
             <h1>Bệnh viện Đa khoa Tâm Trí Sài Gòn</h1>
             <p>DICOM Gateway Service</p>
         </div>
 
+        <!-- Mode Switch Tabs -->
+        <div class="login-mode-tabs">
+            <button type="button" class="mode-tab-btn active" id="tab-mode-station" onclick="switchLoginMode('station')">
+                🏢 Nơi Thực Hiện
+            </button>
+            <button type="button" class="mode-tab-btn" id="tab-mode-admin" onclick="switchLoginMode('admin')">
+                🔐 Quản Trị Viên
+            </button>
+        </div>
+
         <div id="alert-msg" class="alert-box alert-error"></div>
 
-        <form id="login-form" onsubmit="handleLogin(event)">
+        <!-- FORM 1: Nơi thực hiện / Trạm máy (Không cần mật khẩu) -->
+        <form id="station-login-form" onsubmit="handleStationLogin(event)">
             <div class="form-group">
-                <label for="username">Tên đăng nhập</label>
+                <label for="station-select">Chọn Phòng Khám / Nơi Thực Hiện</label>
+                <div class="input-wrapper">
+                    <span class="input-icon">🏢</span>
+                    <select id="station-select" class="form-control" onchange="onStationChanged()" required>
+                        <option value="">-- Đang tải danh sách nơi thực hiện... --</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Station Preview Card -->
+            <div id="station-preview-box" class="station-preview-box" style="display: none;">
+                <div>
+                    <div class="station-preview-title" id="preview-station-name">-</div>
+                    <div class="station-preview-dept" id="preview-station-dept">-</div>
+                </div>
+                <div class="modality-badges-group" id="preview-station-modalities"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="station-tech-name">Kỹ Thuật Viên / Bác Sĩ Trực (Không bắt buộc)</label>
                 <div class="input-wrapper">
                     <span class="input-icon">👤</span>
-                    <input type="text" id="username" class="form-control" placeholder="Ví dụ: ktv_sieuam hoặc trind" required autofocus autocomplete="username">
+                    <input type="text" id="station-tech-name" class="form-control" placeholder="Ví dụ: KTV Nguyễn Văn A">
+                </div>
+            </div>
+
+            <div class="remember-row">
+                <label class="remember-label">
+                    <input type="checkbox" id="remember-station" checked>
+                    <span>Ghi nhớ phòng làm việc trên máy tính này</span>
+                </label>
+            </div>
+
+            <button type="submit" class="btn-submit" id="btn-station-submit">
+                <span>🚀 Vào Làm Việc Ngay</span>
+            </button>
+        </form>
+
+        <!-- FORM 2: Quản trị viên (Bắt buộc mật khẩu) -->
+        <form id="admin-login-form" style="display: none;" onsubmit="handleAdminLogin(event)">
+            <div class="form-group">
+                <label for="admin-username">Tài khoản Quản trị</label>
+                <div class="input-wrapper">
+                    <span class="input-icon">👑</span>
+                    <input type="text" id="admin-username" class="form-control" value="trind" placeholder="Tên đăng nhập admin" required autocomplete="username">
                 </div>
             </div>
 
             <div class="form-group">
-                <label for="password">Mật khẩu</label>
+                <label for="admin-password">Mật khẩu Quản trị</label>
                 <div class="input-wrapper">
                     <span class="input-icon">🔒</span>
-                    <input type="password" id="password" class="form-control" placeholder="Nhập mật khẩu" required autocomplete="current-password">
+                    <input type="password" id="admin-password" class="form-control" placeholder="Nhập mật khẩu quản trị viên" required autocomplete="current-password">
                     <button type="button" class="btn-toggle-pwd" onclick="togglePasswordVisibility()" title="Ẩn/Hiện mật khẩu">👁️</button>
                 </div>
             </div>
 
             <div class="remember-row">
                 <label class="remember-label">
-                    <input type="checkbox" id="remember-me" checked>
-                    <span>Ghi nhớ phiên đăng nhập (30 ngày)</span>
+                    <input type="checkbox" id="remember-admin" checked>
+                    <span>Ghi nhớ phiên quản trị (30 ngày)</span>
                 </label>
             </div>
 
-            <button type="submit" class="btn-submit" id="btn-login-submit">
-                <span>🔐 Đăng Nhập Hệ Thống</span>
+            <button type="submit" class="btn-submit" id="btn-admin-submit">
+                <span>🔐 Đăng Nhập Quản Trị</span>
             </button>
         </form>
-
-        <div class="quick-accounts">
-            <div class="quick-accounts-title">⚡ Chọn tài khoản nhanh theo chuyên khoa:</div>
-            <div class="quick-account-chips">
-                <button type="button" class="account-chip" onclick="fillAccount('ktv_sieuam', '123456')">🩺 Siêu Âm (US)</button>
-                <button type="button" class="account-chip" onclick="fillAccount('ktv_noisoi', '123456')">🔬 Nội Soi (ES)</button>
-                <button type="button" class="account-chip" onclick="fillAccount('ktv_xquang', '123456')">📸 X-Quang (DR/CR)</button>
-                <button type="button" class="account-chip" onclick="fillAccount('ktv_ctmri', '123456')">🌀 CT / MRI</button>
-                <button type="button" class="account-chip" onclick="fillAccount('ktv_thamdo', '123456')">💓 Thăm Dò (ECG/EEG)</button>
-            </div>
-        </div>
     </div>
 
     <script>
+        let availableStations = [];
+
+        function switchLoginMode(mode) {
+            const isStation = (mode === 'station');
+            document.getElementById('tab-mode-station').classList.toggle('active', isStation);
+            document.getElementById('tab-mode-admin').classList.toggle('active', !isStation);
+            document.getElementById('station-login-form').style.display = isStation ? 'block' : 'none';
+            document.getElementById('admin-login-form').style.display = !isStation ? 'block' : 'none';
+            document.getElementById('alert-msg').style.display = 'none';
+
+            if (!isStation) {
+                document.getElementById('admin-password').focus();
+            }
+        }
+
         function togglePasswordVisibility() {
-            const pwd = document.getElementById('password');
+            const pwd = document.getElementById('admin-password');
             pwd.type = (pwd.type === 'password') ? 'text' : 'password';
         }
 
-        function fillAccount(uname, pwd) {
-            document.getElementById('username').value = uname;
-            document.getElementById('password').value = pwd;
-            document.getElementById('alert-msg').style.display = 'none';
+        async function loadStationsList() {
+            const selectEl = document.getElementById('station-select');
+            try {
+                const res = await fetch('/api/stations');
+                const data = await res.json();
+                availableStations = data.stations || [];
+
+                selectEl.innerHTML = '<option value="">-- Chọn phòng / nơi thực hiện --</option>';
+                availableStations.forEach(st => {
+                    const opt = document.createElement('option');
+                    opt.value = st.id;
+                    const mods = (st.allowed_modalities || []).join(', ');
+                    opt.innerText = `${st.icon || '🏢'} ${st.name} [${mods}]`;
+                    selectEl.appendChild(opt);
+                });
+
+                // Kiểm tra nếu có lưu trạm trước đó
+                const savedStationId = localStorage.getItem('ttsg_saved_station_id');
+                const savedTechName = localStorage.getItem('ttsg_saved_tech_name');
+
+                if (savedTechName) {
+                    document.getElementById('station-tech-name').value = savedTechName;
+                }
+
+                if (savedStationId && availableStations.some(s => s.id === savedStationId)) {
+                    selectEl.value = savedStationId;
+                    onStationChanged();
+                } else if (availableStations.length > 0) {
+                    selectEl.value = availableStations[0].id;
+                    onStationChanged();
+                }
+            } catch (err) {
+                console.error('Lỗi tải danh sách trạm:', err);
+                selectEl.innerHTML = '<option value="">Không tải được danh sách nơi thực hiện</option>';
+            }
         }
 
-        async function handleLogin(e) {
+        function onStationChanged() {
+            const selId = document.getElementById('station-select').value;
+            const previewBox = document.getElementById('station-preview-box');
+            const target = availableStations.find(s => s.id === selId);
+
+            if (target) {
+                previewBox.style.display = 'flex';
+                document.getElementById('preview-station-name').innerText = `${target.icon || '🏢'} ${target.name}`;
+                document.getElementById('preview-station-dept').innerText = target.department || 'Khoa Thăm dò chức năng';
+
+                const modGroup = document.getElementById('preview-station-modalities');
+                modGroup.innerHTML = '';
+                (target.allowed_modalities || []).forEach(m => {
+                    const b = document.createElement('span');
+                    b.className = 'mod-badge';
+                    b.innerText = m;
+                    modGroup.appendChild(b);
+                });
+            } else {
+                previewBox.style.display = 'none';
+            }
+        }
+
+        async function handleStationLogin(e) {
             e.preventDefault();
-            const uname = document.getElementById('username').value.trim();
-            const pwd = document.getElementById('password').value;
-            const remember = document.getElementById('remember-me').checked;
+            const stationId = document.getElementById('station-select').value;
+            const techName = document.getElementById('station-tech-name').value.trim();
+            const remember = document.getElementById('remember-station').checked;
             const alertBox = document.getElementById('alert-msg');
-            const submitBtn = document.getElementById('btn-login-submit');
+            const submitBtn = document.getElementById('btn-station-submit');
+
+            if (!stationId) {
+                alertBox.innerText = 'Vui lòng chọn nơi thực hiện!';
+                alertBox.style.display = 'block';
+                return;
+            }
+
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '⏳ Đang khởi tạo phiên làm việc...';
+            alertBox.style.display = 'none';
+
+            try {
+                const res = await fetch('/api/auth/station-login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        station_id: stationId,
+                        technician_name: techName,
+                        remember: remember
+                    })
+                });
+
+                const data = await res.json();
+                if (data.success) {
+                    if (remember) {
+                        localStorage.setItem('ttsg_saved_station_id', stationId);
+                        if (techName) localStorage.setItem('ttsg_saved_tech_name', techName);
+                    } else {
+                        localStorage.removeItem('ttsg_saved_station_id');
+                        localStorage.removeItem('ttsg_saved_tech_name');
+                    }
+                    window.location.href = '/';
+                } else {
+                    alertBox.innerText = data.message || 'Không thể đăng nhập vào trạm này.';
+                    alertBox.style.display = 'block';
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '🚀 Vào Làm Việc Ngay';
+                }
+            } catch (err) {
+                alertBox.innerText = 'Lỗi kết nối máy chủ: ' + err.message;
+                alertBox.style.display = 'block';
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '🚀 Vào Làm Việc Ngay';
+            }
+        }
+
+        async function handleAdminLogin(e) {
+            e.preventDefault();
+            const uname = document.getElementById('admin-username').value.trim();
+            const pwd = document.getElementById('admin-password').value;
+            const remember = document.getElementById('remember-admin').checked;
+            const alertBox = document.getElementById('alert-msg');
+            const submitBtn = document.getElementById('btn-admin-submit');
 
             if (!uname || !pwd) {
                 alertBox.innerText = 'Vui lòng nhập đầy đủ tên đăng nhập và mật khẩu!';
@@ -330,7 +549,7 @@
             }
 
             submitBtn.disabled = true;
-            submitBtn.innerHTML = '⏳ Đang xác thực...';
+            submitBtn.innerHTML = '⏳ Đang xác thực Quản trị...';
             alertBox.style.display = 'none';
 
             try {
@@ -348,18 +567,22 @@
                 if (data.success) {
                     window.location.href = '/';
                 } else {
-                    alertBox.innerText = data.message || 'Đăng nhập thất bại. Vui lòng kiểm tra lại!';
+                    alertBox.innerText = data.message || 'Tên đăng nhập hoặc mật khẩu không chính xác!';
                     alertBox.style.display = 'block';
                     submitBtn.disabled = false;
-                    submitBtn.innerHTML = '🔐 Đăng Nhập Hệ Thống';
+                    submitBtn.innerHTML = '🔐 Đăng Nhập Quản Trị';
                 }
             } catch (err) {
                 alertBox.innerText = 'Lỗi kết nối máy chủ: ' + err.message;
                 alertBox.style.display = 'block';
                 submitBtn.disabled = false;
-                submitBtn.innerHTML = '🔐 Đăng Nhập Hệ Thống';
+                submitBtn.innerHTML = '🔐 Đăng Nhập Quản Trị';
             }
         }
+
+        // Khởi động
+        window.addEventListener('DOMContentLoaded', loadStationsList);
     </script>
 </body>
+
 </html>

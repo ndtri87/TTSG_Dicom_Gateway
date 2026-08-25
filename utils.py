@@ -423,6 +423,38 @@ class ProcessedRegistry:
             rows = cur.fetchall()
             return [dict(row) for row in rows]
 
+    def get_completed_accessions(self, accessions=None, date_str=None):
+        """Trả về dict map accession_number -> thông tin ca chụp thành công (status='SUCCESS').
+        Dùng để đối soát với RIS Worklist và ẩn/phân loại các ca đã thực hiện đẩy PACS."""
+        with self._lock:
+            sql = """
+                SELECT accession_number, patient_id, patient_name, study_date, modality, sop_instance_uid, created_at 
+                FROM studies 
+                WHERE status = 'SUCCESS' AND accession_number IS NOT NULL AND TRIM(accession_number) != ''
+            """
+            params = []
+            if accessions:
+                clean_accs = [str(a).strip() for a in accessions if a and str(a).strip()]
+                if not clean_accs:
+                    return {}
+                placeholders = ','.join(['?'] * len(clean_accs))
+                sql += f" AND accession_number IN ({placeholders})"
+                params.extend(clean_accs)
+            elif date_str:
+                clean_date = str(date_str).replace('-', '').strip()
+                sql += " AND (study_date = ? OR created_at LIKE ?)"
+                params.extend([clean_date, f"{date_str}%"])
+
+            sql += " ORDER BY id DESC"
+            cur = self._conn.execute(sql, params)
+            rows = cur.fetchall()
+            completed_map = {}
+            for r in rows:
+                acc = str(r['accession_number']).strip()
+                if acc and acc not in completed_map:
+                    completed_map[acc] = dict(r)
+            return completed_map
+
     def get_modality_stats(self, date_str=None):
         """Tổng hợp thống kê theo từng Modality (tổng ca, thành công, retry, lỗi, lần hoạt động cuối)."""
         import re
@@ -675,4 +707,151 @@ def delete_user(config: dict, config_path: str, username: str) -> bool:
     users.remove(target)
     save_config(config, config_path)
     return True
+
+
+DEFAULT_STATIONS = [
+    {
+        'id': 'US_01',
+        'name': 'Phòng Siêu âm 01 (Tổng quát)',
+        'department': 'Khoa Chẩn đoán hình ảnh',
+        'allowed_modalities': ['US'],
+        'default_modality': 'US',
+        'icon': '🩺',
+    },
+    {
+        'id': 'US_02',
+        'name': 'Phòng Siêu âm 02 (Tim mạch & Mạch máu)',
+        'department': 'Khoa Chẩn đoán hình ảnh',
+        'allowed_modalities': ['US'],
+        'default_modality': 'US',
+        'icon': '❤️',
+    },
+    {
+        'id': 'ES_01',
+        'name': 'Phòng Nội soi Tiêu hóa',
+        'department': 'Khoa Thăm dò chức năng',
+        'allowed_modalities': ['ES'],
+        'default_modality': 'ES',
+        'icon': '🔬',
+    },
+    {
+        'id': 'ECG_EEG',
+        'name': 'Phòng Điện tâm đồ & Thần kinh (ECG/EEG/EMG)',
+        'department': 'Khoa Thăm dò chức năng',
+        'allowed_modalities': ['ECG', 'EEG', 'EMG'],
+        'default_modality': 'ECG',
+        'icon': '⚡',
+    },
+    {
+        'id': 'BD_01',
+        'name': 'Phòng Đo loãng xương (DEXA)',
+        'department': 'Khoa Chẩn đoán hình ảnh',
+        'allowed_modalities': ['BD'],
+        'default_modality': 'BD',
+        'icon': '🦴',
+    },
+    {
+        'id': 'PFT_01',
+        'name': 'Phòng Đo chức năng hô hấp',
+        'department': 'Khoa Thăm dò chức năng',
+        'allowed_modalities': ['PFT', 'DOC'],
+        'default_modality': 'PFT',
+        'icon': '💨',
+    },
+    {
+        'id': 'XRAY_01',
+        'name': 'Phòng X-quang Kỹ thuật số (DR/CR)',
+        'department': 'Khoa Chẩn đoán hình ảnh',
+        'allowed_modalities': ['DR', 'CR'],
+        'default_modality': 'DR',
+        'icon': '📷',
+    },
+]
+
+
+def get_stations_config(config: dict) -> list[dict]:
+    """Lấy danh sách các trạm thực hiện từ config, khởi tạo mặc định nếu chưa có."""
+    if not config:
+        return [dict(st) for st in DEFAULT_STATIONS]
+    if 'stations' not in config or not isinstance(config['stations'], list) or len(config['stations']) == 0:
+        config['stations'] = [dict(st) for st in DEFAULT_STATIONS]
+    return config['stations']
+
+
+def list_stations(config: dict) -> list[dict]:
+    """Trả về danh sách trạm thực hiện chuẩn hóa."""
+    stations = get_stations_config(config)
+    result = []
+    for s in stations:
+        result.append({
+            'id': s.get('id', ''),
+            'name': s.get('name', ''),
+            'department': s.get('department', ''),
+            'allowed_modalities': s.get('allowed_modalities', []),
+            'default_modality': s.get('default_modality', ''),
+            'icon': s.get('icon', '🏢'),
+        })
+    return result
+
+
+def get_station_by_id(config: dict, station_id: str) -> dict | None:
+    """Tìm thông tin trạm thực hiện theo ID."""
+    stations = get_stations_config(config)
+    clean_id = (station_id or '').strip().upper()
+    for s in stations:
+        if s.get('id', '').strip().upper() == clean_id:
+            return s
+    return None
+
+
+def upsert_station(config: dict, config_path: str, station_data: dict) -> dict:
+    """Thêm mới hoặc cập nhật thông tin trạm thực hiện."""
+    stations = get_stations_config(config)
+    st_id = (station_data.get('id') or '').strip().upper()
+    if not st_id:
+        raise ValueError("Mã nơi thực hiện (id) không được để trống")
+
+    st_name = (station_data.get('name') or '').strip()
+    if not st_name:
+        raise ValueError("Tên nơi thực hiện (name) không được để trống")
+
+    existing = get_station_by_id(config, st_id)
+    if existing:
+        existing['name'] = st_name
+        if station_data.get('department') is not None:
+            existing['department'] = station_data['department']
+        if station_data.get('allowed_modalities') is not None:
+            existing['allowed_modalities'] = station_data['allowed_modalities']
+        if station_data.get('default_modality') is not None:
+            existing['default_modality'] = station_data['default_modality']
+        if station_data.get('icon') is not None:
+            existing['icon'] = station_data['icon']
+    else:
+        new_st = {
+            'id': st_id,
+            'name': st_name,
+            'department': station_data.get('department', 'Khoa Thăm dò chức năng'),
+            'allowed_modalities': station_data.get('allowed_modalities', ['OT']),
+            'default_modality': station_data.get('default_modality', station_data.get('allowed_modalities', ['OT'])[0] if station_data.get('allowed_modalities') else 'OT'),
+            'icon': station_data.get('icon', '🏢'),
+        }
+        stations.append(new_st)
+
+    save_config(config, config_path)
+    return get_station_by_id(config, st_id)
+
+
+def delete_station(config: dict, config_path: str, station_id: str) -> bool:
+    """Xóa trạm thực hiện khỏi danh sách."""
+    stations = get_stations_config(config)
+    target = get_station_by_id(config, station_id)
+    if not target:
+        return False
+    if len(stations) <= 1:
+        raise ValueError("Không thể xóa nơi thực hiện duy nhất còn lại trong hệ thống")
+
+    stations.remove(target)
+    save_config(config, config_path)
+    return True
+
 
