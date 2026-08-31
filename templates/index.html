@@ -1161,13 +1161,13 @@
             <div class="card" style="margin-bottom: 1.5rem;">
                 <div class="section-title">
                     <div style="display: flex; align-items: center; gap: 10px;">
-                        <span class="icon-badge md"><svg class="svg-icon md"><use href="#icon-activity"></use></svg></span>
+                        <span class="icon-badge md"><svg class="svg-icon md"><use href="#icon-cpu"></use></svg></span>
                         <span>Ma Trận Thiết Bị & Chuyên Khoa (Modality Fleet Grid)</span>
                     </div>
                     <div style="display: flex; gap: 8px;">
                         <button class="btn btn-outline" onclick="fetchModalitySummary()" style="padding: 6px 12px; font-size: 12.5px;">
                             <svg class="svg-icon xs"><use href="#icon-refresh"></use></svg>
-                            <span>Làm Mới</span>
+                            <span>Làm Mới Trạng Thái</span>
                         </button>
                         <button class="btn btn-outline" onclick="triggerRetry()" style="padding: 6px 12px; font-size: 12.5px;">
                             <svg class="svg-icon xs"><use href="#icon-send"></use></svg>
@@ -1182,42 +1182,7 @@
                     </div>
                 </div>
             </div>
-                            <span style="font-size: 11px; color: var(--text-muted); font-family: 'JetBrains Mono', monospace;" id="chart-status-count-total">Đã xử lý: 0 ca</span>
-                        </div>
-                        <div style="position: relative; height: 170px; display: flex; align-items: center; justify-content: center;">
-                            <canvas id="chartGatewayStatus"></canvas>
-                        </div>
-                    </div>
-                </div>
-            </div>
 
-            <!-- Modality Operations Fleet Grid -->
-            <div class="card" style="margin-bottom: 1.5rem;">
-                <div class="section-title">
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <span class="icon-badge md">
-                            <svg class="svg-icon md"><use href="#icon-cpu"></use></svg>
-                        </span>
-                        <span>Ma Trận Thiết Bị & Chuyên Khoa (Modality Fleet Grid)</span>
-                    </div>
-                    <div style="display: flex; gap: 8px;">
-                        <button class="btn btn-outline" onclick="fetchModalitySummary()" style="padding: 6px 12px; font-size: 13px;">
-                            <svg class="svg-icon xs"><use href="#icon-refresh"></use></svg>
-                            <span>Làm Mới Trạng Thái</span>
-                        </button>
-                        <button class="btn btn-outline" onclick="triggerRetry()" style="padding: 6px 12px; font-size: 13px;">
-                            <svg class="svg-icon xs"><use href="#icon-refresh"></use></svg>
-                            <span>Thử Lại Toàn Bộ</span>
-                        </button>
-                    </div>
-                </div>
-                <div id="modality-grid-container" class="modality-grid">
-                    <!-- Dynamic Modality Cards loaded via JS -->
-                    <div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 2.5rem;">
-                        Đang tải dữ liệu trạng thái các Modality...
-                    </div>
-                </div>
-            </div>
 
             <!-- Modality Focus Detail Panel -->
             <div id="modality-focus-panel" class="modality-focus-box" style="display: none;">
