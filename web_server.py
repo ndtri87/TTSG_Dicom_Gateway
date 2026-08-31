@@ -8,7 +8,7 @@ import threading
 import time
 from datetime import timedelta
 from functools import wraps
-from flask import Flask, jsonify, redirect, render_template, request, session, url_for
+from flask import Flask, jsonify, redirect, render_template, request, session, url_for, send_file
 
 from dicom_builder import DicomBuildError, build_dicom_from_file
 from dicom_sender import DicomSender
@@ -251,6 +251,18 @@ def login_page():
 @login_required
 def index():
     return render_template('index.html')
+
+
+@app.route('/docs')
+def docs_page():
+    """Phục vụ trang tài liệu kỹ thuật, hướng dẫn triển khai và SDK API (chuẩn Microlink)."""
+    docs_path = os.path.join(_base_dir, 'docs', 'index.html')
+    if os.path.exists(docs_path):
+        return send_file(docs_path)
+    doc_fallback = os.path.join(_base_dir, 'documentation.html')
+    if os.path.exists(doc_fallback):
+        return send_file(doc_fallback)
+    return "Tài liệu kỹ thuật đang được cập nhật.", 404
 
 
 @app.route('/api/stations', methods=['GET'])

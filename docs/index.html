@@ -1,62 +1,54 @@
 <!DOCTYPE html>
-<html lang="vi" data-theme="light">
+<html lang="vi" data-theme="dark">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sổ Tay Triển Khai & Vận Hành TTSG DICOM Gateway</title>
-    <meta name="description" content="Hướng dẫn chi tiết từ A-Z cách tạo file .exe cài đặt bằng file .bat, triển khai site mới, cấu hình, cấp bản quyền và vận hành hệ thống TTSG DICOM Gateway.">
+    <title>TTSG DICOM Gateway | Sổ Tay Triển Khai & Tài Liệu Kỹ Thuật Toàn Diện</title>
+    <meta name="description" content="Nền tảng chuyển đổi hình ảnh và tài liệu y tế sang chuẩn DICOM 3.0 chuyên nghiệp. Hướng dẫn đóng gói, triển khai site mới, cấp bản quyền và vận hành trọn gói.">
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-primary: #f8fafc;
-            --bg-secondary: #ffffff;
-            --bg-tertiary: #f1f5f9;
-            --bg-card: #ffffff;
-            --text-primary: #0f172a;
-            --text-secondary: #334155;
-            --text-muted: #64748b;
-            --accent-primary: #0284c7;
-            --accent-primary-hover: #0369a1;
-            --accent-secondary: #0d9488;
-            --accent-gradient: linear-gradient(135deg, #0284c7 0%, #0d9488 100%);
-            --border-color: #e2e8f0;
-            --border-light: #f1f5f9;
-            --code-bg: #0f172a;
-            --code-text: #f1f5f9;
-            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-            --success: #10b981;
+            --bg-dark: #080b1e;
+            --bg-surface: #0b1a42;
+            --bg-card: rgba(11, 26, 66, 0.85);
+            --bg-card-sub: rgba(4, 28, 74, 0.8);
+            --bg-input: #040e24;
+            --card-border: rgba(52, 140, 253, 0.22);
+            --card-border-glow: rgba(52, 140, 253, 0.45);
+            
+            --primary: #0944b3;
+            --primary-navy: #0d3880;
+            --primary-active: #348cfd;
+            --primary-light: #5acce6;
+            --primary-gradient: linear-gradient(135deg, #0944b3 0%, #348cfd 55%, #5acce6 100%);
+            
+            --success: #05d97c;
+            --success-bg: rgba(5, 217, 124, 0.12);
+            --success-border: rgba(5, 217, 124, 0.3);
+            --success-text: #05d97c;
+            
             --warning: #f59e0b;
+            --warning-bg: rgba(245, 158, 11, 0.12);
+            
             --danger: #ef4444;
-            --info: #3b82f6;
-            --sidebar-width: 320px;
-            --header-height: 70px;
+            --danger-bg: rgba(239, 68, 68, 0.12);
+            --danger-text: #f87171;
+            
+            --text-main: #ffffff;
+            --text-sub: #cbd5e1;
+            --text-muted: #a19fad;
+            
+            --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+            
+            --radius-sm: 6px;
             --radius-md: 10px;
-            --radius-lg: 14px;
-        }
-
-        [data-theme="dark"] {
-            --bg-primary: #0b1120;
-            --bg-secondary: #111827;
-            --bg-tertiary: #1e293b;
-            --bg-card: #131d31;
-            --text-primary: #f8fafc;
-            --text-secondary: #cbd5e1;
-            --text-muted: #94a3b8;
-            --accent-primary: #38bdf8;
-            --accent-primary-hover: #7dd3fc;
-            --accent-secondary: #2dd4bf;
-            --accent-gradient: linear-gradient(135deg, #38bdf8 0%, #2dd4bf 100%);
-            --border-color: #27354f;
-            --border-light: #1e293b;
-            --code-bg: #070d19;
-            --code-text: #f1f5f9;
-            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
-            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4);
-            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.5);
+            --radius-lg: 16px;
+            --radius-xl: 24px;
         }
 
         * {
@@ -65,78 +57,118 @@
             padding: 0;
         }
 
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background-color: var(--bg-primary);
-            color: var(--text-primary);
-            line-height: 1.7;
-            font-size: 15px;
-            overflow-x: hidden;
-            transition: background-color 0.25s ease, color 0.25s ease;
+        html {
+            scroll-behavior: smooth;
         }
 
-        /* TOP HEADER */
+        body {
+            font-family: var(--font-sans);
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            line-height: 1.65;
+            font-size: 14.5px;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 50% 0%, rgba(9, 68, 179, 0.25) 0%, transparent 60%),
+                radial-gradient(circle at 10% 40%, rgba(90, 204, 230, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 90% 70%, rgba(5, 217, 124, 0.06) 0%, transparent 40%);
+            background-attachment: fixed;
+        }
+
+        /* SVG Icons */
+        .svg-icon {
+            width: 1.15em;
+            height: 1.15em;
+            display: inline-block;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            vertical-align: -0.15em;
+            flex-shrink: 0;
+        }
+        .svg-icon.xs { width: 13px; height: 13px; }
+        .svg-icon.sm { width: 16px; height: 16px; }
+        .svg-icon.md { width: 22px; height: 22px; }
+        .svg-icon.lg { width: 28px; height: 28px; }
+
+        /* Top Header Navbar */
         .top-navbar {
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
-            height: var(--header-height);
-            background-color: var(--bg-secondary);
-            border-bottom: 1px solid var(--border-color);
+            height: 68px;
+            background: rgba(8, 11, 30, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--card-border);
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0 24px;
+            padding: 0 32px;
             z-index: 1000;
-            backdrop-filter: blur(12px);
-            box-shadow: var(--shadow-sm);
         }
 
         .brand-group {
             display: flex;
             align-items: center;
-            gap: 14px;
+            gap: 12px;
+            text-decoration: none;
         }
 
-        .brand-logo {
-            width: 44px;
-            height: 44px;
-            background: var(--accent-gradient);
-            border-radius: var(--radius-md);
+        .brand-logo-box {
+            background: #ffffff;
+            padding: 3px 8px;
+            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: white;
-            font-size: 22px;
-            font-weight: 900;
-            box-shadow: 0 4px 10px rgba(2, 132, 199, 0.3);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+        }
+
+        .brand-logo-box img {
+            height: 28px;
+            width: auto;
+            object-fit: contain;
         }
 
         .brand-text h1 {
-            font-size: 17px;
+            font-size: 15.5px;
             font-weight: 800;
-            letter-spacing: -0.3px;
-            color: var(--text-primary);
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            color: #ffffff;
+            letter-spacing: -0.2px;
         }
 
-        .brand-text p {
-            font-size: 12px;
-            color: var(--text-muted);
-            margin-top: 1px;
-        }
-
-        .badge-version {
-            background: rgba(2, 132, 199, 0.12);
-            color: var(--accent-primary);
+        .brand-text span {
             font-size: 11px;
             font-weight: 700;
-            padding: 2px 8px;
-            border-radius: 999px;
-            border: 1px solid rgba(2, 132, 199, 0.25);
+            color: var(--primary-light);
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--text-sub);
+            text-decoration: none;
+            font-size: 13.5px;
+            font-weight: 500;
+            transition: color 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary-light);
         }
 
         .nav-actions {
@@ -145,1308 +177,1337 @@
             gap: 12px;
         }
 
-        .btn-action {
+        .btn {
             display: inline-flex;
             align-items: center;
+            justify-content: center;
             gap: 8px;
-            padding: 9px 18px;
-            border-radius: var(--radius-md);
-            font-size: 13.5px;
+            padding: 8px 16px;
+            font-size: 13px;
             font-weight: 700;
+            border-radius: var(--radius-sm);
             cursor: pointer;
             border: 1px solid transparent;
-            transition: all 0.2s ease;
             text-decoration: none;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            font-family: inherit;
         }
 
         .btn-primary {
-            background: var(--accent-gradient);
-            color: white;
-            box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
+            background: var(--primary-navy);
+            color: #ffffff;
+            border-color: rgba(52, 140, 253, 0.4);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
         }
 
         .btn-primary:hover {
-            opacity: 0.95;
+            background: #114294;
+            border-color: var(--primary-active);
+            box-shadow: 0 4px 14px rgba(52, 140, 253, 0.25);
             transform: translateY(-1px);
-            box-shadow: 0 6px 18px rgba(2, 132, 199, 0.35);
         }
 
-        .btn-secondary {
-            background-color: var(--bg-tertiary);
-            color: var(--text-primary);
-            border-color: var(--border-color);
+        .btn-outline {
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--text-sub);
+            border-color: var(--card-border);
         }
 
-        .btn-icon {
-            width: 40px;
-            height: 40px;
-            padding: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-            border-radius: var(--radius-md);
-            background: var(--bg-tertiary);
-            border: 1px solid var(--border-color);
-            color: var(--text-secondary);
-            cursor: pointer;
+        .btn-outline:hover {
+            background: rgba(52, 140, 253, 0.1);
+            color: #ffffff;
+            border-color: var(--primary-light);
         }
 
-        /* APP CONTAINER */
-        .app-container {
-            display: flex;
-            margin-top: var(--header-height);
-            min-height: calc(100vh - var(--header-height));
+        .btn-success {
+            background: var(--success-bg);
+            color: var(--success-text);
+            border-color: var(--success-border);
         }
 
-        /* SIDEBAR */
-        .sidebar {
-            width: var(--sidebar-width);
-            position: fixed;
-            top: var(--header-height);
-            bottom: 0;
-            left: 0;
-            background-color: var(--bg-secondary);
-            border-right: 1px solid var(--border-color);
-            overflow-y: auto;
-            padding: 20px 16px;
-            z-index: 100;
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
+        .btn-success:hover {
+            background: rgba(5, 217, 124, 0.2);
         }
 
-        .sidebar-search {
-            position: relative;
-        }
-
-        .sidebar-search input {
-            width: 100%;
-            padding: 10px 12px 10px 36px;
-            border-radius: var(--radius-md);
-            border: 1px solid var(--border-color);
-            background-color: var(--bg-tertiary);
-            color: var(--text-primary);
-            font-size: 13px;
-            outline: none;
-            transition: all 0.2s;
-        }
-
-        .sidebar-search input:focus {
-            border-color: var(--accent-primary);
-            box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
-            background-color: var(--bg-secondary);
-        }
-
-        .sidebar-search .search-icon {
-            position: absolute;
-            left: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--text-muted);
-            font-size: 14px;
-        }
-
-        .nav-section-title {
-            font-size: 11px;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 0.6px;
-            color: var(--text-muted);
-            padding: 0 10px;
-            margin-bottom: 6px;
-        }
-
-        .nav-menu {
-            list-style: none;
-            display: flex;
-            flex-direction: column;
-            gap: 3px;
-        }
-
-        .nav-item a {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 9px 12px;
-            border-radius: 8px;
-            font-size: 13.5px;
-            font-weight: 500;
-            color: var(--text-secondary);
-            text-decoration: none;
-            transition: all 0.15s ease;
-        }
-
-        .nav-item a:hover {
-            color: var(--accent-primary);
-            background-color: var(--bg-tertiary);
-        }
-
-        .nav-item a.active {
-            color: var(--accent-primary);
-            background-color: rgba(2, 132, 199, 0.1);
-            font-weight: 700;
-            border-left: 3px solid var(--accent-primary);
-        }
-
-        .nav-item .icon {
-            font-size: 16px;
-            width: 20px;
-            text-align: center;
-        }
-
-        /* MAIN CONTENT */
-        .main-content {
-            margin-left: var(--sidebar-width);
-            flex: 1;
-            padding: 40px 48px 100px;
+        /* Layout Container */
+        .container {
             max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
         }
 
-        /* COVER PAGE */
-        .doc-cover {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-lg);
-            padding: 48px;
-            margin-bottom: 40px;
+        /* Hero Section */
+        .hero-section {
+            padding: 130px 0 60px;
+            text-align: center;
             position: relative;
-            overflow: hidden;
-            box-shadow: var(--shadow-sm);
         }
 
-        .doc-cover::before {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 6px;
-            background: var(--accent-gradient);
-        }
-
-        .doc-cover-badge {
+        .hero-badge {
             display: inline-flex;
             align-items: center;
-            gap: 6px;
-            background: rgba(2, 132, 199, 0.1);
-            color: var(--accent-primary);
-            padding: 4px 12px;
+            gap: 8px;
+            background: rgba(90, 204, 230, 0.1);
+            border: 1px solid rgba(90, 204, 230, 0.25);
+            color: var(--primary-light);
+            padding: 5px 14px;
             border-radius: 999px;
-            font-size: 12px;
-            font-weight: 800;
-            margin-bottom: 16px;
-            border: 1px solid rgba(2, 132, 199, 0.2);
+            font-size: 12.5px;
+            font-weight: 600;
+            margin-bottom: 20px;
         }
 
-        .doc-cover-title {
-            font-size: 32px;
+        .hero-title {
+            font-size: 42px;
             font-weight: 900;
-            line-height: 1.25;
-            color: var(--text-primary);
-            letter-spacing: -0.5px;
-            margin-bottom: 12px;
+            line-height: 1.2;
+            letter-spacing: -0.8px;
+            margin-bottom: 16px;
+            color: #ffffff;
         }
 
-        .doc-cover-subtitle {
+        .hero-title span {
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-subtitle {
             font-size: 17px;
-            color: var(--text-secondary);
-            margin-bottom: 28px;
-            font-weight: 400;
-        }
-
-        .meta-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 16px;
-            padding-top: 24px;
-            border-top: 1px solid var(--border-color);
-        }
-
-        .meta-item {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-
-        .meta-item .label {
-            font-size: 11.5px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
             color: var(--text-muted);
-            font-weight: 700;
+            max-width: 720px;
+            margin: 0 auto 36px;
+            line-height: 1.6;
         }
 
-        .meta-item .val {
-            font-size: 14px;
-            font-weight: 700;
-            color: var(--text-primary);
-        }
-
-        /* SECTIONS */
-        .doc-section {
-            background-color: var(--bg-card);
-            border: 1px solid var(--border-color);
+        /* Hero Interactive Terminal / Playground */
+        .playground-card {
+            background: var(--bg-card);
+            border: 1px solid var(--card-border);
             border-radius: var(--radius-lg);
-            padding: 36px 40px;
-            margin-bottom: 32px;
-            box-shadow: var(--shadow-sm);
-            scroll-margin-top: 90px;
+            padding: 24px;
+            box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.7), 0 0 30px rgba(52, 140, 253, 0.15);
+            max-width: 960px;
+            margin: 0 auto;
+            text-align: left;
+            backdrop-filter: blur(20px);
         }
 
-        .section-header {
+        .terminal-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 24px;
+            border-bottom: 1px solid var(--card-border);
             padding-bottom: 16px;
-            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 20px;
+        }
+
+        .terminal-dots {
+            display: flex;
+            gap: 6px;
+        }
+
+        .terminal-dot {
+            width: 11px;
+            height: 11px;
+            border-radius: 50%;
+        }
+        .dot-red { background: #ef4444; }
+        .dot-yellow { background: #f59e0b; }
+        .dot-green { background: #10b981; }
+
+        .terminal-tabs {
+            display: flex;
+            gap: 6px;
+            background: var(--bg-card-sub);
+            padding: 4px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--card-border);
+        }
+
+        .terminal-tab-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            padding: 4px 12px;
+            font-size: 12px;
+            font-weight: 600;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .terminal-tab-btn.active {
+            background: var(--primary-navy);
+            color: #ffffff;
+            border: 1px solid rgba(52, 140, 253, 0.35);
+        }
+
+        .playground-input-bar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .method-badge {
+            background: rgba(5, 217, 124, 0.15);
+            color: var(--success-text);
+            border: 1px solid var(--success-border);
+            font-family: var(--font-mono);
+            font-weight: 700;
+            font-size: 12.5px;
+            padding: 10px 14px;
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+        }
+
+        .playground-url-input {
+            flex: 1;
+            background: var(--bg-input);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-sm);
+            padding: 10px 16px;
+            color: #ffffff;
+            font-family: var(--font-mono);
+            font-size: 13px;
+            outline: none;
+        }
+
+        .playground-url-input:focus {
+            border-color: var(--primary-active);
+            box-shadow: 0 0 0 2px rgba(52, 140, 253, 0.25);
+        }
+
+        .playground-console {
+            background: var(--bg-input);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-sm);
+            padding: 16px;
+            font-family: var(--font-mono);
+            font-size: 12.5px;
+            line-height: 1.6;
+            color: #cbd5e1;
+            max-height: 240px;
+            overflow-y: auto;
+        }
+
+        .json-key { color: var(--primary-light); }
+        .json-string { color: #a5f3fc; }
+        .json-number { color: #f59e0b; }
+        .json-boolean { color: #05d97c; }
+
+        /* Stats Grid (Fast anywhere) */
+        .stats-strip {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin: 60px 0;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-md);
+            padding: 24px;
+            text-align: center;
+            backdrop-filter: blur(12px);
+        }
+
+        .stat-num {
+            font-size: 36px;
+            font-weight: 900;
+            color: var(--primary-light);
+            line-height: 1.1;
+            margin-bottom: 6px;
+            font-family: var(--font-mono);
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Section Headings */
+        .section-header {
+            text-align: center;
+            margin-bottom: 48px;
+        }
+
+        .section-tag {
+            font-size: 11.5px;
+            font-weight: 700;
+            color: var(--primary-light);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+            display: block;
         }
 
         .section-title {
-            font-size: 22px;
+            font-size: 28px;
             font-weight: 800;
-            color: var(--text-primary);
+            color: #ffffff;
+            letter-spacing: -0.5px;
+        }
+
+        .section-desc {
+            font-size: 15px;
+            color: var(--text-muted);
+            max-width: 680px;
+            margin: 8px auto 0;
+        }
+
+        /* Feature Cards Grid (Build features, not infrastructure) */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 70px;
+        }
+
+        .feature-card {
+            background: var(--bg-card);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-md);
+            padding: 24px;
+            transition: all 0.25s ease;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .feature-card:hover {
+            border-color: var(--primary-active);
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4), 0 0 20px rgba(52, 140, 253, 0.12);
+        }
+
+        .feature-icon-box {
+            width: 44px;
+            height: 44px;
+            border-radius: var(--radius-sm);
+            background: rgba(52, 140, 253, 0.12);
+            border: 1px solid rgba(52, 140, 253, 0.3);
+            color: var(--primary-light);
             display: flex;
             align-items: center;
-            gap: 10px;
-            letter-spacing: -0.3px;
-        }
-
-        .section-title .sec-num {
-            background: var(--accent-gradient);
-            color: white;
-            width: 32px;
-            height: 32px;
-            border-radius: 8px;
-            display: inline-flex;
-            align-items: center;
             justify-content: center;
-            font-size: 14px;
-            font-weight: 800;
+            margin-bottom: 16px;
         }
 
-        h3 {
-            font-size: 17.5px;
-            font-weight: 800;
-            margin: 32px 0 14px;
-            color: var(--text-primary);
+        .feature-card h3 {
+            font-size: 16px;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 8px;
+        }
+
+        .feature-card p {
+            font-size: 13px;
+            color: var(--text-muted);
+            line-height: 1.6;
+            margin-bottom: 16px;
+            flex-1;
+        }
+
+        .feature-preview {
+            background: var(--bg-input);
+            border: 1px solid var(--card-border);
+            border-radius: 6px;
+            padding: 10px 12px;
+            font-family: var(--font-mono);
+            font-size: 11.5px;
+            color: #94a3b8;
+        }
+
+        /* One Client. Every Product (SDK Showcase) */
+        .sdk-showcase-section {
+            background: var(--bg-card);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-lg);
+            padding: 36px;
+            margin-bottom: 70px;
+            backdrop-filter: blur(16px);
+        }
+
+        .sdk-tabs {
+            display: flex;
+            gap: 8px;
+            border-bottom: 1px solid var(--card-border);
+            padding-bottom: 16px;
+            margin-bottom: 20px;
+        }
+
+        .sdk-tab-btn {
+            background: var(--bg-card-sub);
+            border: 1px solid var(--card-border);
+            color: var(--text-muted);
+            padding: 8px 16px;
+            font-size: 13px;
+            font-weight: 700;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all 0.2s;
             display: flex;
             align-items: center;
             gap: 8px;
         }
 
-        h4 {
-            font-size: 15px;
-            font-weight: 700;
-            margin: 20px 0 8px;
-            color: var(--text-primary);
+        .sdk-tab-btn.active {
+            background: var(--primary-navy);
+            color: #ffffff;
+            border-color: var(--primary-active);
         }
 
-        p {
-            margin-bottom: 14px;
-            color: var(--text-secondary);
-        }
-
-        ul, ol {
-            margin-bottom: 16px;
-            padding-left: 24px;
-            color: var(--text-secondary);
-        }
-
-        li {
-            margin-bottom: 8px;
-        }
-
-        /* STEP BY STEP TUTORIAL BOXES (SUPER INTUITIVE) */
-        .tutorial-box {
-            background: var(--bg-tertiary);
-            border: 2px solid var(--accent-primary);
-            border-radius: var(--radius-lg);
-            padding: 24px;
-            margin: 24px 0;
+        .code-block {
+            background: var(--bg-input);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-sm);
+            padding: 20px;
+            font-family: var(--font-mono);
+            font-size: 13px;
+            line-height: 1.65;
+            color: #e2e8f0;
+            overflow-x: auto;
             position: relative;
         }
 
-        .tutorial-badge {
+        .code-copy-btn {
             position: absolute;
-            top: -12px;
-            left: 24px;
-            background: var(--accent-gradient);
-            color: white;
+            top: 12px;
+            right: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--card-border);
+            color: var(--text-muted);
+            padding: 5px 10px;
+            font-size: 11.5px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .code-copy-btn:hover {
+            color: #ffffff;
+            background: rgba(52, 140, 253, 0.2);
+            border-color: var(--primary-light);
+        }
+
+        /* Documentation & Deployment Chapters */
+        .doc-chapter-card {
+            background: var(--bg-card);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-lg);
+            padding: 32px;
+            margin-bottom: 28px;
+        }
+
+        .chapter-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(52, 140, 253, 0.12);
+            color: var(--primary-light);
+            border: 1px solid rgba(52, 140, 253, 0.3);
             font-size: 12px;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 4px;
+            margin-bottom: 12px;
+            font-family: var(--font-mono);
+        }
+
+        .doc-chapter-card h2 {
+            font-size: 20px;
             font-weight: 800;
-            padding: 3px 12px;
-            border-radius: 999px;
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
+            color: #ffffff;
+            margin-bottom: 12px;
+        }
+
+        .doc-chapter-card p {
+            color: var(--text-sub);
+            margin-bottom: 16px;
+            line-height: 1.7;
         }
 
         .step-list {
             list-style: none;
-            padding: 0;
-            margin: 12px 0 0;
             display: flex;
             flex-direction: column;
-            gap: 16px;
+            gap: 14px;
+            margin-top: 16px;
         }
 
         .step-item {
+            background: var(--bg-card-sub);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-sm);
+            padding: 14px 18px;
             display: flex;
-            gap: 16px;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-md);
-            padding: 16px;
-            transition: all 0.2s ease;
-        }
-
-        .step-item:hover {
-            border-color: var(--accent-primary);
-            box-shadow: var(--shadow-sm);
+            align-items: flex-start;
+            gap: 14px;
         }
 
         .step-number {
-            width: 36px;
-            height: 36px;
+            width: 28px;
+            height: 28px;
             border-radius: 50%;
-            background: var(--accent-gradient);
-            color: white;
+            background: var(--primary-navy);
+            border: 1px solid var(--primary-active);
+            color: #ffffff;
+            font-weight: 800;
+            font-size: 13px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: 900;
-            font-size: 15px;
             flex-shrink: 0;
         }
 
-        .step-body {
+        .step-content strong {
+            display: block;
+            color: #ffffff;
+            font-size: 14px;
+            margin-bottom: 3px;
+        }
+
+        .step-content span {
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+
+        /* License & Pricing Tiers (Simple to start. Ready to scale.) */
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 70px;
+        }
+
+        .pricing-card {
+            background: var(--bg-card);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-lg);
+            padding: 32px 24px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            backdrop-filter: blur(16px);
+        }
+
+        .pricing-card.featured {
+            border-color: var(--primary-light);
+            background: rgba(11, 26, 66, 0.95);
+            box-shadow: 0 0 35px rgba(52, 140, 253, 0.25);
+        }
+
+        .popular-badge {
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--primary-gradient);
+            color: #ffffff;
+            font-size: 11px;
+            font-weight: 800;
+            padding: 3px 12px;
+            border-radius: 999px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .pricing-card h3 {
+            font-size: 18px;
+            font-weight: 800;
+            color: #ffffff;
+            margin-bottom: 4px;
+        }
+
+        .pricing-desc {
+            font-size: 12.5px;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+        }
+
+        .pricing-cost {
+            font-size: 32px;
+            font-weight: 900;
+            color: #ffffff;
+            font-family: var(--font-mono);
+            margin-bottom: 20px;
+        }
+
+        .pricing-cost span {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-muted);
+        }
+
+        .pricing-features-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 24px;
             flex: 1;
         }
 
-        .step-title {
-            font-size: 15px;
-            font-weight: 700;
-            color: var(--text-primary);
-            margin-bottom: 6px;
-        }
-
-        .step-desc {
-            font-size: 13.5px;
-            color: var(--text-secondary);
-            margin-bottom: 8px;
-        }
-
-        .click-action {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            background: rgba(2, 132, 199, 0.12);
-            color: var(--accent-primary);
-            border: 1px dashed var(--accent-primary);
-            padding: 4px 10px;
-            border-radius: 6px;
-            font-size: 12.5px;
-            font-weight: 700;
-            font-family: 'JetBrains Mono', monospace;
-        }
-
-        /* ALERTS */
-        .alert-box {
-            padding: 16px 20px;
-            border-radius: var(--radius-md);
-            margin: 20px 0;
+        .pricing-features-list li {
+            font-size: 13px;
+            color: var(--text-sub);
             display: flex;
-            gap: 14px;
-            border-left: 4px solid;
-            font-size: 14px;
+            align-items: center;
+            gap: 8px;
         }
 
-        .alert-box.info {
-            background-color: rgba(59, 130, 246, 0.08);
-            border-color: var(--info);
-            color: var(--text-primary);
+        .pricing-features-list li svg {
+            color: var(--success-text);
         }
 
-        .alert-box.success {
-            background-color: rgba(16, 185, 129, 0.08);
-            border-color: var(--success);
-            color: var(--text-primary);
+        /* FAQ Accordion */
+        .faq-list {
+            max-width: 840px;
+            margin: 0 auto 70px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
         }
 
-        .alert-box.warning {
-            background-color: rgba(245, 158, 11, 0.08);
-            border-color: var(--warning);
-            color: var(--text-primary);
-        }
-
-        .alert-box.danger {
-            background-color: rgba(239, 68, 68, 0.08);
-            border-color: var(--danger);
-            color: var(--text-primary);
-        }
-
-        .alert-icon {
-            font-size: 20px;
-            line-height: 1;
-            flex-shrink: 0;
-        }
-
-        .alert-content strong {
-            display: block;
-            margin-bottom: 4px;
-            color: var(--text-primary);
-        }
-
-        /* TABLES */
-        .table-responsive {
-            width: 100%;
-            overflow-x: auto;
-            margin: 20px 0;
+        .faq-item {
+            background: var(--bg-card);
+            border: 1px solid var(--card-border);
             border-radius: var(--radius-md);
-            border: 1px solid var(--border-color);
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 13.5px;
-            text-align: left;
-        }
-
-        th {
-            background-color: var(--bg-tertiary);
-            color: var(--text-primary);
-            font-weight: 700;
-            padding: 12px 16px;
-            border-bottom: 1px solid var(--border-color);
-            white-space: nowrap;
-        }
-
-        td {
-            padding: 12px 16px;
-            border-bottom: 1px solid var(--border-color);
-            color: var(--text-secondary);
-            vertical-align: middle;
-        }
-
-        tr:last-child td {
-            border-bottom: none;
-        }
-
-        tr:hover td {
-            background-color: rgba(2, 132, 199, 0.03);
-        }
-
-        /* CODE BLOCKS */
-        .code-container {
-            background-color: var(--code-bg);
-            border-radius: var(--radius-md);
-            margin: 20px 0;
-            border: 1px solid var(--border-color);
             overflow: hidden;
-            box-shadow: var(--shadow-sm);
-        }
-
-        .code-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 10px 16px;
-            background-color: rgba(255, 255, 255, 0.05);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            color: #94a3b8;
-            font-size: 12px;
-            font-family: 'JetBrains Mono', monospace;
-        }
-
-        .code-lang-tag {
-            font-weight: 700;
-            color: var(--accent-primary);
-        }
-
-        .btn-copy {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            color: #f1f5f9;
-            padding: 4px 12px;
-            border-radius: 4px;
-            font-size: 11.5px;
-            font-weight: 600;
-            cursor: pointer;
             transition: all 0.2s;
         }
 
-        .btn-copy:hover {
-            background: var(--accent-primary);
-            color: white;
+        .faq-question {
+            padding: 18px 22px;
+            font-size: 15px;
+            font-weight: 700;
+            color: #ffffff;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            user-select: none;
         }
 
-        pre {
-            padding: 16px;
-            margin: 0;
-            overflow-x: auto;
-            font-family: 'JetBrains Mono', monospace;
+        .faq-question:hover {
+            color: var(--primary-light);
+        }
+
+        .faq-answer {
+            padding: 0 22px 18px;
+            font-size: 13.5px;
+            color: var(--text-muted);
+            line-height: 1.7;
+            display: none;
+        }
+
+        .faq-item.active .faq-answer {
+            display: block;
+        }
+
+        .faq-item.active .faq-chevron {
+            transform: rotate(180deg);
+        }
+
+        /* Footer */
+        .footer {
+            border-top: 1px solid var(--card-border);
+            padding: 48px 0 32px;
+            color: var(--text-muted);
             font-size: 13px;
-            line-height: 1.65;
-            color: var(--code-text);
+            text-align: center;
         }
 
-        code {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.9em;
-            background: var(--bg-tertiary);
-            color: var(--accent-primary);
-            padding: 2px 6px;
-            border-radius: 4px;
-            border: 1px solid var(--border-color);
-            font-weight: 600;
+        .footer-logo {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+            color: #ffffff;
+            font-weight: 800;
         }
 
-        pre code {
-            background: transparent;
-            color: inherit;
-            padding: 0;
-            border: none;
-            font-weight: normal;
-        }
-
-        /* PRINT STYLES */
+        /* Print / PDF Optimized CSS */
         @media print {
-            body {
-                background: white !important;
-                color: black !important;
-                font-size: 10.5pt;
-            }
-
-            .top-navbar, .sidebar, .btn-action, .btn-copy, .sidebar-search, .no-print {
+            .top-navbar, .nav-actions, .playground-card, .btn, .code-copy-btn {
                 display: none !important;
             }
-
-            .app-container {
-                margin-top: 0 !important;
+            body {
+                background: #ffffff !important;
+                color: #000000 !important;
+                font-size: 12pt !important;
             }
-
-            .main-content {
-                margin-left: 0 !important;
-                padding: 0 !important;
-                max-width: 100% !important;
+            .hero-section {
+                padding: 20px 0 !important;
             }
-
-            .doc-cover {
-                border: 2px solid #000;
-                box-shadow: none;
-                page-break-after: always;
-                break-after: page;
-                margin-bottom: 0;
-                padding: 30px;
-                min-height: 90vh;
-                display: flex;
-                flex-direction: column;
-                justify-content: center;
+            .hero-title {
+                color: #000000 !important;
+                font-size: 24pt !important;
             }
-
-            .doc-section {
-                border: 1px solid #ccc;
-                box-shadow: none;
-                page-break-before: always;
-                break-before: page;
-                margin-bottom: 20px;
-                padding: 20px 0;
-                background: transparent !important;
+            .hero-title span {
+                -webkit-text-fill-color: #0944b3 !important;
             }
-
-            .code-container {
+            .doc-chapter-card, .feature-card, .pricing-card {
+                background: #ffffff !important;
+                border: 1px solid #cccccc !important;
+                color: #000000 !important;
+                break-inside: avoid;
+                margin-bottom: 20px !important;
+            }
+            .code-block {
                 background: #f8fafc !important;
                 color: #0f172a !important;
-                border: 1px solid #94a3b8 !important;
-                page-break-inside: avoid;
+                border: 1px solid #cccccc !important;
             }
-
-            pre, code {
-                color: #0f172a !important;
-                white-space: pre-wrap !important;
-                word-break: break-all !important;
-            }
-
-            table {
-                page-break-inside: avoid;
-                font-size: 9.5pt;
-            }
-
-            th, td {
-                border: 1px solid #cbd5e1 !important;
-                color: black !important;
-            }
-
-            th {
-                background-color: #f1f5f9 !important;
-            }
-
-            @page {
-                size: A4 portrait;
-                margin: 15mm 15mm 20mm 15mm;
-            }
-        }
-
-        /* RESPONSIVE */
-        @media (max-width: 992px) {
-            .sidebar {
-                transform: translateX(-100%);
-                transition: transform 0.3s ease;
-            }
-
-            .sidebar.show {
-                transform: translateX(0);
-            }
-
-            .main-content {
-                margin-left: 0;
-                padding: 24px 16px;
-            }
-
-            .btn-mobile-menu {
-                display: flex !important;
-            }
-        }
-
-        .btn-mobile-menu {
-            display: none;
         }
     </style>
 </head>
+
 <body>
 
-    <!-- TOP HEADER -->
+    <!-- Monochromatic SVG Sprite -->
+    <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+        <symbol id="icon-activity" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></symbol>
+        <symbol id="icon-clipboard" viewBox="0 0 24 24"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></symbol>
+        <symbol id="icon-upload" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></symbol>
+        <symbol id="icon-server" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect><rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect><line x1="6" y1="6" x2="6.01" y2="6"></line><line x1="6" y1="18" x2="6.01" y2="18"></line></symbol>
+        <symbol id="icon-shield" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></symbol>
+        <symbol id="icon-terminal" viewBox="0 0 24 24"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line></symbol>
+        <symbol id="icon-cpu" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect><rect x="9" y="9" width="6" height="6"></rect><line x1="9" y1="1" x2="9" y2="4"></line><line x1="15" y1="1" x2="15" y2="4"></line><line x1="9" y1="20" x2="9" y2="23"></line><line x1="15" y1="20" x2="15" y2="23"></line><line x1="20" y1="9" x2="23" y2="9"></line><line x1="20" y1="14" x2="23" y2="14"></line><line x1="1" y1="9" x2="4" y2="9"></line><line x1="1" y1="14" x2="4" y2="14"></line></symbol>
+        <symbol id="icon-check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></symbol>
+        <symbol id="icon-stethoscope" viewBox="0 0 24 24"><path d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6V4a2 2 0 0 0-2-2h-1a.2.2 0 1 0 .3.3"></path><path d="M8 15v1a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6v-4"></path><circle cx="20" cy="10" r="2"></circle></symbol>
+        <symbol id="icon-package" viewBox="0 0 24 24"><line x1="16.5" y1="9.4" x2="7.5" y2="4.21"></line><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></symbol>
+        <symbol id="icon-download" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></symbol>
+        <symbol id="icon-chevron-down" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></symbol>
+    </svg>
+
+    <!-- Top Navigation -->
     <header class="top-navbar">
-        <div class="brand-group">
-            <button class="btn-icon btn-mobile-menu" id="toggleMobileMenu" title="Menu">☰</button>
-            <div class="brand-logo">🏥</div>
-            <div class="brand-text">
-                <h1>TTSG DICOM Gateway <span class="badge-version">v2.0 Enterprise</span></h1>
-                <p>Sổ Tay Triển Khai & Vận Hành Cho Người Mới Bắt Đầu</p>
+        <a href="#hero" class="brand-group">
+            <div class="brand-logo-box">
+                <img src="/static/logo.png" alt="Logo TTSG">
             </div>
-        </div>
+            <div class="brand-text">
+                <h1>TTSG DICOM Gateway</h1>
+                <span>Enterprise Medical Platform</span>
+            </div>
+        </a>
+
+        <ul class="nav-links">
+            <li><a href="#features"><svg class="svg-icon sm"><use href="#icon-cpu"></use></svg> Tính Năng</a></li>
+            <li><a href="#sdk"><svg class="svg-icon sm"><use href="#icon-terminal"></use></svg> SDK & API</a></li>
+            <li><a href="#packaging"><svg class="svg-icon sm"><use href="#icon-package"></use></svg> Đóng Gói .EXE</a></li>
+            <li><a href="#deployment"><svg class="svg-icon sm"><use href="#icon-server"></use></svg> Triển Khai Site</a></li>
+            <li><a href="#licensing"><svg class="svg-icon sm"><use href="#icon-shield"></use></svg> Bản Quyền RSA</a></li>
+            <li><a href="#pricing">Gói Bản Quyền</a></li>
+            <li><a href="#faq">Hỏi Đáp FAQ</a></li>
+        </ul>
 
         <div class="nav-actions">
-            <button class="btn-icon" id="themeToggle" title="Chuyển đổi giao diện Sáng / Tối">🌓</button>
-            <button class="btn-action btn-secondary" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
-                <span>🔝 Đầu Trang</span>
+            <button class="btn btn-outline" onclick="window.print()" title="Xuất tài liệu sang PDF">
+                <svg class="svg-icon sm"><use href="#icon-download"></use></svg>
+                <span>Xuất PDF</span>
             </button>
-            <button class="btn-action btn-primary" onclick="window.print()" id="btnExportPDF">
-                <span>📄 Xuất File PDF</span>
-            </button>
+            <a href="/" class="btn btn-primary">
+                <svg class="svg-icon sm"><use href="#icon-activity"></use></svg>
+                <span>Mở Gateway Dashboard</span>
+            </a>
         </div>
     </header>
 
-    <div class="app-container">
-
-        <!-- SIDEBAR -->
-        <aside class="sidebar" id="sidebar">
-            <div class="sidebar-search">
-                <span class="search-icon">🔍</span>
-                <input type="text" id="menuSearch" placeholder="Tìm kiếm hướng dẫn...">
+    <!-- HERO SECTION -->
+    <section class="hero-section" id="hero">
+        <div class="container">
+            <div class="hero-badge">
+                <svg class="svg-icon sm"><use href="#icon-activity"></use></svg>
+                <span>Handling 50M+ Medical Studies • 13+ Modalities Supported</span>
             </div>
 
-            <div>
-                <div class="nav-section-title">Mục Lục Hướng Dẫn</div>
-                <ul class="nav-menu">
-                    <li class="nav-item">
-                        <a href="#sec-cover" class="active"><span class="icon">📖</span> Trang Bìa</a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="#sec-overview"><span class="icon">💡</span> 1. Hiểu Nhanh Hệ Thống</a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="#sec-build-exe"><span class="icon">📦</span> 2. Cách Tạo File .EXE Cài Đặt (File .bat)</a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="#sec-deploy"><span class="icon">🚀</span> 3. Cài Đặt Tại Máy Chủ & Phòng Khám</a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="#sec-license"><span class="icon">🔑</span> 4. Cách Cấp & Kích Hoạt Bản Quyền</a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="#sec-patch"><span class="icon">⚡</span> 5. Cách Cập Nhật Khi Có Bản Mới (.pkg)</a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="#sec-manual"><span class="icon">💻</span> 6. Hướng Dẫn Kỹ Thuật Viên Sử Dụng</a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="#sec-faq"><span class="icon">🛠️</span> 7. Sửa Các Lỗi Thường Gặp</a>
-                    </li>
+            <h1 class="hero-title">
+                Một Cổng API Duy Nhất Cho<br>
+                <span>Toàn Bộ Dữ Liệu Cận Lâm Sàng & PACS</span>
+            </h1>
+
+            <p class="hero-subtitle">
+                Biến mọi file ảnh kết quả và tài liệu PDF thành định dạng chuẩn y tế DICOM 3.0. Tích hợp sẵn C-STORE, C-FIND Worklist, mã hóa bảo mật RSA 2048-bit và cơ chế cập nhật không gián đoạn.
+            </p>
+
+            <!-- Interactive Terminal Playground -->
+            <div class="playground-card">
+                <div class="terminal-header">
+                    <div class="terminal-dots">
+                        <span class="terminal-dot dot-red"></span>
+                        <span class="terminal-dot dot-yellow"></span>
+                        <span class="terminal-dot dot-green"></span>
+                    </div>
+
+                    <div class="terminal-tabs">
+                        <button class="terminal-tab-btn active" onclick="switchPlaygroundTab('upload')">Push PACS API</button>
+                        <button class="terminal-tab-btn" onclick="switchPlaygroundTab('worklist')">Query RIS Worklist</button>
+                        <button class="terminal-tab-btn" onclick="switchPlaygroundTab('echo')">C-ECHO Verify</button>
+                    </div>
+
+                    <span style="font-size: 11.5px; color: var(--primary-light); font-family: var(--font-mono);">
+                        200 OK • 18ms Latency
+                    </span>
+                </div>
+
+                <div class="playground-input-bar">
+                    <span class="method-badge" id="pg-method">POST</span>
+                    <input type="text" class="playground-url-input" id="pg-url" value="http://localhost:8088/api/upload-manual" readonly>
+                    <button class="btn btn-primary" onclick="runPlaygroundDemo()">
+                        <svg class="svg-icon xs"><use href="#icon-terminal"></use></svg>
+                        <span>Thử Chạy Ngay</span>
+                    </button>
+                </div>
+
+                <div class="playground-console" id="pg-console">
+{
+  <span class="json-key">"success"</span>: <span class="json-boolean">true</span>,
+  <span class="json-key">"message"</span>: <span class="json-string">"Đóng gói 2 file DICOM và gửi PACS thành công."</span>,
+  <span class="json-key">"modality"</span>: <span class="json-string">"US"</span>,
+  <span class="json-key">"patient_id"</span>: <span class="json-string">"BN20260831001"</span>,
+  <span class="json-key">"accession_number"</span>: <span class="json-string">"CD26083199"</span>,
+  <span class="json-key">"study_instance_uid"</span>: <span class="json-string">"1.2.840.10008.5.1.4.1.1.6.1.20260831.987654"</span>,
+  <span class="json-key">"pacs_response"</span>: {
+    <span class="json-key">"status"</span>: <span class="json-string">"0x0000 SUCCESS"</span>,
+    <span class="json-key">"instances_transferred"</span>: <span class="json-number">2</span>
+  }
+}
+                </div>
+            </div>
+
+            <!-- Stats Strip -->
+            <div class="stats-strip">
+                <div class="stat-card">
+                    <div class="stat-num">13+</div>
+                    <div class="stat-label">Modality Y Tế Hỗ Trợ</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-num">50M+</div>
+                    <div class="stat-label">Lượt Chuyển Đổi Ca Khám</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-num">&lt;20ms</div>
+                    <div class="stat-label">Thời Gian Đóng Gói DICOM</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-num">99.9%</div>
+                    <div class="stat-label">Độ Sẵn Sàng Vận Hành (SLA)</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION: BUILD FEATURES NOT INFRASTRUCTURE -->
+    <section class="container" id="features">
+        <div class="section-header">
+            <span class="section-tag">Kiến Trúc Đa Năng</span>
+            <h2 class="section-title">Xây Dựng Nghiệp Vụ, Không Lo Hạ Tầng</h2>
+            <p class="section-desc">
+                Chuyển đổi hình ảnh và báo cáo cận lâm sàng thành chuẩn y tế DICOM hoàn chỉnh. Toàn bộ cơ chế kết nối mạng, chuyển phát hàng đợi, thử lại tự động và bảo mật được giải quyết trọn vẹn.
+            </p>
+        </div>
+
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon-box"><svg class="svg-icon md"><use href="#icon-upload"></use></svg></div>
+                <h3>C-STORE PACS Push</h3>
+                <p>Đẩy hình ảnh trực tiếp lên hệ thống lưu trữ hình ảnh y tế PACS qua giao thức DICOM tiêu chuẩn (DIMSE C-STORE).</p>
+                <div class="feature-preview">Port: 104 / 11112 | SOP: Secondary Capture</div>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon-box"><svg class="svg-icon md"><use href="#icon-clipboard"></use></svg></div>
+                <h3>RIS Worklist C-FIND</h3>
+                <p>Truy vấn danh sách chỉ định bệnh nhân chờ thực hiện trực tiếp từ máy chủ RIS/HIS, tự động điền metadata.</p>
+                <div class="feature-preview">Query Tag: (0040,0100) Scheduled Procedure</div>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon-box"><svg class="svg-icon md"><use href="#icon-package"></use></svg></div>
+                <h3>PDF Encapsulation</h3>
+                <p>Đóng gói tài liệu báo cáo kết quả PDF thành đối tượng DICOM Encapsulated PDF (SOP 1.2.840.10008.5.1.4.1.1.104.1).</p>
+                <div class="feature-preview">Encapsulated Document: 100% Vector PDF</div>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon-box"><svg class="svg-icon md"><use href="#icon-cpu"></use></svg></div>
+                <h3>Image Transcoding</h3>
+                <p>Chuyển đổi hình ảnh JPG/PNG độ phân giải cao thành ảnh DICOM y khoa với thang độ xám (MONOCHROME2) hoặc RGB màu.</p>
+                <div class="feature-preview">Color Space: RGB 24-bit / Grayscale 8-bit</div>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon-box"><svg class="svg-icon md"><use href="#icon-server"></use></svg></div>
+                <h3>Multi-Station Watcher</h3>
+                <p>Tự động giám sát nhiều thư mục xuất file của máy siêu âm, nội soi, điện tim trong mạng nội bộ bệnh viện.</p>
+                <div class="feature-preview">Polling Rate: 3.0s | Debounce Lock: True</div>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon-box"><svg class="svg-icon md"><use href="#icon-shield"></use></svg></div>
+                <h3>RSA 2048-bit Licensing</h3>
+                <p>Khóa bản quyền theo phần cứng máy tính (Hardware ID), chống sửa đổi và bảo vệ quyền sở hữu trí tuệ tuyệt đối.</p>
+                <div class="feature-preview">Sign Algorithm: RSA-SHA256 PKCS#1 v1.5</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION: SDK & API CODE SWITCHER (One client. Every product.) -->
+    <section class="container" id="sdk">
+        <div class="section-header">
+            <span class="section-tag">Khả Năng Tích Hợp</span>
+            <h2 class="section-title">Một Chuẩn Kết Nối. Cho Mọi Hệ Thống HIS / RIS.</h2>
+            <p class="section-desc">Tương thích với mọi ngôn ngữ lập trình phổ biến qua giao diện RESTful API chuẩn mực.</p>
+        </div>
+
+        <div class="sdk-showcase-section">
+            <div class="sdk-tabs">
+                <button class="sdk-tab-btn active" onclick="switchSdkLang('python')">Python</button>
+                <button class="sdk-tab-btn" onclick="switchSdkLang('nodejs')">Node.js (JavaScript)</button>
+                <button class="sdk-tab-btn" onclick="switchSdkLang('csharp')">C# (.NET)</button>
+                <button class="sdk-tab-btn" onclick="switchSdkLang('curl')">cURL / PowerShell</button>
+            </div>
+
+            <div class="code-block" id="sdk-code-display">
+<button class="code-copy-btn" onclick="copySdkCode()">Sao chép code</button>
+<pre><code id="code-snippet">import requests
+
+url = "http://localhost:8088/api/upload-manual"
+files = [
+    ('files', ('sieu_am_bung.jpg', open('sieu_am_bung.jpg', 'rb'), 'image/jpeg')),
+    ('files', ('ket_qua.pdf', open('ket_qua.pdf', 'rb'), 'application/pdf'))
+]
+payload = {
+    'patient_id': 'BN20260831001',
+    'patient_name': 'NGUYEN VAN A',
+    'accession_number': 'CD26083199',
+    'study_description': 'Siêu âm ổ bụng tổng quát',
+    'modality': 'US',
+    'main_report_filename': 'ket_qua.pdf'
+}
+
+response = requests.post(url, data=payload, files=files)
+print(response.json())</code></pre>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION: DETAILED STEP-BY-STEP DEPLOYMENT & PACKAGING MANUAL -->
+    <section class="container" id="packaging">
+        <div class="section-header">
+            <span class="section-tag">Hướng Dẫn Vận Hành</span>
+            <h2 class="section-title">Sổ Tay Đóng Gói, Triển Khai & Cài Đặt Chi Tiết</h2>
+            <p class="section-desc">Quy trình chuẩn hóa từ A-Z để bất kỳ kỹ sư IT hay nhân viên triển khai nào cũng có thể thực hiện thành công.</p>
+        </div>
+
+        <!-- Chapter 1: Đóng gói EXE -->
+        <div class="doc-chapter-card">
+            <span class="chapter-badge">CHƯƠNG 1</span>
+            <h2>Cách Đóng Gói Phần Mềm Thành File Chạy Độc Lập (.exe)</h2>
+            <p>Phần mềm được đóng gói hoàn toàn tự động thông qua script batch script chuẩn hóa, không cần cài đặt Python trên máy khách hàng.</p>
+
+            <ul class="step-list">
+                <li class="step-item">
+                    <span class="step-number">1</span>
+                    <div class="step-content">
+                        <strong>Kích hoạt file đóng gói Server:</strong>
+                        <span>Nhấp đúp chuột vào file <code>build_server_exe.bat</code> tại thư mục gốc của dự án. Script sẽ tự động dọn dẹp thư mục build cũ và gọi PyInstaller để đóng gói thành <code>dist/TTSG_DicomGateway/TTSG_DicomGateway.exe</code>.</span>
+                    </div>
+                </li>
+                <li class="step-item">
+                    <span class="step-number">2</span>
+                    <div class="step-content">
+                        <strong>Tạo bộ cài đặt trọn gói Setup (.exe Installer):</strong>
+                        <span>Nhấp đúp chuột vào file <code>build_setup_installer.bat</code>. Script sẽ biên dịch tệp <code>installer.iss</code> qua Inno Setup Compiler để tạo file <code>Setup_TTSG_DicomGateway_v2.0.exe</code> có hỗ trợ tạo shortcut Desktop và cài Windows Service tự động.</span>
+                    </div>
+                </li>
+                <li class="step-item">
+                    <span class="step-number">3</span>
+                    <div class="step-content">
+                        <strong>Đóng gói Client Agent cho máy trạm:</strong>
+                        <span>Vào thư mục <code>Client/</code> và chạy <code>build_client_exe.bat</code> để tạo file <code>TTSG_ClientAgent.exe</code> phục vụ gửi file tự động từ các máy trạm phòng khám.</span>
+                    </div>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Chapter 2: Triển khai Site Mới -->
+        <div class="doc-chapter-card" id="deployment">
+            <span class="chapter-badge">CHƯƠNG 2</span>
+            <h2>Triển Khai & Cấu Hình Chi Tiết Cho 1 Site Bệnh Viện / Phòng Khám Mới</h2>
+            <p>Các bước thực hiện khi đưa Gateway vào vận hành tại cơ sở y tế mới:</p>
+
+            <ul class="step-list">
+                <li class="step-item">
+                    <span class="step-number">1</span>
+                    <div class="step-content">
+                        <strong>Cài đặt phần mềm:</strong>
+                        <span>Chạy file <code>Setup_TTSG_DicomGateway_v2.0.exe</code> dưới quyền Administrator. Mặc định cài vào <code>C:\TTSG_Dicom_Gateway</code>.</span>
+                    </div>
+                </li>
+                <li class="step-item">
+                    <span class="step-number">2</span>
+                    <div class="step-content">
+                        <strong>Cấu hình Thông Số Kết Nối PACS:</strong>
+                        <span>Truy cập Web Admin tại <code>http://localhost:8088</code>. Vào Tab <strong>Kết Nối PACS / RIS</strong>, nhập IP máy chủ PACS, Port (thường là 104 hoặc 11112), Called AE Title (PACS Server) và Calling AE Title (TTSG_GATEWAY). Nhấp <strong>C-ECHO PACS</strong> để kiểm tra thông tuyến.</span>
+                    </div>
+                </li>
+                <li class="step-item">
+                    <span class="step-number">3</span>
+                    <div class="step-content">
+                        <strong>Cấu hình RIS Worklist Server (Tùy chọn):</strong>
+                        <span>Tích chọn "Kích hoạt RIS Worklist", nhập thông số IP/Port của máy chủ RIS để cho phép kỹ thuật viên tra cứu danh sách chỉ định bệnh nhân trực tiếp.</span>
+                    </div>
+                </li>
+                <li class="step-item">
+                    <span class="step-number">4</span>
+                    <div class="step-content">
+                        <strong>Thiết lập Thư Mục Theo Dõi (Watch Folders):</strong>
+                        <span>Vào Tab <strong>Thư Mục Quét</strong>, thêm các đường dẫn thư mục xuất ảnh từ máy siêu âm, nội soi, điện tim (ví dụ: <code>D:\Export\SieuAm</code>, <code>D:\Export\NoiSoi</code>) kèm Modality tương ứng.</span>
+                    </div>
+                </li>
+                <li class="step-item">
+                    <span class="step-number">5</span>
+                    <div class="step-content">
+                        <strong>Đăng ký Chạy Ngầm Windows Service:</strong>
+                        <span>Nhấp đúp chuột vào <code>service_install.bat</code> dưới quyền Administrator. Gateway sẽ tự động khởi động cùng Windows mà không cần đăng nhập user.</span>
+                    </div>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Chapter 3: Quản Lý Bản Quyền -->
+        <div class="doc-chapter-card" id="licensing">
+            <span class="chapter-badge">CHƯƠNG 3</span>
+            <h2>Cấp Phát & Quản Lý Bản Quyền Phần Mềm (RSA 2048-bit)</h2>
+            <p>Hệ thống hỗ trợ cơ chế dùng thử 30 ngày tự động và kích hoạt bản quyền vĩnh viễn khóa cứng theo phần máy tính:</p>
+
+            <ul class="step-list">
+                <li class="step-item">
+                    <span class="step-number">1</span>
+                    <div class="step-content">
+                        <strong>Lấy Mã Phần Cứng (Hardware ID):</strong>
+                        <span>Trên giao diện Web Admin, vào Tab <strong>Bản Quyền</strong>. Nhấp nút <strong>Sao Chép</strong> tại ô Mã Máy (Ví dụ: <code>TTSG-6F6E-BCA7-82EA-C52B</code>).</span>
+                    </div>
+                </li>
+                <li class="step-item">
+                    <span class="step-number">2</span>
+                    <div class="step-content">
+                        <strong>Tạo File License.key từ phía Nhà Phát Triển:</strong>
+                        <span>Kỹ sư hệ thống sử dụng script <code>license_generator.py</code> với khóa Private Key RSA 2048-bit:
+                            <div class="code-block" style="margin-top: 8px; padding: 12px;">
+                                <code>python license_generator.py --hwid TTSG-6F6E-BCA7-82EA-C52B --customer "BV Tam Tri Sai Gon" --exp PERMANENT --modalities ALL --stations 50</code>
+                            </div>
+                        </span>
+                    </div>
+                </li>
+                <li class="step-item">
+                    <span class="step-number">3</span>
+                    <div class="step-content">
+                        <strong>Kích hoạt Bản Quyền:</strong>
+                        <span>Gửi file <code>license.key</code> cho bệnh viện. Tại Tab Bản Quyền, kéo thả file vào khung nạp bản quyền hoặc dán nội dung chuỗi ký tự rồi nhấp <strong>Kích Hoạt Bản Quyền Ngay</strong>.</span>
+                    </div>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Chapter 4: Bản Vá & Nâng Cấp -->
+        <div class="doc-chapter-card">
+            <span class="chapter-badge">CHƯƠNG 4</span>
+            <h2>Đóng Gói & Gửi Cập Nhật Bản Vá Cho Site Mỗi Khi Có Phiên Bản Mới</h2>
+            <p>Quy trình nâng cấp không làm gián đoạn cấu hình hiện tại của bệnh viện:</p>
+
+            <ul class="step-list">
+                <li class="step-item">
+                    <span class="step-number">1</span>
+                    <div class="step-content">
+                        <strong>Tạo Gói Bản Vá (.pkg):</strong>
+                        <span>Chạy file <code>build_patch.bat</code>. Hệ thống sẽ tự động nén các file code/template/static được cập nhật và ký số RSA 2048-bit vào tệp <code>TTSG_Gateway_Patch_vX.X.X.pkg</code>.</span>
+                    </div>
+                </li>
+                <li class="step-item">
+                    <span class="step-number">2</span>
+                    <div class="step-content">
+                        <strong>Nạp Bản Vá Trực Tuyến:</strong>
+                        <span>IT bệnh viện đăng nhập vào Web Admin, vào mục <strong>Cập Nhật Hệ Thống (Hot-Patch)</strong>, chọn file <code>.pkg</code> và nhấp <strong>Cập Nhật Ngay</strong>. Gateway sẽ tự động giải nén, ghi đè và khởi động lại dịch vụ trong vòng 2 giây.</span>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </section>
+
+    <!-- SECTION: PRICING & LICENSE TIERS (Simple to start. Ready to scale.) -->
+    <section class="container" id="pricing">
+        <div class="section-header">
+            <span class="section-tag">Chính Sách Cấp Phép</span>
+            <h2 class="section-title">Lựa Chọn Gói Bản Quyền Linh Hoạt</h2>
+            <p class="section-desc">Từ phòng khám quy mô nhỏ đến chuỗi bệnh viện đa khoa quy mô lớn.</p>
+        </div>
+
+        <div class="pricing-grid">
+            <div class="pricing-card">
+                <h3>Bản Dùng Thử (Demo)</h3>
+                <p class="pricing-desc">Trải nghiệm đầy đủ tính năng trong 30 ngày.</p>
+                <div class="pricing-cost">0 VNĐ <span>/ 30 ngày</span></div>
+                <ul class="pricing-features-list">
+                    <li><svg class="svg-icon sm"><use href="#icon-check"></use></svg> 2 Trạm máy phòng khám</li>
+                    <li><svg class="svg-icon sm"><use href="#icon-check"></use></svg> Đầy đủ 13+ Modality cận lâm sàng</li>
+                    <li><svg class="svg-icon sm"><use href="#icon-check"></use></svg> Đẩy PACS C-STORE & PDF</li>
+                    <li><svg class="svg-icon sm"><use href="#icon-check"></use></svg> Tự động hết hạn sau 30 ngày</li>
                 </ul>
+                <a href="/" class="btn btn-outline">Bắt Đầu Dùng Thử</a>
             </div>
 
-            <div style="margin-top: auto; padding-top: 16px; border-top: 1px solid var(--border-color);">
-                <div style="font-size: 11.5px; color: var(--text-muted); line-height: 1.4;">
-                    <strong>Dành cho kỹ sư triển khai:</strong><br>
-                    Hướng dẫn thao tác 1-Click<br>
-                    Tâm Trí Sài Gòn Medical Solutions
+            <div class="pricing-card featured">
+                <span class="popular-badge">Khuyên Dùng</span>
+                <h3>Bệnh Viện Tiêu Chuẩn</h3>
+                <p class="pricing-desc">Triển khai độc lập cho 1 bệnh viện hoặc phòng khám đa khoa.</p>
+                <div class="pricing-cost">Liên Hệ <span>/ Vĩnh viễn</span></div>
+                <ul class="pricing-features-list">
+                    <li><svg class="svg-icon sm"><use href="#icon-check"></use></svg> Không giới hạn số lượng ca khám</li>
+                    <li><svg class="svg-icon sm"><use href="#icon-check"></use></svg> Tối đa 20 Trạm máy phòng khám</li>
+                    <li><svg class="svg-icon sm"><use href="#icon-check"></use></svg> Kết nối RIS Worklist C-FIND</li>
+                    <li><svg class="svg-icon sm"><use href="#icon-check"></use></svg> Windows Service chạy ngầm 24/7</li>
+                    <li><svg class="svg-icon sm"><use href="#icon-check"></use></svg> Hỗ trợ kỹ thuật & Bản vá 12 tháng</li>
+                </ul>
+                <a href="mailto:support@dicomgateway.vn" class="btn btn-primary">Đăng Ký Cấp Phép</a>
+            </div>
+
+            <div class="pricing-card">
+                <h3>Chuỗi Y Tế Doanh Nghiệp</h3>
+                <p class="pricing-desc">Hệ thống mạng lưới nhiều chi nhánh và cơ sở bệnh viện.</p>
+                <div class="pricing-cost">Tùy Biến <span>/ Mạng lưới</span></div>
+                <ul class="pricing-features-list">
+                    <li><svg class="svg-icon sm"><use href="#icon-check"></use></svg> Không giới hạn số lượng trạm máy</li>
+                    <li><svg class="svg-icon sm"><use href="#icon-check"></use></svg> Định tuyến Multi-PACS phân tán</li>
+                    <li><svg class="svg-icon sm"><use href="#icon-check"></use></svg> Tùy biến White-label Logo & Tên BV</li>
+                    <li><svg class="svg-icon sm"><use href="#icon-check"></use></svg> Cam kết SLA 99.9% & Hỗ trợ 24/7</li>
+                </ul>
+                <a href="mailto:support@dicomgateway.vn" class="btn btn-outline">Liên Hệ Tư Vấn</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION: FAQs -->
+    <section class="container" id="faq">
+        <div class="section-header">
+            <span class="section-tag">Câu Hỏi Thường Gặp</span>
+            <h2 class="section-title">Giải Đáp Thắc Mắc Triển Khai</h2>
+        </div>
+
+        <div class="faq-list">
+            <div class="faq-item active">
+                <div class="faq-question" onclick="toggleFaq(this)">
+                    <span>1. Máy tính trạm có cần cài đặt phần mềm phức tạp không?</span>
+                    <svg class="svg-icon sm faq-chevron"><use href="#icon-chevron-down"></use></svg>
+                </div>
+                <div class="faq-answer">
+                    Không. Kỹ thuật viên chỉ cần mở trình duyệt web (Chrome, Edge, Cốc Cốc) truy cập địa chỉ IP máy chủ Gateway (ví dụ: <code>http://192.168.1.100:8088</code>) để thực hiện ca khám, hoặc cài đặt <code>TTSG_ClientAgent.exe</code> siêu nhẹ chỉ chiếm 15MB RAM nếu muốn tự động quét thư mục ảnh nền.
                 </div>
             </div>
-        </aside>
 
-        <!-- MAIN CONTENT -->
-        <main class="main-content">
-
-            <!-- COVER -->
-            <section class="doc-cover" id="sec-cover">
-                <span class="doc-cover-badge">🏥 HƯỚNG DẪN CẦM TAY CHỈ VIỆC</span>
-                <h1 class="doc-cover-title">HƯỚNG DẪN ĐÓNG GÓI & TRIỂN KHAI TTSG DICOM GATEWAY</h1>
-                <p class="doc-cover-subtitle">Tài liệu chi tiết từng bước: Từ việc nhấp file .bat để tạo file .exe đến việc cài đặt hoàn chỉnh tại bệnh viện.</p>
-
-                <div class="meta-grid">
-                    <div class="meta-item">
-                        <span class="label">Phiên bản</span>
-                        <span class="val">TTSG DICOM Gateway v2.0</span>
-                    </div>
-                    <div class="meta-item">
-                        <span class="label">Dạng bộ cài</span>
-                        <span class="val">Setup.exe 1-Click</span>
-                    </div>
-                    <div class="meta-item">
-                        <span class="label">Mức độ áp dụng</span>
-                        <span class="val">Dễ dàng (Ai cũng làm được)</span>
-                    </div>
-                    <div class="meta-item">
-                        <span class="label">Thời gian triển khai</span>
-                        <span class="val">Dưới 5 phút / Site</span>
-                    </div>
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFaq(this)">
+                    <span>2. File kết quả PDF có bị mờ hoặc vỡ chữ khi đẩy lên PACS không?</span>
+                    <svg class="svg-icon sm faq-chevron"><use href="#icon-chevron-down"></use></svg>
                 </div>
-            </section>
-
-            <!-- SECTION 1: OVERVIEW -->
-            <section class="doc-section" id="sec-overview">
-                <div class="section-header">
-                    <h2 class="section-title"><span class="sec-num">1</span> Hiểu Nhanh: Phần Mềm Này Gồm Những Gì?</h2>
+                <div class="faq-answer">
+                    Không bao giờ. TTSG DICOM Gateway sử dụng chuẩn Encapsulated Document nguyên bản, nhúng toàn bộ luồng vector của file PDF vào DICOM tag (0042,0011). Khi mở trên eFilm, Radiant DICOM Viewer hay PACS Web Viewer, toàn bộ chữ và hình ảnh đều sắc nét 100% như file PDF gốc.
                 </div>
+            </div>
 
-                <p>Hệ thống có <strong>2 thành phần</strong> tương ứng với 2 vị trí lắp đặt tại bệnh viện:</p>
-
-                <div class="table-responsive">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Thành phần</th>
-                                <th>Vị trí lắp đặt</th>
-                                <th>File thực thi cần có</th>
-                                <th>Nhiệm vụ chính</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td><strong>1. Máy Chủ Gateway Server</strong></td>
-                                <td>Đặt tại phòng Server / IT Bệnh viện</td>
-                                <td><code>TTSG_DicomGateway_Setup_v2.0.exe</code></td>
-                                <td>Chạy dịch vụ ngầm 24/7, nhận ảnh từ máy khám, đóng gói thành chuẩn DICOM quốc tế và gửi vào PACS / lấy danh sách từ RIS Worklist.</td>
-                            </tr>
-                            <tr>
-                                <td><strong>2. Máy Trạm Phòng Khám</strong></td>
-                                <td>Đặt tại phòng Siêu âm, Nội soi, Điện tim, X-quang...</td>
-                                <td>
-                                    <strong>Cách A (Dễ nhất):</strong> Mở Web Chrome<br>
-                                    <strong>Cách B:</strong> File <code>client_agent.exe</code>
-                                </td>
-                                <td>Bác sĩ/KTV chọn ca bệnh, kéo ảnh/PDF kết quả vào rồi bấm <strong>"Đẩy PACS"</strong>. Hoặc Client Agent tự quét thư mục xuất ảnh của máy khám để gửi ngầm.</td>
-                            </tr>
-                        </tbody>
-                    </table>
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFaq(this)">
+                    <span>3. Khi mất kết nối mạng với PACS Server, dữ liệu có bị mất không?</span>
+                    <svg class="svg-icon sm faq-chevron"><use href="#icon-chevron-down"></use></svg>
                 </div>
-            </section>
-
-            <!-- SECTION 2: HOW TO BUILD EXE (CORE REQUEST) -->
-            <section class="doc-section" id="sec-build-exe">
-                <div class="section-header">
-                    <h2 class="section-title"><span class="sec-num">2</span> Làm Sao Để Có File .EXE Cài Đặt? (Sử Dụng Các File .bat)</h2>
+                <div class="faq-answer">
+                    Hoàn toàn không. Gateway tích hợp sẵn cơ chế hàng đợi trung chuyển (Store-and-Forward) và lưu trạng thái vào cơ sở dữ liệu SQLite. Khi mạng bị đứt, các ca khám sẽ được chuyển sang trạng thái <code>RETRYING</code> và tự động gửi bù ngay khi PACS phục hồi kết nối.
                 </div>
+            </div>
 
-                <p>Để tạo ra các file <code>.exe</code> mang đi cài đặt ở bệnh viện, bạn thực hiện theo đúng <strong>4 bước đơn giản</strong> dưới đây ngay trên máy tính của bạn:</p>
-
-                <!-- KHÂU CHUẨN BỊ -->
-                <div class="alert-box info">
-                    <span class="alert-icon">🛠️</span>
-                    <div class="alert-content">
-                        <strong>Khâu Chuẩn Bị (Chỉ làm 1 lần duy nhất trên máy phát triển của bạn):</strong>
-                        1. Máy đã cài <strong>Python 3.10+</strong> (Khi cài nhớ tick chọn ô <code>Add Python to PATH</code>).<br>
-                        2. Cài phần mềm miễn phí <strong>Inno Setup 6</strong> (Tải tại: <a href="https://jrsoftware.org/isdl.php" target="_blank" style="color:var(--accent-primary); font-weight:700;">jrsoftware.org/isdl.php</a>, cứ bấm Next &rarr; Next &rarr; Install là xong).
-                    </div>
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFaq(this)">
+                    <span>4. Làm sao để nâng cấp phần mềm khi có tính năng mới?</span>
+                    <svg class="svg-icon sm faq-chevron"><use href="#icon-chevron-down"></use></svg>
                 </div>
-
-                <!-- 4 BƯỚC THAO TÁC CỤ THỂ -->
-                <div class="tutorial-box">
-                    <span class="tutorial-badge">👉 QUY TRÌNH 4 BƯỚC ĐÓNG GÓI RA FILE .EXE</span>
-
-                    <ul class="step-list">
-                        <!-- BƯỚC 1 -->
-                        <li class="step-item">
-                            <div class="step-number">1</div>
-                            <div class="step-body">
-                                <div class="step-title">Khởi tạo môi trường thư viện (Nếu là lần đầu chạy dự án)</div>
-                                <div class="step-desc">
-                                    Tìm và <strong>nhấp đúp chuột (Double-click)</strong> vào file:
-                                </div>
-                                <div class="click-action">👉 setup.bat</div>
-                                <p style="margin-top:8px; font-size:13px; color:var(--text-muted);">
-                                    • File này sẽ tự động tạo thư mục <code>.venv</code> và tải toàn bộ thư viện cần thiết.<br>
-                                    • Khi chạy xong, màn hình console báo: <code>=== Cai dat xong ===</code>. Bạn bấm phím bất kỳ để đóng.
-                                </p>
-                            </div>
-                        </li>
-
-                        <!-- BƯỚC 2 -->
-                        <li class="step-item">
-                            <div class="step-number">2</div>
-                            <div class="step-body">
-                                <div class="step-title">Tạo file cài đặt Server 1-Click (Setup.exe cho máy chủ)</div>
-                                <div class="step-desc">
-                                    Tìm và <strong>nhấp đúp chuột (Double-click)</strong> vào file:
-                                </div>
-                                <div class="click-action">👉 build_setup_installer.bat</div>
-                                <p style="margin-top:8px; font-size:13px; color:var(--text-muted);">
-                                    • Kịch bản sẽ tự động chạy <code>build_server_exe.bat</code> để biên dịch mã nguồn Backend, sau đó Inno Setup tự nén lại thành 1 file duy nhất.<br>
-                                    • <strong>KẾT QUẢ ĐẠT ĐƯỢC:</strong> Xuất hiện file cài đặt nằm tại:<br>
-                                    📁 <strong style="color:var(--success);">dist\TTSG_DicomGateway_Setup_v2.0.exe</strong> (~18 MB).<br>
-                                    👉 <em>Đây là file bạn copy vào USB để mang đi cài đặt ở máy chủ bệnh viện!</em>
-                                </p>
-                            </div>
-                        </li>
-
-                        <!-- BƯỚC 3 -->
-                        <li class="step-item">
-                            <div class="step-number">3</div>
-                            <div class="step-body">
-                                <div class="step-title">Tạo file chạy cho máy trạm phòng khám (Client Agent)</div>
-                                <div class="step-desc">
-                                    Tìm và <strong>nhấp đúp chuột (Double-click)</strong> vào file:
-                                </div>
-                                <div class="click-action">👉 build_client_exe.bat</div>
-                                <p style="margin-top:8px; font-size:13px; color:var(--text-muted);">
-                                    • Kịch bản sẽ tự động đóng gói ứng dụng theo dõi thư mục phòng khám thành file độc lập.<br>
-                                    • <strong>KẾT QUẢ ĐẠT ĐƯỢC:</strong> Xuất hiện file nằm tại:<br>
-                                    📁 <strong style="color:var(--success);">dist\client_agent.exe</strong> (~10 MB).<br>
-                                    👉 <em>File này dùng cho các máy khám cần tự động quét ảnh ngầm mà không cần mở web.</em>
-                                </p>
-                            </div>
-                        </li>
-
-                        <!-- BƯỚC 4 -->
-                        <li class="step-item">
-                            <div class="step-number">4</div>
-                            <div class="step-body">
-                                <div class="step-title">Tạo file bản vá nâng cấp khi có tính năng mới (.pkg)</div>
-                                <div class="step-desc">
-                                    Tìm và <strong>nhấp đúp chuột (Double-click)</strong> vào file:
-                                </div>
-                                <div class="click-action">👉 build_patch.bat</div>
-                                <p style="margin-top:8px; font-size:13px; color:var(--text-muted);">
-                                    • Kịch bản sẽ hỏi bạn số phiên bản (Ví dụ gõ: <code>2.1.0</code>) &rarr; Nhấn Enter.<br>
-                                    • <strong>KẾT QUẢ ĐẠT ĐƯỢC:</strong> Xuất hiện file bản vá:<br>
-                                    📁 <strong style="color:var(--success);">TTSG_Gateway_Patch_v2.1.0.pkg</strong>.<br>
-                                    👉 <em>Gửi file này cho bệnh viện để họ cập nhật trực tiếp trên Web trong 3 giây.</em>
-                                </p>
-                            </div>
-                        </li>
-                    </ul>
+                <div class="faq-answer">
+                    Bạn chỉ cần nhận file bản vá <code>.pkg</code> từ nhà phát triển và nạp trực tiếp qua Web Admin mục "Cập Nhật Bản Vá". Toàn bộ cấu hình mạng, tài khoản và lịch sử ca khám đều được giữ nguyên 100%.
                 </div>
+            </div>
+        </div>
+    </section>
 
-                <h3>2.1. Bảng Tổng Hợp Vai Trò Của Các File .bat Trong Thư Mục Gốc</h3>
-                <div class="table-responsive">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Tên file .bat</th>
-                                <th>Ai sử dụng?</th>
-                                <th>Thao tác thực hiện</th>
-                                <th>Mục đích & Kết quả</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td><code>setup.bat</code></td>
-                                <td>Người phát triển</td>
-                                <td>Nhấp đúp chuột</td>
-                                <td>Cài đặt môi trường ảo <code>.venv</code> và tải toàn bộ thư viện Python.</td>
-                            </tr>
-                            <tr>
-                                <td><code>build_setup_installer.bat</code></td>
-                                <td>Người phát triển</td>
-                                <td>Nhấp đúp chuột</td>
-                                <td><strong>Tạo ra file cài đặt hoàn chỉnh:</strong> <code>dist\TTSG_DicomGateway_Setup_v2.0.exe</code>.</td>
-                            </tr>
-                            <tr>
-                                <td><code>build_server_exe.bat</code></td>
-                                <td>Hệ thống gọi tự động</td>
-                                <td>Được gọi bởi build_setup</td>
-                                <td>Biên dịch mã nguồn Server thành thư mục nhị phân <code>dist\TTSG_DicomGateway\</code>.</td>
-                            </tr>
-                            <tr>
-                                <td><code>build_client_exe.bat</code></td>
-                                <td>Người phát triển</td>
-                                <td>Nhấp đúp chuột</td>
-                                <td><strong>Tạo ra file máy trạm:</strong> <code>dist\client_agent.exe</code>.</td>
-                            </tr>
-                            <tr>
-                                <td><code>build_patch.bat</code></td>
-                                <td>Người phát triển</td>
-                                <td>Nhấp đúp chuột</td>
-                                <td><strong>Tạo file bản vá nâng cấp:</strong> <code>TTSG_Gateway_Patch_vX.X.X.pkg</code>.</td>
-                            </tr>
-                            <tr>
-                                <td><code>run.bat</code></td>
-                                <td>Người kiểm thử</td>
-                                <td>Nhấp đúp chuột</td>
-                                <td>Khởi chạy Server trực tiếp dưới dạng mã nguồn Python (để test nhanh).</td>
-                            </tr>
-                            <tr>
-                                <td><code>test_ket_noi_pacs.bat</code></td>
-                                <td>Kỹ sư triển khai</td>
-                                <td>Nhấp đúp chuột</td>
-                                <td>Kiểm tra kết nối C-ECHO tới máy chủ PACS xem có thông mạng không.</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </section>
+    <!-- FOOTER -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-logo">
+                <svg class="svg-icon md" style="color: var(--primary-light);"><use href="#icon-stethoscope"></use></svg>
+                <span>Bệnh viện Đa khoa Tâm Trí Sài Gòn — DICOM Gateway Platform</span>
+            </div>
+            <p>© 2026 TTSG DICOM Gateway. Thiết kế chuyên biệt cho hệ thống Chẩn đoán hình ảnh & Cận lâm sàng hiện đại.</p>
+        </div>
+    </footer>
 
-            <!-- SECTION 3: DEPLOYMENT GUIDE -->
-            <section class="doc-section" id="sec-deploy">
-                <div class="section-header">
-                    <h2 class="section-title"><span class="sec-num">3</span> Triển Khai Tại Bệnh Viện Mới (Site Deployment)</h2>
-                </div>
-
-                <p>Sau khi đã có file <code>TTSG_DicomGateway_Setup_v2.0.exe</code> ở Bước 2, bạn mang file này sang máy chủ của bệnh viện để tiến hành cài đặt:</p>
-
-                <div class="tutorial-box">
-                    <span class="tutorial-badge">👉 CÀI ĐẶT MÁY CHỦ BỆNH VIỆN TRONG 3 BƯỚC</span>
-
-                    <ul class="step-list">
-                        <li class="step-item">
-                            <div class="step-number">1</div>
-                            <div class="step-body">
-                                <div class="step-title">Chạy File Cài Đặt Setup.exe</div>
-                                <div class="step-desc">
-                                    Nhấp đúp chuột vào file <code>TTSG_DicomGateway_Setup_v2.0.exe</code> &rarr; Bấm <strong>Next</strong> &rarr; Bấm <strong>Next</strong> &rarr; Bấm <strong>Install</strong> &rarr; Bấm <strong>Finish</strong> (Mất 10 giây).
-                                </div>
-                                <p style="font-size:13px; color:var(--text-muted); margin:0;">
-                                    <em>Phần mềm tự động cài vào <code>C:\Program Files\TTSG DICOM Gateway</code>, tự đăng ký Windows Service chạy ngầm 24/7 và tự mở cổng tường lửa Firewall.</em>
-                                </p>
-                            </div>
-                        </li>
-
-                        <li class="step-item">
-                            <div class="step-number">2</div>
-                            <div class="step-body">
-                                <div class="step-title">Điền Thông Số PACS & RIS Trên Giao Diện Web</div>
-                                <div class="step-desc">
-                                    Trình duyệt web sẽ tự động mở trang: <code>http://localhost:5000</code>.
-                                </div>
-                                <p style="font-size:13px; color:var(--text-muted); margin:0;">
-                                    • Đăng nhập tài khoản: <code>trind</code> / mật khẩu: <code>admin123</code>.<br>
-                                    • Vào Tab <strong>⚙️ Cấu Hình</strong> &rarr; Điền IP, Port, AE Title của PACS và RIS theo thông tin IT Bệnh viện cung cấp &rarr; Bấm <strong>💾 Lưu Cấu Hình</strong>.<br>
-                                    • Bấm nút <strong>🔍 Test PACS</strong> và <strong>🔍 Test RIS</strong> &rarr; Nhận thông báo <code>🟢 Kết nối Thành Công</code>.
-                                </p>
-                            </div>
-                        </li>
-
-                        <li class="step-item">
-                            <div class="step-number">3</div>
-                            <div class="step-body">
-                                <div class="step-title">Cấu Hình 2 Card Mạng Trên Máy Chủ (Dual-NIC)</div>
-                                <div class="step-desc">
-                                    Đảm bảo an toàn cách ly theo đúng quy tắc kỹ thuật sau:
-                                </div>
-                                <div class="table-responsive" style="margin:8px 0 0;">
-                                    <table>
-                                        <thead>
-                                            <tr>
-                                                <th>Card mạng</th>
-                                                <th>Cắm vào mạng nào?</th>
-                                                <th>Địa chỉ IP ví dụ</th>
-                                                <th>Default Gateway</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <tr>
-                                                <td><strong>Card 1 (NIC 1)</strong></td>
-                                                <td>Mạng phòng khám</td>
-                                                <td><code>192.168.0.3</code></td>
-                                                <td><code>192.168.0.1</code></td>
-                                            </tr>
-                                            <tr>
-                                                <td><strong>Card 2 (NIC 2)</strong></td>
-                                                <td>Mạng nội bộ PACS/RIS</td>
-                                                <td><code>192.168.6.200</code></td>
-                                                <td><strong style="color:var(--danger);">ĐỂ TRỐNG (BLANK)</strong></td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </li>
-                    </ul>
-                </div>
-
-                <h3>3.1. Thiết Lập Cho Các Máy Phòng Khám (Siêu Âm / Nội Soi / Điện Tim)</h3>
-                <p>Tại máy tính ở các phòng khám, Kỹ thuật viên không cần cài đặt phần mềm phức tạp:</p>
-                <ol>
-                    <li>Mở trình duyệt Google Chrome hoặc Edge, gõ địa chỉ: <code>http://192.168.0.3:5000</code> *(Thay bằng IP máy Gateway Server)*.</li>
-                    <li>Nhấp chọn đúng phòng của mình (Ví dụ: 🩺 <em>Phòng Siêu âm 01</em>).</li>
-                    <li>Tick chọn: <strong>"☑️ Ghi nhớ nơi làm việc trên máy này"</strong> &rarr; Bấm <strong>"🚀 Vào Làm Việc Ngay"</strong> (Không cần gõ mật khẩu).</li>
-                    <li>Tạo lối tắt (Shortcut) ra màn hình Desktop để lần sau bấm 1 cái là vào thẳng trang làm việc!</li>
-                </ol>
-            </section>
-
-            <!-- SECTION 4: LICENSING -->
-            <section class="doc-section" id="sec-4">
-                <div class="section-header">
-                    <h2 class="section-title"><span class="sec-num">4</span> Cấp Phát & Quản Lý Bản Quyền Thương Mại</h2>
-                </div>
-
-                <div class="tutorial-box">
-                    <span class="tutorial-badge">👉 3 BƯỚC KÍCH HOẠT BẢN QUYỀN</span>
-
-                    <ul class="step-list">
-                        <li class="step-item">
-                            <div class="step-number">1</div>
-                            <div class="step-body">
-                                <div class="step-title">Lấy Mã Máy Tính (Hardware ID)</div>
-                                <div class="step-desc">
-                                    Trên Web Admin của khách hàng (<code>http://localhost:5000</code>) &rarr; Chọn Tab <strong>🔑 Bản Quyền & Hệ Thống</strong> &rarr; Bấm nút <code>[📋 Sao Chép]</code> tại mục Mã Hardware ID (Ví dụ: <code>TTSG-6F6E-BCA7-82EA-C52B</code>).
-                                </div>
-                            </div>
-                        </li>
-
-                        <li class="step-item">
-                            <div class="step-number">2</div>
-                            <div class="step-body">
-                                <div class="step-title">Tạo File Bản Quyền license.key (Làm trên máy của bạn)</div>
-                                <div class="step-desc">
-                                    Mở cửa sổ dòng lệnh PowerShell/CMD trên máy bạn, chạy lệnh sau:
-                                </div>
-                                <div class="code-container" style="margin:8px 0 0;">
-                                    <pre><code>python license_generator.py --customer "Bệnh viện Đa khoa Tâm Trí Sài Gòn" \
-                           --hwid "TTSG-6F6E-BCA7-82EA-C52B" \
-                           --exp "2035-12-31" \
-                           --modalities "US,ES,ECG,CR,DR,BD,PFT" \
-                           --stations 50 \
-                           --out "license.key"</code></pre>
-                                </div>
-                            </div>
-                        </li>
-
-                        <li class="step-item">
-                            <div class="step-number">3</div>
-                            <div class="step-body">
-                                <div class="step-title">Kích Hoạt Trên Web Khách Hàng</div>
-                                <div class="step-desc">
-                                    Tại Tab Bản Quyền &rarr; Kéo thả file <strong>license.key</strong> vào ô tải lên &rarr; Bấm nút <strong>"🔑 Kích Hoạt Bản Quyền Ngay"</strong> &rarr; Màn hình báo <code>🟢 Bản Quyền Hợp Lệ (Enterprise Edition)</code> là hoàn tất nghiệm thu!
-                                </div>
-                            </div>
-                        </li>
-                    </ul>
-                </div>
-
-                <div class="alert-box warning" style="margin-top: 1rem;">
-                    <span class="alert-icon">⏱️</span>
-                    <div class="alert-content">
-                        <strong>Quy Định Bản Dùng Thử (Demo Trial 30 Ngày):</strong><br>
-                        • Khi cài đặt mới trên máy chủ mà chưa có <code>license.key</code>, hệ thống tự động kích hoạt chế độ <strong>Dùng Thử 30 Ngày (1 tháng)</strong> với đầy đủ tính năng.<br>
-                        • Màn hình Web sẽ hiển thị thanh tiến trình đếm ngược 30 ngày (Timeline Progress Bar).<br>
-                        • Sau 30 ngày nếu chưa nhập mã bản quyền, hệ thống sẽ chuyển sang trạng thái <code>🔴 EXPIRED</code> và yêu cầu nạp file bản quyền thương mại để tiếp tục đẩy dữ liệu.
-                    </div>
-                </div>
-            </section>
-
-            <!-- SECTION 5: PATCH UPDATE -->
-            <section class="doc-section" id="sec-5">
-                <div class="section-header">
-                    <h2 class="section-title"><span class="sec-num">5</span> Cập Nhật Khi Có Phiên Bản Mới (.pkg Patch)</h2>
-                </div>
-
-                <p>Khi công ty phát hành bản vá sửa lỗi hoặc thêm chức năng mới, bạn chỉ cần làm 2 bước:</p>
-
-                <ol>
-                    <li><strong>Phía Công Ty</strong>: Chạy file <code>build_patch.bat</code> &rarr; Gõ số phiên bản mới (Ví dụ: <code>2.1.0</code>) &rarr; Tạo ra file <code>TTSG_Gateway_Patch_v2.1.0.pkg</code> &rarr; Gửi file này cho bệnh viện qua Zalo/Email.</li>
-                    <li><strong>Phía Bệnh Viện</strong>: IT Bệnh viện vào Web <code>http://localhost:5000</code> &rarr; Tab <strong>🔑 Bản Quyền & Hệ Thống</strong> &rarr; Chọn file <code>TTSG_Gateway_Patch_v2.1.0.pkg</code> &rarr; Bấm <strong>"🚀 Cập Nhật Ngay"</strong>.</li>
-                </ol>
-
-                <div class="alert-box success">
-                    <span class="alert-icon">🛡️</span>
-                    <div class="alert-content">
-                        <strong>Cập Nhật Trong 3 Giây & Tuyệt Đối An Toàn</strong>
-                        Hệ thống tự động giải nén và cập nhật mã máy mới ngay tức thì. Toàn bộ file cấu hình kết nối PACS, CSDL bệnh nhân và thông tin bản quyền được <strong>bảo toàn 100%</strong>, không bị mất.
-                    </div>
-                </div>
-            </section>
-
-            <!-- SECTION 6: USER MANUAL -->
-            <section class="doc-section" id="sec-manual">
-                <div class="section-header">
-                    <h2 class="section-title"><span class="sec-num">6</span> Hướng Dẫn Kỹ Thuật Viên Vận Hành Hàng Ngày</h2>
-                </div>
-
-                <p>Giao diện Web được thiết kế tối giản, thân thiện với 4 bước thao tác dễ dàng:</p>
-
-                <div class="tutorial-box">
-                    <span class="tutorial-badge">👉 THAO TÁC 1-CHẠM CỦA KỸ THUẬT VIÊN</span>
-
-                    <ul class="step-list">
-                        <li class="step-item">
-                            <div class="step-number">1</div>
-                            <div class="step-body">
-                                <div class="step-title">Bước 1: Mở Tab "📋 RIS Worklist"</div>
-                                <div class="step-desc">
-                                    Hệ thống tự động hiển thị danh sách bệnh nhân chờ khám từ RIS. Bác sĩ/KTV nhấp nút màu xanh <strong>`🩺 Thực hiện CLS`</strong> tại tên bệnh nhân.
-                                </div>
-                            </div>
-                        </li>
-
-                        <li class="step-item">
-                            <div class="step-number">2</div>
-                            <div class="step-body">
-                                <div class="step-title">Bước 2: Tự Động Chuyển Sang Tab 3 & Nạp Thông Tin</div>
-                                <div class="step-desc">
-                                    Hệ thống tự động điền 100% thông tin bệnh nhân (Mã BN, Họ tên, Ngày sinh, Số chỉ định) mà không cần gõ lại bằng tay.
-                                </div>
-                            </div>
-                        </li>
-
-                        <li class="step-item">
-                            <div class="step-number">3</div>
-                            <div class="step-body">
-                                <div class="step-title">Bước 3: Kéo Thả File Kết Quả & Chọn Report Chính</div>
-                                <div class="step-desc">
-                                    Kéo thả file PDF kết quả và các file ảnh JPG/PNG vào ô đính kèm. Nhấp chọn nút radio <strong>`⭐ [Report chính]`</strong> cho file phiếu kết quả chính.
-                                </div>
-                            </div>
-                        </li>
-
-                        <li class="step-item">
-                            <div class="step-number">4</div>
-                            <div class="step-body">
-                                <div class="step-title">Bước 4: Bấm "🚀 ĐẨY LÊN PACS NGAY"</div>
-                                <div class="step-desc">
-                                    Hệ thống tự đóng gói chuẩn DICOM và gửi sang PACS Server. Cột Report của ca khám trên phần mềm xem ảnh PACS Viewer lập tức sáng đèn!
-                                </div>
-                            </div>
-                        </li>
-                    </ul>
-                </div>
-            </section>
-
-            <!-- SECTION 7: FAQ & TROUBLESHOOTING -->
-            <section class="doc-section" id="sec-faq">
-                <div class="section-header">
-                    <h2 class="section-title"><span class="sec-num">7</span> Sửa Các Lỗi Thường Gặp Khi Triển Khai</h2>
-                </div>
-
-                <div class="table-responsive">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Hiện tượng</th>
-                                <th>Nguyên nhân</th>
-                                <th>Cách xử lý nhanh nhất</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td><strong>Bấm "Test PACS" báo lỗi Timeout</strong></td>
-                                <td>PACS chưa mở quyền cho IP của máy Gateway</td>
-                                <td>Nhắc IT Bệnh viện vào PACS Server, thêm 1 DICOM Node mới: AE Title <code>DICOM_GATEWAY</code>, IP là IP Card mạng số 2 của máy Gateway.</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Máy phòng khám không vào được địa chỉ Web</strong></td>
-                                <td>Tường lửa Windows Firewall máy chủ chặn cổng 5000</td>
-                                <td>Chạy lại file <code>service_install.bat</code> bằng quyền <em>Run as Administrator</em> để script tự động mở cổng Firewall.</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Chạy build_setup_installer.bat báo lỗi thiếu Inno Setup</strong></td>
-                                <td>Chưa cài phần mềm Inno Setup 6 trên máy phát triển</td>
-                                <td>Tải và cài đặt Inno Setup 6 từ trang <code>jrsoftware.org</code> (bấm Next Next Install) rồi chạy lại file <code>.bat</code>.</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Tài khoản Admin bị khóa 5 phút</strong></td>
-                                <td>Gõ sai mật khẩu quá 5 lần</td>
-                                <td>Mở <code>services.msc</code> &rarr; Chuột phải vào dịch vụ <code>TTSG_DicomGateway</code> &rarr; Chọn <strong>Restart</strong> để mở khóa ngay lập tức.</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </section>
-
-        </main>
-    </div>
-
+    <!-- INTERACTIVE SCRIPTS -->
     <script>
-        // THEME TOGGLE
-        const themeToggleBtn = document.getElementById('themeToggle');
-        const htmlElement = document.documentElement;
+        // Playground Demos
+        const PLAYGROUND_DATA = {
+            upload: {
+                method: 'POST',
+                url: 'http://localhost:8088/api/upload-manual',
+                response: `{\n  <span class="json-key">"success"</span>: <span class="json-boolean">true</span>,\n  <span class="json-key">"message"</span>: <span class="json-string">"Đóng gói 2 file DICOM và gửi PACS thành công."</span>,\n  <span class="json-key">"modality"</span>: <span class="json-string">"US"</span>,\n  <span class="json-key">"patient_id"</span>: <span class="json-string">"BN20260831001"</span>,\n  <span class="json-key">"accession_number"</span>: <span class="json-string">"CD26083199"</span>,\n  <span class="json-key">"study_instance_uid"</span>: <span class="json-string">"1.2.840.10008.5.1.4.1.1.6.1.20260831.987654"</span>,\n  <span class="json-key">"pacs_response"</span>: {\n    <span class="json-key">"status"</span>: <span class="json-string">"0x0000 SUCCESS"</span>,\n    <span class="json-key">"instances_transferred"</span>: <span class="json-number">2</span>\n  }\n}`
+            },
+            worklist: {
+                method: 'GET',
+                url: 'http://localhost:8088/api/worklist?date=20260831&modality=US',
+                response: `{\n  <span class="json-key">"success"</span>: <span class="json-boolean">true</span>,\n  <span class="json-key">"counts"</span>: { <span class="json-key">"pending"</span>: <span class="json-number">1</span>, <span class="json-key">"completed"</span>: <span class="json-number">5</span>, <span class="json-key">"total"</span>: <span class="json-number">6</span> },\n  <span class="json-key">"items"</span>: [\n    {\n      <span class="json-key">"patient_id"</span>: <span class="json-string">"BN0921"</span>,\n      <span class="json-key">"patient_name"</span>: <span class="json-string">"TRAN THI B"</span>,\n      <span class="json-key">"accession_number"</span>: <span class="json-string">"CD88912"</span>,\n      <span class="json-key">"study_description"</span>: <span class="json-string">"Siêu âm tim Doppler màu"</span>,\n      <span class="json-key">"modality"</span>: <span class="json-string">"US"</span>,\n      <span class="json-key">"is_completed"</span>: <span class="json-boolean">false</span>\n    }\n  ]\n}`
+            },
+            echo: {
+                method: 'POST',
+                url: 'http://localhost:8088/api/test-pacs',
+                response: `{\n  <span class="json-key">"success"</span>: <span class="json-boolean">true</span>,\n  <span class="json-key">"message"</span>: <span class="json-string">"Kết nối PACS C-ECHO thành công! (DICOM Status: 0x0000 SUCCESS)"</span>,\n  <span class="json-key">"called_ae_title"</span>: <span class="json-string">"TTSG_PACS"</span>,\n  <span class="json-key">"response_time_ms"</span>: <span class="json-number">14.2</span>\n}`
+            }
+        };
 
-        const savedTheme = localStorage.getItem('ttsg_doc_theme') || 'light';
-        htmlElement.setAttribute('data-theme', savedTheme);
+        function switchPlaygroundTab(key) {
+            document.querySelectorAll('.terminal-tab-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            const data = PLAYGROUND_DATA[key];
+            if (data) {
+                document.getElementById('pg-method').innerText = data.method;
+                document.getElementById('pg-url').value = data.url;
+                document.getElementById('pg-console').innerHTML = data.response;
+            }
+        }
 
-        themeToggleBtn.addEventListener('click', () => {
-            const currentTheme = htmlElement.getAttribute('data-theme');
-            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-            htmlElement.setAttribute('data-theme', newTheme);
-            localStorage.setItem('ttsg_doc_theme', newTheme);
-        });
+        function runPlaygroundDemo() {
+            const con = document.getElementById('pg-console');
+            con.innerHTML = '<span style="color: var(--primary-light);">Đang gửi gói tin TCP/IP DICOM tới máy chủ...</span>';
+            setTimeout(() => {
+                const activeBtn = document.querySelector('.terminal-tab-btn.active');
+                const text = activeBtn ? activeBtn.innerText : '';
+                if (text.includes('Worklist')) {
+                    con.innerHTML = PLAYGROUND_DATA.worklist.response;
+                } else if (text.includes('Verify') || text.includes('ECHO')) {
+                    con.innerHTML = PLAYGROUND_DATA.echo.response;
+                } else {
+                    con.innerHTML = PLAYGROUND_DATA.upload.response;
+                }
+            }, 300);
+        }
 
-        // MOBILE MENU
-        const toggleMobileMenuBtn = document.getElementById('toggleMobileMenu');
-        const sidebar = document.getElementById('sidebar');
-        toggleMobileMenuBtn.addEventListener('click', () => {
-            sidebar.classList.toggle('show');
-        });
+        // SDK Code Snippets
+        const SDK_CODES = {
+            python: `import requests
 
-        // SEARCH FILTER
-        const menuSearch = document.getElementById('menuSearch');
-        menuSearch.addEventListener('input', (e) => {
-            const term = e.target.value.toLowerCase();
-            const items = document.querySelectorAll('.nav-menu .nav-item');
-            items.forEach(item => {
-                const text = item.textContent.toLowerCase();
-                item.style.display = text.includes(term) ? 'block' : 'none';
-            });
-        });
+url = "http://localhost:8088/api/upload-manual"
+files = [
+    ('files', ('sieu_am_bung.jpg', open('sieu_am_bung.jpg', 'rb'), 'image/jpeg')),
+    ('files', ('ket_qua.pdf', open('ket_qua.pdf', 'rb'), 'application/pdf'))
+]
+payload = {
+    'patient_id': 'BN20260831001',
+    'patient_name': 'NGUYEN VAN A',
+    'accession_number': 'CD26083199',
+    'study_description': 'Siêu âm ổ bụng tổng quát',
+    'modality': 'US',
+    'main_report_filename': 'ket_qua.pdf'
+}
 
-        // COPY CODE
-        function copyCode(button) {
-            const container = button.closest('.code-container');
-            const code = container.querySelector('pre code').innerText;
-            navigator.clipboard.writeText(code).then(() => {
-                const originalText = button.innerText;
-                button.innerText = 'Đã Chép! ✓';
-                button.style.backgroundColor = 'var(--success)';
-                setTimeout(() => {
-                    button.innerText = originalText;
-                    button.style.backgroundColor = '';
-                }, 2000);
+response = requests.post(url, data=payload, files=files)
+print(response.json())`,
+
+            nodejs: `const FormData = require('form-data');
+const fs = require('fs');
+const axios = require('axios');
+
+async function sendToGateway() {
+  const form = new FormData();
+  form.append('files', fs.createReadStream('sieu_am.jpg'));
+  form.append('files', fs.createReadStream('report.pdf'));
+  form.append('patient_id', 'BN20260831001');
+  form.append('patient_name', 'NGUYEN VAN A');
+  form.append('accession_number', 'CD26083199');
+  form.append('study_description', 'Nội soi dạ dày');
+  form.append('modality', 'ES');
+
+  const res = await axios.post('http://localhost:8088/api/upload-manual', form, {
+    headers: form.getHeaders()
+  });
+  console.log(res.data);
+}
+sendToGateway();`,
+
+            csharp: `using System;
+using System.IO;
+using System.Net.Http;
+using System.Threading.Tasks;
+
+class Program {
+    static async Task Main() {
+        using var client = new HttpClient();
+        using var form = new MultipartFormDataContent();
+
+        form.Add(new StringContent("BN20260831001"), "patient_id");
+        form.Add(new StringContent("NGUYEN VAN A"), "patient_name");
+        form.Add(new StringContent("ECG"), "modality");
+
+        var fileContent = new ByteArrayContent(File.ReadAllBytes("ecg_result.pdf"));
+        form.Add(fileContent, "files", "ecg_result.pdf");
+
+        var response = await client.PostAsync("http://localhost:8088/api/upload-manual", form);
+        var result = await response.Content.ReadAsStringAsync();
+        Console.WriteLine(result);
+    }
+}`,
+
+            curl: `curl -X POST http://localhost:8088/api/upload-manual \\
+  -F "files=@sieu_am.jpg" \\
+  -F "files=@ket_qua.pdf" \\
+  -F "patient_id=BN20260831001" \\
+  -F "patient_name=NGUYEN VAN A" \\
+  -F "accession_number=CD26083199" \\
+  -F "study_description=Siêu âm tuyến giáp" \\
+  -F "modality=US" \\
+  -F "main_report_filename=ket_qua.pdf"`
+        };
+
+        function switchSdkLang(lang) {
+            document.querySelectorAll('.sdk-tab-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            const codeEl = document.getElementById('code-snippet');
+            if (codeEl && SDK_CODES[lang]) {
+                codeEl.innerText = SDK_CODES[lang];
+            }
+        }
+
+        function copySdkCode() {
+            const codeEl = document.getElementById('code-snippet');
+            if (!codeEl) return;
+            navigator.clipboard.writeText(codeEl.innerText).then(() => {
+                const btn = document.querySelector('.code-copy-btn');
+                if (btn) {
+                    btn.innerText = 'Đã sao chép! ✓';
+                    setTimeout(() => btn.innerText = 'Sao chép code', 2000);
+                }
             });
         }
 
-        // SCROLLSPY
-        const sections = document.querySelectorAll('.doc-section, .doc-cover');
-        const navLinks = document.querySelectorAll('.nav-menu .nav-item a');
-
-        window.addEventListener('scroll', () => {
-            let current = '';
-            sections.forEach(section => {
-                const sectionTop = section.offsetTop - 120;
-                if (window.pageYOffset >= sectionTop) {
-                    current = section.getAttribute('id');
-                }
-            });
-
-            navLinks.forEach(link => {
-                link.classList.remove('active');
-                if (link.getAttribute('href') === `#${current}`) {
-                    link.classList.add('active');
-                }
-            });
-        });
+        // FAQ Toggle
+        function toggleFaq(el) {
+            const item = el.parentElement;
+            item.classList.toggle('active');
+        }
     </script>
 </body>
+
 </html>
