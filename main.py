@@ -45,6 +45,12 @@ if getattr(sys, 'frozen', False):
 else:
     APP_DIR = os.path.dirname(os.path.abspath(__file__))
 
+# Đảm bảo thư mục làm việc luôn là thư mục ứng dụng (tránh lỗi khi chạy Service từ System32)
+try:
+    os.chdir(APP_DIR)
+except Exception:
+    pass
+
 CONFIG_PATH = os.environ.get('DICOM_GATEWAY_CONFIG', os.path.join(APP_DIR, 'config.yaml'))
 
 

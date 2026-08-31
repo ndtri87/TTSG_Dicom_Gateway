@@ -117,14 +117,20 @@ def main():
     with open(out_path, 'w', encoding='utf-8') as f:
         f.write(lic_str)
 
+    try:
+        if sys.stdout.encoding != 'utf-8':
+            sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+    except Exception:
+        pass
+
     print("=" * 65)
-    print("✅ ĐÃ TẠO LICENSE BẢN QUYỀN THƯƠNG MẠI THÀNH CÔNG!")
-    print(f"🏥 Khách hàng:   {args.customer}")
-    print(f"💻 Hardware ID:  {args.hwid}")
-    print(f"📅 Hạn dùng:     {args.exp}")
-    print(f"🩺 Modalities:   {', '.join(mods)}")
-    print(f"🏢 Max Stations: {args.stations}")
-    print(f"📁 Lưu tại:      {out_path}")
+    print("[THANH CONG] DA TAO LICENSE BAN QUYEN THUONG MAI THANH CONG!")
+    print(f"- Khach hang:   {args.customer}")
+    print(f"- Hardware ID:  {args.hwid}")
+    print(f"- Han dung:     {args.exp}")
+    print(f"- Modalities:   {', '.join(mods)}")
+    print(f"- Max Stations: {args.stations}")
+    print(f"- Luu tai file: {out_path}")
     print("=" * 65)
 
 

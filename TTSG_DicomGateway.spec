@@ -5,7 +5,7 @@ a = Analysis(
     ['main.py'],
     pathex=[],
     binaries=[],
-    datas=[('templates', 'templates'), ('static', 'static')],
+    datas=[('templates', 'templates'), ('static', 'static'), ('docs/index.html', 'docs')],
     hiddenimports=['waitress', 'cryptography', 'pydicom', 'pynetdicom', 'watchdog', 'pypdfium2', 'PIL', 'yaml', 'sqlite3', 'werkzeug', 'jinja2', 'license_manager', 'utils', 'dicom_builder', 'dicom_sender', 'retry_worker', 'worklist_client', 'storage_commitment_listener'],
     hookspath=[],
     hooksconfig={},
