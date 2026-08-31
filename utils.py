@@ -855,3 +855,30 @@ def delete_station(config: dict, config_path: str, station_id: str) -> bool:
     return True
 
 
+def get_or_create_secret_key(data_dir: str = './data', explicit_key: str = None) -> str:
+    """Lấy secret_key từ tham số hoặc tự sinh khóa ngẫu nhiên 32-bytes an toàn."""
+    if explicit_key and str(explicit_key).strip() and explicit_key != 'TTSG_DICOM_GATEWAY_SUPER_SECRET_KEY_2026':
+        return str(explicit_key).strip()
+
+    os.makedirs(data_dir, exist_ok=True)
+    key_file = os.path.join(data_dir, '.secret_key')
+    if os.path.exists(key_file):
+        try:
+            with open(key_file, 'r', encoding='utf-8') as f:
+                k = f.read().strip()
+                if len(k) >= 32:
+                    return k
+        except Exception:
+            pass
+
+    import secrets
+    new_key = secrets.token_hex(32)
+    try:
+        with open(key_file, 'w', encoding='utf-8') as f:
+            f.write(new_key)
+    except Exception:
+        pass
+    return new_key
+
+
+

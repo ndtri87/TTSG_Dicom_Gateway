@@ -5,86 +5,218 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bệnh viện Đa khoa Tâm Trí Sài Gòn - DICOM Gateway Service</title>
     <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
-    <link rel="shortcut icon" type="image/x-icon" href="/static/favicon.ico">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        /**
+         * TTSG DICOM Gateway - White Labeling Configuration
+         * Cho phép tùy biến thương hiệu, logo, tên bệnh viện và liên kết đa cơ sở
+         */
+        window.config = {
+            whiteLabeling: {
+                institutionName: "Bệnh viện Đa khoa Tâm Trí Sài Gòn",
+                serviceSubtitle: "DICOM Gateway Service",
+                logoUrl: "/static/logo_icon.png",
+                partnerUrl: "https://bvtamtrisaigon.com.vn",
+                footerCopyright: "© 2026 TTSG Medical IT - Powered by Radical Dicom Engine",
+                createLogoComponentFn: function() {
+                    return `
+                        <a href="${this.partnerUrl}" target="_blank" rel="noopener noreferrer" style="display: flex; align-items: center; gap: 14px; text-decoration: none;">
+                            <img src="${this.logoUrl}" style="height: 42px; width: auto; object-fit: contain; border-radius: 8px; background: #ffffff; padding: 3px 6px; box-shadow: 0 4px 14px rgba(9, 68, 179, 0.35); border: 1px solid rgba(255, 255, 255, 0.2);" alt="Logo">
+                            <div>
+                                <h1 style="font-size: 17.5px; font-weight: 800; color: #ffffff; letter-spacing: -0.3px; line-height: 1.2;">${this.institutionName}</h1>
+                                <small style="color: #5acce6; font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px;">${this.serviceSubtitle}</small>
+                            </div>
+                        </a>
+                    `;
+                }
+            }
+        };
+    </script>
     <style>
         :root {
-            --bg-dark: #0f172a;
-            --card-bg: #1e293b;
-            --card-border: #334155;
-            --primary: #3b82f6;
-            --primary-hover: #2563eb;
-            --success: #10b981;
+            /* Base Medical Dark Navy */
+            --bg-dark: #090c29;
+            --bg-surface: #0b1a42;
+            --card-bg: rgba(11, 26, 66, 0.92);
+            --card-sub: rgba(4, 28, 74, 0.85);
+            --card-border: rgba(52, 140, 253, 0.2);
+            --card-border-glow: rgba(90, 204, 230, 0.35);
+            
+            /* Primary Monochrome Blue & Slate-Cyan (Radical Palette) */
+            --primary: #0d3880;
+            --primary-hover: #124cb0;
+            --primary-active: #348cfd;
+            --primary-light: #5acce6;
+            --primary-gradient: linear-gradient(135deg, #0d3880 0%, #1554bf 100%);
+            
+            /* Secondary Deep Navies */
+            --secondary-main: #2b166b;
+            --secondary-dark: #041c4a;
+            --secondary-active: #1f1f27;
+
+            /* Monochromatic Functional Accents (Subtle Understated Tints) */
+            --success: #05d97c;
+            --success-text: #34d399;
+            --success-bg: rgba(5, 217, 124, 0.1);
+            --success-border: rgba(5, 217, 124, 0.28);
+            
             --warning: #f59e0b;
+            --warning-text: #fbbf24;
+            --warning-bg: rgba(245, 158, 11, 0.1);
+            --warning-border: rgba(245, 158, 11, 0.28);
+            
             --danger: #ef4444;
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-            --input-bg: #0f172a;
+            --danger-text: #f87171;
+            --danger-bg: rgba(239, 68, 68, 0.1);
+            --danger-border: rgba(239, 68, 68, 0.28);
+            
+            --custom-blue-100: #c4fdff;
+            --custom-blue-200: #38daff;
+            --aqua-pale: #7bb2ce;
+
+            /* Typography & Hierarchy */
+            --text-main: #ffffff;
+            --text-bright: #e1e1e1;
+            --text-muted: #a19fad;
+            --text-dark: #726f7e;
+            --text-sub: #cbd5e1;
+
+            /* Inputs & Containers */
+            --input-bg: rgba(4, 28, 74, 0.95);
+            --radius-sm: 6px;
+            --radius-md: 9px;
+            --radius-lg: 13px;
+            --radius-xl: 16px;
         }
 
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Inter', sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        /* Monochromatic Vector Icons */
+        .svg-icon {
+            width: 16px;
+            height: 16px;
+            stroke: currentColor;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            fill: none;
+            display: inline-block;
+            vertical-align: middle;
+            flex-shrink: 0;
+            transition: stroke 0.2s ease, transform 0.2s ease;
+        }
+        .svg-icon.xs { width: 13px; height: 13px; stroke-width: 2.2; }
+        .svg-icon.sm { width: 15px; height: 15px; }
+        .svg-icon.md { width: 18px; height: 18px; }
+        .svg-icon.lg { width: 22px; height: 22px; }
+
+        /* Sleek Medical Dark Scrollbars */
+        ::-webkit-scrollbar {
+            width: 7px;
+            height: 7px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(4, 14, 36, 0.6);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(52, 140, 253, 0.25);
+            border-radius: 999px;
+            border: 1px solid rgba(52, 140, 253, 0.12);
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(90, 204, 230, 0.5);
         }
 
         body {
             background-color: var(--bg-dark);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(9, 68, 179, 0.2) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(9, 68, 179, 0.15) 0px, transparent 50%),
+                radial-gradient(at 50% 50%, rgba(4, 28, 74, 0.4) 0px, transparent 100%);
             color: var(--text-main);
             min-height: 100vh;
             display: flex;
             flex-direction: column;
+            line-height: 1.6;
         }
 
+        /* Monochromatic Icon Badge Containers */
+        .icon-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: var(--radius-md);
+            background: rgba(9, 68, 179, 0.18);
+            border: 1px solid rgba(52, 140, 253, 0.25);
+            color: var(--primary-light);
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+            flex-shrink: 0;
+            transition: all 0.2s ease;
+        }
+        .icon-badge.sm { width: 28px; height: 28px; border-radius: 6px; }
+        .icon-badge.md { width: 36px; height: 36px; border-radius: 8px; }
+        .icon-badge.lg { width: 44px; height: 44px; border-radius: 10px; }
+        .icon-badge.success {
+            background: var(--success-bg);
+            border-color: var(--success-border);
+            color: var(--success-text);
+        }
+        .icon-badge.cyan {
+            background: rgba(52, 140, 253, 0.15);
+            border-color: rgba(52, 140, 253, 0.35);
+            color: var(--primary-light);
+        }
+        .icon-badge.warning {
+            background: var(--warning-bg);
+            border-color: var(--warning-border);
+            color: var(--warning-text);
+        }
+        .icon-badge.danger {
+            background: var(--danger-bg);
+            border-color: var(--danger-border);
+            color: var(--danger-text);
+        }
+
+        /* Modern Glass Header */
         header {
-            background: rgba(30, 41, 59, 0.8);
-            backdrop-filter: blur(12px);
-            border-bottom: 1px solid var(--card-border);
-            padding: 0.65rem 1.5rem;
+            background: rgba(11, 26, 66, 0.94);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(52, 140, 253, 0.2);
+            padding: 0.75rem 1.8rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
             position: sticky;
             top: 0;
             z-index: 100;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.45);
         }
 
         .logo-title {
             display: flex;
             align-items: center;
-            gap: 10px;
-        }
-
-        .logo-icon {
-            width: 32px;
-            height: 32px;
-            background: linear-gradient(135deg, #3b82f6, #06b6d4);
-            border-radius: 6px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            font-size: 16px;
-        }
-
-        .logo-title h1 {
-            font-size: 18px;
-            font-weight: 600;
+            gap: 14px;
         }
 
         .status-badge {
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            padding: 4px 10px;
-            border-radius: 16px;
-            font-size: 12px;
-            font-weight: 500;
-            background: rgba(16, 185, 129, 0.15);
-            color: var(--success);
-            border: 1px solid rgba(16, 185, 129, 0.3);
+            padding: 4px 12px;
+            border-radius: 999px;
+            font-size: 11.5px;
+            font-weight: 600;
+            background: var(--success-bg);
+            color: var(--success-text);
+            border: 1px solid var(--success-border);
+            letter-spacing: 0.2px;
         }
 
         .status-dot {
@@ -93,197 +225,397 @@
             border-radius: 50%;
             background-color: var(--success);
             box-shadow: 0 0 6px var(--success);
+            animation: pulse-dot 2.2s infinite ease-in-out;
+        }
+
+        @keyframes pulse-dot {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.2); opacity: 0.75; }
         }
 
         main {
             flex: 1;
-            padding: 1rem 1.5rem;
+            padding: 1.2rem 1.8rem;
             max-width: 1750px;
             margin: 0 auto;
             width: 100%;
         }
 
-        /* Nav Tabs */
+        /* Modern Navigation Tabs (Pill Slider) */
         .tabs {
             display: flex;
-            gap: 8px;
-            border-bottom: 1px solid var(--card-border);
-            margin-bottom: 1rem;
+            gap: 5px;
+            background: rgba(4, 28, 74, 0.85);
+            border: 1px solid rgba(52, 140, 253, 0.2);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-radius: var(--radius-lg);
+            padding: 4px;
+            margin-bottom: 1.2rem;
             overflow-x: auto;
             white-space: nowrap;
-            padding-bottom: 2px;
+            box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.05), 0 4px 18px rgba(0, 0, 0, 0.3);
             -webkit-overflow-scrolling: touch;
         }
 
         .tab-btn {
-            background: none;
-            border: none;
+            background: transparent;
+            border: 1px solid transparent;
             color: var(--text-muted);
-            padding: 8px 14px;
-            font-size: 13.5px;
+            padding: 8px 15px;
+            font-size: 13px;
             font-weight: 600;
+            border-radius: var(--radius-md);
             cursor: pointer;
-            border-bottom: 2px solid transparent;
-            transition: all 0.2s;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             white-space: nowrap;
             display: inline-flex;
             align-items: center;
-            gap: 6px;
+            gap: 7px;
             flex-shrink: 0;
+            position: relative;
         }
 
         .tab-btn:hover {
-            color: var(--text-main);
+            color: #ffffff;
+            background: rgba(52, 140, 253, 0.12);
+            border-color: rgba(52, 140, 253, 0.25);
         }
 
         .tab-btn.active {
-            color: var(--primary);
-            border-bottom-color: var(--primary);
+            color: #ffffff;
+            background: #0d3880;
+            border-color: rgba(90, 204, 230, 0.4);
+            box-shadow: 0 2px 10px rgba(9, 68, 179, 0.45);
+            font-weight: 700;
         }
 
         .tab-content {
             display: none;
+            animation: fadeInTab 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .tab-content.active {
             display: block;
         }
 
+        @keyframes fadeInTab {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
         /* Grid Layout */
         .grid-4 {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 0.8rem;
-            margin-bottom: 1rem;
+            gap: 0.9rem;
+            margin-bottom: 1.2rem;
         }
 
         .card {
             background-color: var(--card-bg);
             border: 1px solid var(--card-border);
-            border-radius: 8px;
-            padding: 0.9rem 1.2rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            border-radius: var(--radius-lg);
+            padding: 1.2rem 1.4rem;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 8px 24px rgba(0, 0, 0, 0.35);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            position: relative;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .card:hover {
+            border-color: var(--card-border-glow);
         }
 
         .stat-card {
             display: flex;
             flex-direction: column;
-            gap: 4px;
+            gap: 5px;
         }
 
         .stat-label {
-            font-size: 12px;
+            font-size: 11px;
             color: var(--text-muted);
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.6px;
+            font-weight: 700;
         }
 
         .stat-val {
             font-size: 26px;
-            font-weight: 700;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--text-main);
         }
 
-        .stat-val.processed { color: var(--success); }
-        .stat-val.retry { color: var(--warning); }
-        .stat-val.failed { color: var(--danger); }
-        .stat-val.duplicates { color: var(--primary); }
+        .stat-val.processed { color: var(--success-text); }
+        .stat-val.retry { color: var(--warning-text); }
+        .stat-val.failed { color: var(--danger-text); }
+        .stat-val.duplicates { color: var(--primary-light); }
 
         .section-title {
             font-size: 15px;
-            font-weight: 600;
-            margin-bottom: 0.6rem;
+            font-weight: 700;
+            margin-bottom: 0.9rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            color: var(--text-main);
+            letter-spacing: -0.2px;
         }
 
-        /* Form Controls */
+        /* HUD Form Controls */
         .form-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 0.6rem;
+            gap: 0.75rem;
         }
 
         .form-group {
             display: flex;
             flex-direction: column;
-            gap: 3px;
-            margin-bottom: 0.35rem;
+            gap: 4px;
+            margin-bottom: 0.5rem;
         }
 
         .form-group label {
-            font-size: 12px;
-            font-weight: 500;
+            font-size: 11px;
+            font-weight: 700;
             color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .form-control {
             background-color: var(--input-bg);
             border: 1px solid var(--card-border);
-            border-radius: 6px;
-            padding: 6px 10px;
+            border-radius: var(--radius-md);
+            padding: 8px 11px;
             color: var(--text-main);
             font-size: 13px;
             outline: none;
-            transition: border-color 0.2s;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.25);
         }
 
         .form-control:focus {
-            border-color: var(--primary);
+            border-color: var(--primary-light);
+            box-shadow: 0 0 0 2px rgba(52, 140, 253, 0.25), inset 0 1px 2px rgba(0, 0, 0, 0.2);
+            background-color: #040e24;
         }
 
-        /* Buttons */
+        select.form-control {
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%235acce6'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 14px;
+            padding-right: 34px;
+        }
+
+        /* Monochromatic Sleek Buttons (No Flashy / Gaudy Colors) */
         .btn {
-            background-color: var(--primary);
-            color: white;
-            border: none;
-            border-radius: 6px;
-            padding: 7px 14px;
+            background: #0d3880;
+            color: #ffffff;
+            border: 1px solid rgba(52, 140, 253, 0.4);
+            border-radius: var(--radius-md);
+            padding: 7px 15px;
             font-size: 13px;
-            font-weight: 500;
+            font-weight: 600;
             cursor: pointer;
             display: inline-flex;
             align-items: center;
-            gap: 8px;
-            transition: all 0.2s;
+            gap: 6px;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
         }
 
         .btn:hover {
-            background-color: var(--primary-hover);
+            background: #124cb0;
+            border-color: var(--primary-light);
+            box-shadow: 0 3px 12px rgba(9, 68, 179, 0.4);
+            transform: translateY(-1px);
+        }
+
+        .btn:active {
+            transform: scale(0.98);
         }
 
         .btn-outline {
-            background: transparent;
+            background: rgba(255, 255, 255, 0.03);
             border: 1px solid var(--card-border);
-            color: var(--text-main);
+            color: var(--text-sub);
+            box-shadow: none;
         }
 
         .btn-outline:hover {
-            background-color: rgba(255, 255, 255, 0.05);
-            border-color: var(--text-muted);
+            background-color: rgba(52, 140, 253, 0.12);
+            border-color: rgba(52, 140, 253, 0.4);
+            color: #ffffff;
         }
 
         .btn-success {
-            background-color: var(--success);
+            background: var(--success-bg);
+            border: 1px solid var(--success-border);
+            color: var(--success-text);
+            font-weight: 600;
         }
         .btn-success:hover {
-            background-color: #059669;
+            background: rgba(5, 217, 124, 0.2);
+            border-color: var(--success);
+            color: #ffffff;
+            box-shadow: 0 2px 10px rgba(5, 217, 124, 0.25);
         }
 
         .btn-danger {
-            background-color: var(--danger);
+            background: var(--danger-bg);
+            border: 1px solid var(--danger-border);
+            color: var(--danger-text);
+            font-weight: 600;
         }
         .btn-danger:hover {
-            background-color: #dc2626;
+            background: rgba(239, 68, 68, 0.2);
+            border-color: var(--danger);
+            color: #ffffff;
+            box-shadow: 0 2px 10px rgba(239, 68, 68, 0.25);
         }
 
-        /* Table & Overflow Controls */
+        /* Modality Badges */
+        .modality-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 8px;
+            border-radius: 5px;
+            font-size: 11px;
+            font-weight: 700;
+            background: rgba(52, 140, 253, 0.12);
+            color: var(--primary-light);
+            border: 1px solid rgba(52, 140, 253, 0.25);
+            letter-spacing: 0.3px;
+        }
+
+        /* Connected Workflow Steps */
+        .workflow-steps-connected {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-bottom: 1.2rem;
+            background: var(--card-sub);
+            padding: 7px;
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--card-border);
+        }
+        .workflow-step-card {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 9px 12px;
+            border-radius: var(--radius-md);
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.2s ease;
+            position: relative;
+        }
+        .workflow-step-card:hover {
+            background: rgba(52, 140, 253, 0.08);
+            border-color: rgba(52, 140, 253, 0.25);
+        }
+        .workflow-step-card.active {
+            background: rgba(9, 68, 179, 0.25);
+            border: 1px solid rgba(52, 140, 253, 0.4);
+            box-shadow: 0 2px 10px rgba(9, 68, 179, 0.25);
+        }
+        .workflow-step-card.completed {
+            background: var(--success-bg);
+            border: 1px solid var(--success-border);
+        }
+        .step-number-badge {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11.5px;
+            font-weight: 700;
+            background: rgba(255, 255, 255, 0.06);
+            color: var(--text-muted);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            flex-shrink: 0;
+        }
+        .workflow-step-card.active .step-number-badge {
+            background: #0d3880;
+            color: #ffffff;
+            border-color: var(--primary-light);
+        }
+        .workflow-step-card.completed .step-number-badge {
+            background: var(--success);
+            color: #041c4a;
+            border-color: var(--success);
+        }
+
+        /* License & Hardware ID Custom Styles */
+        .lic-metric-box {
+            background: var(--card-sub);
+            border: 1px solid rgba(52, 140, 253, 0.2);
+            border-radius: var(--radius-md);
+            padding: 11px 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            transition: all 0.2s ease;
+        }
+        .lic-metric-box:hover {
+            border-color: var(--card-border-glow);
+            transform: translateY(-1px);
+        }
+
+        .lic-dropzone {
+            border: 2px dashed rgba(90, 204, 230, 0.4);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            text-align: center;
+            background: var(--card-sub);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .lic-dropzone:hover, .lic-dropzone.dragover {
+            border-color: var(--primary-hover);
+            background: rgba(9, 68, 179, 0.2);
+            box-shadow: 0 0 18px rgba(9, 68, 179, 0.3);
+        }
+
+        .lic-progress-bar-bg {
+            width: 100%;
+            height: 7px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 999px;
+            overflow: hidden;
+            margin-top: 6px;
+        }
+
+        .lic-progress-bar-fill {
+            height: 100%;
+            background: var(--primary-gradient);
+            border-radius: 999px;
+            transition: width 0.4s ease;
+            box-shadow: 0 0 10px rgba(52, 140, 253, 0.5);
+        }
+
+        /* Table & Overflow Controls with Left Accent */
         .table-responsive {
             width: 100%;
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
             margin-top: 0.5rem;
             border-radius: 8px;
+            border: 1px solid rgba(52, 140, 253, 0.15);
         }
 
         table {
@@ -294,22 +626,33 @@
 
         th, td {
             text-align: left;
-            padding: 10px 14px;
-            border-bottom: 1px solid var(--card-border);
+            padding: 11px 15px;
+            border-bottom: 1px solid rgba(52, 140, 253, 0.12);
             white-space: nowrap;
         }
 
         th {
             color: var(--text-muted);
-            font-weight: 600;
+            font-weight: 700;
             font-size: 12px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            background: rgba(15, 23, 42, 0.4);
+            background: var(--card-sub);
+            border-bottom: 1px solid var(--card-border);
         }
 
         td {
             font-size: 13.5px;
+        }
+
+        table tbody tr {
+            transition: background-color 0.18s ease, border-left-color 0.18s ease;
+            border-left: 3px solid transparent;
+        }
+
+        table tbody tr:hover {
+            background-color: rgba(52, 140, 253, 0.08) !important;
+            border-left: 3px solid var(--primary-hover);
         }
 
         .truncate-cell {
@@ -319,36 +662,25 @@
             white-space: nowrap;
         }
 
-        .modality-badge {
-            background-color: rgba(59, 130, 246, 0.2);
-            color: #60a5fa;
-            padding: 4px 10px;
-            border-radius: 6px;
-            font-weight: 600;
-            font-size: 12px;
-            white-space: nowrap;
-            display: inline-flex;
-            align-items: center;
-        }
-
         /* Terminal Console */
         .terminal {
-            background-color: #090d16;
-            border: 1px solid var(--card-border);
+            background-color: #040e24;
+            border: 1px solid rgba(52, 140, 253, 0.25);
             border-radius: 8px;
             padding: 1rem;
-            font-family: 'Courier New', Courier, monospace;
+            font-family: 'JetBrains Mono', Courier, monospace;
             font-size: 13px;
-            color: #38bdf8;
+            color: var(--primary-light);
             height: 450px;
             overflow-y: auto;
             line-height: 1.5;
+            box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.5);
         }
 
         .log-entry {
             margin-bottom: 4px;
         }
-        .log-entry.ERROR { color: #f87171; }
+        .log-entry.ERROR { color: #f87171; font-weight: 700; }
         .log-entry.WARNING { color: #fbbf24; }
 
         /* Toast Alert */
@@ -361,10 +693,12 @@
             background-color: var(--card-bg);
             border: 1px solid var(--card-border);
             color: var(--text-main);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6), 0 0 20px rgba(9, 68, 179, 0.3);
             display: none;
             z-index: 1000;
             font-size: 14px;
+            font-weight: 600;
+            animation: fadeInTab 0.2s ease-out;
         }
 
         #toast.success {
@@ -376,44 +710,30 @@
 
         /* Dropzone & Manual Upload */
         .dropzone {
-            border: 2px dashed var(--primary);
-            border-radius: 8px;
+            border: 2px dashed rgba(52, 140, 253, 0.45);
+            border-radius: 10px;
             padding: 1rem;
             text-align: center;
-            background-color: rgba(59, 130, 246, 0.04);
+            background-color: var(--card-sub);
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.22s ease;
             margin-bottom: 0.5rem;
         }
         .dropzone:hover, .dropzone.dragover {
-            background-color: rgba(59, 130, 246, 0.12);
-            border-color: var(--primary-hover);
-        }
-        .dropzone-compact {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 0.9rem 0.8rem;
-            min-height: 95px;
-        }
-        .file-list-preview {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-            margin-top: 0.4rem;
-            max-height: 140px;
-            overflow-y: auto;
+            background-color: rgba(9, 68, 179, 0.22);
+            border-color: var(--primary-light);
+            box-shadow: 0 0 20px rgba(52, 140, 253, 0.35);
         }
         .file-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
             background: var(--input-bg);
-            padding: 5px 10px;
-            border-radius: 5px;
+            padding: 7px 12px;
+            border-radius: 6px;
             border: 1px solid var(--card-border);
-            font-size: 12px;
+            font-size: 12.5px;
+            transition: all 0.2s ease;
         }
 
         /* Modality Hub Styles */
@@ -425,30 +745,20 @@
         }
 
         .modality-kpi-card {
-            background: linear-gradient(145deg, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.95));
-            border: 1px solid var(--card-border);
-            border-radius: 8px;
+            background: linear-gradient(145deg, rgba(11, 26, 66, 0.95), rgba(4, 28, 74, 0.95));
+            border: 1px solid rgba(52, 140, 253, 0.25);
+            border-radius: 10px;
             padding: 0.8rem 1rem;
             display: flex;
             align-items: center;
             gap: 10px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            transition: transform 0.2s, border-color 0.2s;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.06);
+            transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
         }
         .modality-kpi-card:hover {
             transform: translateY(-2px);
-            border-color: rgba(59, 130, 246, 0.5);
-        }
-
-        .modality-kpi-icon {
-            width: 48px;
-            height: 48px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            flex-shrink: 0;
+            border-color: var(--primary-hover);
+            box-shadow: 0 8px 20px rgba(9, 68, 179, 0.3);
         }
 
         .modality-grid {
@@ -469,17 +779,17 @@
             position: relative;
             transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
             cursor: pointer;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.08);
         }
         .modality-card:hover {
             transform: translateY(-3px);
-            box-shadow: 0 10px 20px -3px rgba(0, 0, 0, 0.25);
-            border-color: var(--primary);
+            box-shadow: 0 12px 28px rgba(9, 68, 179, 0.35);
+            border-color: var(--primary-hover);
         }
         .modality-card.selected {
-            border-color: var(--primary);
-            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.4), 0 10px 25px rgba(0,0,0,0.3);
-            background: linear-gradient(180deg, rgba(30, 41, 59, 1) 0%, rgba(15, 23, 42, 1) 100%);
+            border-color: var(--primary-hover);
+            box-shadow: 0 0 0 2px rgba(52, 140, 253, 0.45), 0 10px 25px rgba(0,0,0,0.4);
+            background: linear-gradient(180deg, rgba(11, 26, 66, 1) 0%, rgba(4, 28, 74, 1) 100%);
         }
 
         .modality-card-header {
@@ -490,7 +800,7 @@
 
         .modality-badge-code {
             font-size: 14px;
-            font-weight: 700;
+            font-weight: 800;
             padding: 4px 10px;
             border-radius: 6px;
             letter-spacing: 0.5px;
@@ -501,20 +811,20 @@
 
         .modality-status-pill {
             font-size: 11px;
-            font-weight: 600;
+            font-weight: 700;
             padding: 3px 8px;
             border-radius: 12px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
-        .modality-status-pill.ACTIVE { background: rgba(16, 185, 129, 0.15); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.3); }
+        .modality-status-pill.ACTIVE { background: rgba(5, 217, 124, 0.15); color: #05d97c; border: 1px solid rgba(5, 217, 124, 0.35); box-shadow: 0 0 8px rgba(5, 217, 124, 0.2); }
         .modality-status-pill.WARNING { background: rgba(245, 158, 11, 0.15); color: var(--warning); border: 1px solid rgba(245, 158, 11, 0.3); }
         .modality-status-pill.DANGER { background: rgba(239, 68, 68, 0.15); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.3); }
-        .modality-status-pill.IDLE { background: rgba(148, 163, 184, 0.15); color: var(--text-muted); border: 1px solid rgba(148, 163, 184, 0.2); }
+        .modality-status-pill.IDLE { background: rgba(161, 159, 173, 0.15); color: var(--text-muted); border: 1px solid rgba(161, 159, 173, 0.2); }
 
         .modality-title-group h3 {
             font-size: 17px;
-            font-weight: 600;
+            font-weight: 700;
             color: var(--text-main);
             margin-bottom: 2px;
         }
@@ -530,16 +840,17 @@
         .modality-stats-row {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            background: rgba(15, 23, 42, 0.6);
+            background: var(--card-sub);
             border-radius: 8px;
             padding: 8px 10px;
             text-align: center;
-            border: 1px solid rgba(255,255,255,0.04);
+            border: 1px solid rgba(52, 140, 253, 0.15);
         }
         .modality-stat-item .num {
             font-size: 16px;
-            font-weight: 700;
+            font-weight: 800;
             display: block;
+            font-family: 'JetBrains Mono', monospace;
         }
         .modality-stat-item .lbl {
             font-size: 11px;
@@ -557,7 +868,7 @@
             flex: 1;
             padding: 6px 8px;
             font-size: 12px;
-            font-weight: 500;
+            font-weight: 600;
             border-radius: 6px;
             border: 1px solid var(--card-border);
             background: rgba(255,255,255,0.04);
@@ -571,17 +882,17 @@
             gap: 4px;
         }
         .modality-btn:hover {
-            background: var(--primary);
-            border-color: var(--primary);
+            background: var(--primary-hover);
+            border-color: var(--primary-hover);
             color: #fff;
         }
         .modality-btn-primary {
-            background: rgba(59, 130, 246, 0.15);
-            border-color: rgba(59, 130, 246, 0.3);
-            color: var(--primary);
+            background: rgba(9, 68, 179, 0.25);
+            border-color: rgba(52, 140, 253, 0.4);
+            color: var(--primary-light);
         }
         .modality-btn-primary:hover {
-            background: var(--primary);
+            background: var(--primary-hover);
             color: #fff;
         }
 
@@ -591,16 +902,17 @@
             border-radius: 14px;
             padding: 1.5rem;
             margin-bottom: 2rem;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            animation: fadeIn 0.3s ease-in-out;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+            animation: fadeInTab 0.3s ease-in-out;
         }
+
         /* Worklist Segmented Filter Buttons */
         .status-segmented-group {
             display: inline-flex;
-            background: rgba(15, 23, 42, 0.7);
+            background: rgba(4, 28, 74, 0.85);
             padding: 3px;
             border-radius: 8px;
-            border: 1px solid var(--card-border);
+            border: 1px solid rgba(52, 140, 253, 0.25);
             gap: 2px;
         }
         .wl-status-btn {
@@ -619,13 +931,15 @@
         }
         .wl-status-btn:hover {
             color: var(--text-main);
-            background: rgba(255, 255, 255, 0.06);
+            background: rgba(52, 140, 253, 0.12);
         }
         .wl-status-btn.active {
-            background: var(--primary);
+            background: var(--primary-gradient);
             color: #ffffff;
-            box-shadow: 0 2px 6px rgba(59, 130, 246, 0.35);
+            box-shadow: 0 2px 8px rgba(9, 68, 179, 0.45);
+            font-weight: 700;
         }
+
         /* Modal Styles */
         .modal-overlay {
             position: fixed;
@@ -633,23 +947,24 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.75);
-            backdrop-filter: blur(4px);
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
             z-index: 1000;
             display: flex;
             align-items: center;
             justify-content: center;
             padding: 1.5rem;
-            animation: fadeIn 0.2s ease-out;
+            animation: fadeInTab 0.2s ease-out;
         }
         .modal-card {
-            background: var(--card-bg);
-            border: 1px solid var(--card-border);
-            border-radius: 12px;
+            background: #0b1a42;
+            border: 1px solid rgba(52, 140, 253, 0.35);
+            border-radius: 14px;
             width: 100%;
-            max-width: 440px;
+            max-width: 460px;
             padding: 1.5rem 1.8rem;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6), 0 0 20px rgba(59, 130, 246, 0.2);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), 0 0 25px rgba(9, 68, 179, 0.35);
         }
         .modal-header {
             display: flex;
@@ -666,6 +981,7 @@
             font-size: 18px;
             cursor: pointer;
             padding: 4px;
+            transition: color 0.2s;
         }
         .btn-close:hover {
             color: #ffffff;
@@ -674,13 +990,54 @@
 </head>
 <body>
 
+    <!-- Monochromatic SVG Icon Sprite -->
+    <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+        <symbol id="icon-activity" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></symbol>
+        <symbol id="icon-clipboard" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></symbol>
+        <symbol id="icon-upload" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 16 12 12 8 16"></polyline><line x1="12" y1="12" x2="12" y2="21"></line><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"></path></symbol>
+        <symbol id="icon-history" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></symbol>
+        <symbol id="icon-server" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect><rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect><line x1="6" y1="6" x2="6.01" y2="6"></line><line x1="6" y1="18" x2="6.01" y2="18"></line></symbol>
+        <symbol id="icon-folder" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></symbol>
+        <symbol id="icon-building" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect><line x1="9" y1="22" x2="9" y2="22.01"></line><line x1="15" y1="22" x2="15" y2="22.01"></line><line x1="8" y1="6" x2="8.01" y2="6"></line><line x1="12" y1="6" x2="12.01" y2="6"></line><line x1="16" y1="6" x2="16.01" y2="6"></line><line x1="8" y1="10" x2="8.01" y2="10"></line><line x1="12" y1="10" x2="12.01" y2="10"></line><line x1="16" y1="10" x2="16.01" y2="10"></line><line x1="8" y1="14" x2="8.01" y2="14"></line><line x1="12" y1="14" x2="12.01" y2="14"></line><line x1="16" y1="14" x2="16.01" y2="14"></line></symbol>
+        <symbol id="icon-users" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></symbol>
+        <symbol id="icon-shield" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><polyline points="9 12 11 14 15 10"></polyline></symbol>
+        <symbol id="icon-terminal" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line></symbol>
+        <symbol id="icon-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></symbol>
+        <symbol id="icon-refresh" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></symbol>
+        <symbol id="icon-edit" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></symbol>
+        <symbol id="icon-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></symbol>
+        <symbol id="icon-copy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></symbol>
+        <symbol id="icon-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></symbol>
+        <symbol id="icon-file" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></symbol>
+        <symbol id="icon-image" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></symbol>
+        <symbol id="icon-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></symbol>
+        <symbol id="icon-user" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></symbol>
+        <symbol id="icon-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></symbol>
+        <symbol id="icon-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></symbol>
+        <symbol id="icon-logout" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></symbol>
+        <symbol id="icon-key" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-1.5 1.5L16 7m-1.5 1.5L13 10m-3-1a5 5 0 1 0-7 7 5 5 0 0 0 7-7z"></path></symbol>
+        <symbol id="icon-check-circle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></symbol>
+        <symbol id="icon-send" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></symbol>
+        <symbol id="icon-stethoscope" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6V4a2 2 0 0 0-2-2h-1a.2.2 0 1 0 .3.3"></path><path d="M8 15v1a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6v-4"></path><circle cx="20" cy="10" r="2"></circle></symbol>
+        <symbol id="icon-pie-chart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path><path d="M22 12A10 10 0 0 0 12 2v10z"></path></symbol>
+        <symbol id="icon-bar-chart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="20" x2="12" y2="10"></line><line x1="18" y1="20" x2="18" y2="4"></line><line x1="6" y1="20" x2="6" y2="16"></line></symbol>
+        <symbol id="icon-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></symbol>
+        <symbol id="icon-package" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="16.5" y1="9.4" x2="7.5" y2="4.21"></line><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></symbol>
+        <symbol id="icon-cpu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect><rect x="9" y="9" width="6" height="6"></rect><line x1="9" y1="1" x2="9" y2="4"></line><line x1="15" y1="1" x2="15" y2="4"></line><line x1="9" y1="20" x2="9" y2="23"></line><line x1="15" y1="20" x2="15" y2="23"></line><line x1="20" y1="9" x2="23" y2="9"></line><line x1="20" y1="14" x2="23" y2="14"></line><line x1="1" y1="9" x2="4" y2="9"></line><line x1="1" y1="14" x2="4" y2="14"></line></symbol>
+        <symbol id="icon-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></symbol>
+        <symbol id="icon-save" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></symbol>
+        <symbol id="icon-settings" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></symbol>
+    </svg>
+
     <header>
-        <div class="logo-title">
-            <img src="/static/logo_icon.png" style="height: 38px; width: auto; object-fit: contain; border-radius: 6px; background: #ffffff; padding: 2px 4px; box-shadow: 0 2px 6px rgba(0,0,0,0.2);" alt="Logo Tâm Trí Sài Gòn">
-            <div>
-                <h1 style="font-size: 17px; font-weight: 700; color: #ffffff;">Bệnh viện Đa khoa Tâm Trí Sài Gòn</h1>
-                <small style="color: #38bdf8; font-size: 11.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">DICOM Gateway Service</small>
-            </div>
+        <div class="logo-title" id="app-logo-title-container">
+            <a href="https://bvtamtrisaigon.com.vn" target="_blank" rel="noopener noreferrer" style="display: flex; align-items: center; gap: 14px; text-decoration: none;">
+                <img src="/static/logo_icon.png" style="height: 42px; width: auto; object-fit: contain; border-radius: 8px; background: #ffffff; padding: 3px 6px; box-shadow: 0 4px 14px rgba(9, 68, 179, 0.35); border: 1px solid rgba(255, 255, 255, 0.2);" alt="Logo Tâm Trí Sài Gòn">
+                <div>
+                    <h1 style="font-size: 17.5px; font-weight: 800; color: #ffffff; letter-spacing: -0.3px; line-height: 1.2;">Bệnh viện Đa khoa Tâm Trí Sài Gòn</h1>
+                    <small style="color: #5acce6; font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px;">DICOM Gateway Service</small>
+                </div>
+            </a>
         </div>
         <div style="display: flex; align-items: center; gap: 12px;">
             <div class="status-badge" id="service-status-badge">
@@ -688,61 +1045,108 @@
                 <span id="service-status-text">Đang chạy</span>
             </div>
             <!-- Logged-in User Profile Widget -->
-            <div id="user-profile-widget" style="display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); padding: 4px 10px; border-radius: 8px;">
+            <div id="user-profile-widget" style="display: flex; align-items: center; gap: 8px; background: rgba(4, 28, 74, 0.85); border: 1px solid rgba(52,140,253,0.28); padding: 4px 12px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.25);">
                 <div style="text-align: right;">
-                    <div style="font-size: 12.5px; font-weight: 700; color: #ffffff;" id="user-display-name">Đang tải...</div>
-                    <div style="font-size: 11px; color: #38bdf8;" id="user-role-badge">Kỹ thuật viên</div>
+                    <div style="font-size: 13px; font-weight: 700; color: #ffffff;" id="user-display-name">Đang tải...</div>
+                    <div style="font-size: 11px; font-weight: 600; color: var(--primary-light);" id="user-role-badge">Kỹ thuật viên</div>
                 </div>
-                <button class="btn btn-outline" id="btn-change-pwd-header" onclick="openChangePasswordModal()" title="Đổi mật khẩu" style="padding: 4px 8px; font-size: 12px;">🔑</button>
-                <button class="btn btn-outline" id="btn-logout-header" onclick="logoutUser()" title="Đăng xuất / Đổi phòng" style="padding: 4px 8px; font-size: 12px; color: var(--danger); border-color: rgba(239,68,68,0.4);">🚪</button>
+                <button class="btn btn-outline" id="btn-change-pwd-header" onclick="openChangePasswordModal()" title="Đổi mật khẩu" style="padding: 5px 8px; font-size: 12px; border-radius: 6px;">
+                    <svg class="svg-icon sm"><use href="#icon-key"></use></svg>
+                </button>
+                <button class="btn btn-outline" id="btn-logout-header" onclick="logoutUser()" title="Đăng xuất / Đổi phòng" style="padding: 5px 8px; font-size: 12px; color: var(--danger-text); border-color: var(--danger-border); border-radius: 6px;">
+                    <svg class="svg-icon sm"><use href="#icon-logout"></use></svg>
+                </button>
             </div>
         </div>
     </header>
 
     <main>
         <div class="tabs" id="main-navigation-tabs">
-            <button class="tab-btn admin-only" id="tab-btn-dashboard" onclick="switchTab('dashboard', this)">🎛️ Modalities Hub</button>
-            <button class="tab-btn active" id="tab-btn-worklist" onclick="switchTab('worklist', this)">1. Worklist</button>
-            <button class="tab-btn" id="tab-btn-upload" onclick="switchTab('upload', this)">2. Pacs</button>
-            <button class="tab-btn" id="tab-btn-history" onclick="switchTab('history', this)">3. Đã hoàn thành</button>
-            <button class="tab-btn admin-only" id="tab-btn-connection" onclick="switchTab('connection', this)">Cấu hình Pacs & Ris</button>
-            <button class="tab-btn admin-only" id="tab-btn-folders" onclick="switchTab('folders', this)">Cấu hình thư mục ánh xạ</button>
-            <button class="tab-btn admin-only" id="tab-btn-stations" onclick="switchTab('stations', this)">🏢 Quản lý Nơi thực hiện</button>
-            <button class="tab-btn admin-only" id="tab-btn-users" onclick="switchTab('users', this)">👥 Quản lý người dùng</button>
-            <button class="tab-btn admin-only" id="tab-btn-logs" onclick="switchTab('logs', this)">Log</button>
+            <button class="tab-btn admin-only" id="tab-btn-dashboard" onclick="switchTab('dashboard', this)">
+                <span class="icon-badge sm"><svg class="svg-icon sm"><use href="#icon-activity"></use></svg></span>
+                <span>Modalities Hub</span>
+            </button>
+            <button class="tab-btn active" id="tab-btn-worklist" onclick="switchTab('worklist', this)">
+                <span class="icon-badge sm"><svg class="svg-icon sm"><use href="#icon-clipboard"></use></svg></span>
+                <span>Worklist</span>
+            </button>
+            <button class="tab-btn" id="tab-btn-upload" onclick="switchTab('upload', this)">
+                <span class="icon-badge sm"><svg class="svg-icon sm"><use href="#icon-upload"></use></svg></span>
+                <span>Pacs Upload</span>
+            </button>
+            <button class="tab-btn" id="tab-btn-history" onclick="switchTab('history', this)">
+                <span class="icon-badge sm"><svg class="svg-icon sm"><use href="#icon-history"></use></svg></span>
+                <span>Đã Hoàn Thành</span>
+            </button>
+            <button class="tab-btn admin-only" id="tab-btn-connection" onclick="switchTab('connection', this)">
+                <span class="icon-badge sm"><svg class="svg-icon sm"><use href="#icon-server"></use></svg></span>
+                <span>Cấu hình PACS & RIS</span>
+            </button>
+            <button class="tab-btn admin-only" id="tab-btn-folders" onclick="switchTab('folders', this)">
+                <span class="icon-badge sm"><svg class="svg-icon sm"><use href="#icon-folder"></use></svg></span>
+                <span>Thư Mục Ánh Xạ</span>
+            </button>
+            <button class="tab-btn admin-only" id="tab-btn-stations" onclick="switchTab('stations', this)">
+                <span class="icon-badge sm"><svg class="svg-icon sm"><use href="#icon-building"></use></svg></span>
+                <span>Nơi Thực Hiện</span>
+            </button>
+            <button class="tab-btn admin-only" id="tab-btn-users" onclick="switchTab('users', this)">
+                <span class="icon-badge sm"><svg class="svg-icon sm"><use href="#icon-users"></use></svg></span>
+                <span>Người Dùng</span>
+            </button>
+            <button class="tab-btn admin-only" id="tab-btn-license" onclick="switchTab('license', this)">
+                <span class="icon-badge sm"><svg class="svg-icon sm"><use href="#icon-shield"></use></svg></span>
+                <span>Bản Quyền & Hệ Thống</span>
+            </button>
+            <button class="tab-btn admin-only" id="tab-btn-logs" onclick="switchTab('logs', this)">
+                <span class="icon-badge sm"><svg class="svg-icon sm"><use href="#icon-terminal"></use></svg></span>
+                <span>Logs</span>
+            </button>
         </div>
 
         <!-- Tab 1: Dashboard / Modality Operations Hub -->
         <div id="tab-dashboard" class="tab-content">
             <!-- Biểu Đồ Thống Kê Hoạt Động (Gateway Analytics & Performance Charts) -->
-            <div class="card" style="margin-bottom: 0.8rem; padding: 0.8rem 1.1rem;">
-                <div class="section-title" style="margin-bottom: 0.45rem;">
-                    <span>📊 Biểu Đồ Thống Kê & Hiệu Suất Đẩy PACS</span>
+            <div class="card" style="margin-bottom: 0.9rem; padding: 1rem 1.3rem;">
+                <div class="section-title" style="margin-bottom: 0.75rem;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span class="icon-badge md"><svg class="svg-icon md"><use href="#icon-bar-chart"></use></svg></span>
+                        <span>Biểu Đồ Thống Kê & Hiệu Suất Đẩy PACS</span>
+                    </div>
                     <div style="display: flex; gap: 8px; align-items: center;">
-                        <span class="status-badge" style="font-size: 11.5px; padding: 2px 8px;" id="chart-kpi-success-rate">⚡ Tỷ lệ: 100% Thành công</span>
+                        <span class="status-badge" style="font-size: 11.5px; padding: 3px 10px;" id="chart-kpi-success-rate">Tỷ lệ: 100% Thành công</span>
                         <span style="font-size: 12px; color: var(--text-muted);" id="chart-kpi-active-mod">Thiết bị hoạt động: 0 / 13</span>
-                        <button class="btn btn-outline" onclick="fetchModalitySummary()" style="padding: 3px 8px; font-size: 11.5px;">🔄 Cập nhật</button>
+                        <button class="btn btn-outline" onclick="fetchModalitySummary()" style="padding: 4px 10px; font-size: 12px;">
+                            <svg class="svg-icon xs"><use href="#icon-refresh"></use></svg>
+                            <span>Cập nhật</span>
+                        </button>
                     </div>
                 </div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                     <!-- Biểu đồ 1: Phân Bố Theo Modality (Donut Chart) -->
-                    <div style="background: rgba(15, 23, 42, 0.4); border: 1px solid var(--card-border); border-radius: 6px; padding: 0.6rem 0.8rem; display: flex; flex-direction: column;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-                            <strong style="font-size: 12.5px; color: var(--text-main);">🍩 Phân Bố Ca Chụp Theo Modality</strong>
-                            <span style="font-size: 11px; color: var(--text-muted);" id="chart-mod-count-total">Tổng: 0 ca</span>
+                    <div style="background: var(--card-sub); border: 1px solid var(--card-border); border-radius: var(--radius-md); padding: 0.9rem 1.1rem; display: flex; flex-direction: column;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                            <strong style="font-size: 13px; color: var(--text-main); display: flex; align-items: center; gap: 6px;">
+                                <span class="icon-badge sm"><svg class="svg-icon sm"><use href="#icon-pie-chart"></use></svg></span>
+                                <span>Phân Bố Ca Chụp Theo Modality</span>
+                            </strong>
+                            <span style="font-size: 11px; color: var(--text-muted); font-family: 'JetBrains Mono', monospace;" id="chart-mod-count-total">Tổng: 0 ca</span>
                         </div>
-                        <div style="position: relative; height: 165px; display: flex; align-items: center; justify-content: center;">
+                        <div style="position: relative; height: 170px; display: flex; align-items: center; justify-content: center;">
                             <canvas id="chartModalityDistribution"></canvas>
                         </div>
                     </div>
 
                     <!-- Biểu đồ 2: Trạng Thái Xử Lý & Đẩy PACS (Bar Breakdown Chart) -->
-                    <div style="background: rgba(15, 23, 42, 0.4); border: 1px solid var(--card-border); border-radius: 6px; padding: 0.6rem 0.8rem; display: flex; flex-direction: column;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-                            <strong style="font-size: 12.5px; color: var(--text-main);">📈 Trạng Thái Lưu Trữ & Hàng Đợi PACS</strong>
-                            <span style="font-size: 11px; color: var(--text-muted);" id="chart-status-count-total">Đã xử lý: 0 ca</span>
+                    <div style="background: var(--card-sub); border: 1px solid var(--card-border); border-radius: var(--radius-md); padding: 0.9rem 1.1rem; display: flex; flex-direction: column;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                            <strong style="font-size: 13px; color: var(--text-main); display: flex; align-items: center; gap: 6px;">
+                                <span class="icon-badge sm"><svg class="svg-icon sm"><use href="#icon-bar-chart"></use></svg></span>
+                                <span>Trạng Thái Lưu Trữ & Hàng Đợi PACS</span>
+                            </strong>
+                            <span style="font-size: 11px; color: var(--text-muted); font-family: 'JetBrains Mono', monospace;" id="chart-status-count-total">Đã xử lý: 0 ca</span>
                         </div>
-                        <div style="position: relative; height: 165px; display: flex; align-items: center; justify-content: center;">
+                        <div style="position: relative; height: 170px; display: flex; align-items: center; justify-content: center;">
                             <canvas id="chartGatewayStatus"></canvas>
                         </div>
                     </div>
@@ -752,16 +1156,61 @@
             <!-- Modality Operations Fleet Grid -->
             <div class="card" style="margin-bottom: 1.5rem;">
                 <div class="section-title">
-                    <span>🎛️ Ma Trận Thiết Bị & Chuyên Khoa (Modality Fleet Grid)</span>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span class="icon-badge md"><svg class="svg-icon md"><use href="#icon-activity"></use></svg></span>
+                        <span>Ma Trận Thiết Bị & Chuyên Khoa (Modality Fleet Grid)</span>
+                    </div>
                     <div style="display: flex; gap: 8px;">
-                        <button class="btn btn-outline" onclick="fetchModalitySummary()" style="padding: 6px 12px; font-size: 13px;">🔄 Làm Mới Trạng Thái</button>
-                        <button class="btn btn-outline" onclick="triggerRetry()" style="padding: 6px 12px; font-size: 13px;">🔁 Thử Lại Toàn Bộ</button>
+                        <button class="btn btn-outline" onclick="fetchModalitySummary()" style="padding: 6px 12px; font-size: 12.5px;">
+                            <svg class="svg-icon xs"><use href="#icon-refresh"></use></svg>
+                            <span>Làm Mới</span>
+                        </button>
+                        <button class="btn btn-outline" onclick="triggerRetry()" style="padding: 6px 12px; font-size: 12.5px;">
+                            <svg class="svg-icon xs"><use href="#icon-send"></use></svg>
+                            <span>Thử Lại Toàn Bộ</span>
+                        </button>
                     </div>
                 </div>
                 <div id="modality-grid-container" class="modality-grid">
                     <!-- Dynamic Modality Cards loaded via JS -->
-                    <div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 2rem;">
-                        ⏳ Đang tải dữ liệu trạng thái các Modality...
+                    <div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 2.5rem;">
+                        Đang tải dữ liệu trạng thái các Modality...
+                    </div>
+                </div>
+            </div>
+                            <span style="font-size: 11px; color: var(--text-muted); font-family: 'JetBrains Mono', monospace;" id="chart-status-count-total">Đã xử lý: 0 ca</span>
+                        </div>
+                        <div style="position: relative; height: 170px; display: flex; align-items: center; justify-content: center;">
+                            <canvas id="chartGatewayStatus"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modality Operations Fleet Grid -->
+            <div class="card" style="margin-bottom: 1.5rem;">
+                <div class="section-title">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span class="icon-badge md">
+                            <svg class="svg-icon md"><use href="#icon-cpu"></use></svg>
+                        </span>
+                        <span>Ma Trận Thiết Bị & Chuyên Khoa (Modality Fleet Grid)</span>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="btn btn-outline" onclick="fetchModalitySummary()" style="padding: 6px 12px; font-size: 13px;">
+                            <svg class="svg-icon xs"><use href="#icon-refresh"></use></svg>
+                            <span>Làm Mới Trạng Thái</span>
+                        </button>
+                        <button class="btn btn-outline" onclick="triggerRetry()" style="padding: 6px 12px; font-size: 13px;">
+                            <svg class="svg-icon xs"><use href="#icon-refresh"></use></svg>
+                            <span>Thử Lại Toàn Bộ</span>
+                        </button>
+                    </div>
+                </div>
+                <div id="modality-grid-container" class="modality-grid">
+                    <!-- Dynamic Modality Cards loaded via JS -->
+                    <div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 2.5rem;">
+                        Đang tải dữ liệu trạng thái các Modality...
                     </div>
                 </div>
             </div>
@@ -770,25 +1219,33 @@
             <div id="modality-focus-panel" class="modality-focus-box" style="display: none;">
                 <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; border-bottom: 1px solid var(--card-border); padding-bottom: 0.75rem;">
                     <div>
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <span id="focus-mod-icon" style="font-size: 24px;">🩺</span>
-                            <h3 id="focus-mod-title" style="font-size: 18px; font-weight: 700; color: var(--text-main);">Siêu Âm (US)</h3>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span id="focus-mod-icon" class="icon-badge md"><svg class="svg-icon md"><use href="#icon-stethoscope"></use></svg></span>
+                            <h3 id="focus-mod-title" style="font-size: 18px; font-weight: 800; color: var(--text-main);">Siêu Âm (US)</h3>
                             <span id="focus-mod-status" class="modality-status-pill ACTIVE">ACTIVE</span>
                         </div>
-                        <p id="focus-mod-desc" style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">
+                        <p id="focus-mod-desc" style="font-size: 13px; color: var(--text-muted); margin-top: 5px;">
                             SOP Class: Ultrasound Image Storage (1.2.840.10008.5.1.4.1.1.6.1) | Thư mục: ./data/inbox
                         </p>
                     </div>
                     <div style="display: flex; gap: 8px;">
-                        <button class="btn" id="focus-btn-worklist" style="padding: 6px 14px; font-size: 13px;">📋 Xem Worklist</button>
-                        <button class="btn btn-outline" id="focus-btn-upload" style="padding: 6px 14px; font-size: 13px;">📤 Đẩy Ca Mới</button>
-                        <button class="btn btn-outline" onclick="closeModalityFocus()" style="padding: 6px 10px; font-size: 13px;">✕</button>
+                        <button class="btn" id="focus-btn-worklist" style="padding: 6px 14px; font-size: 12.5px;">
+                            <svg class="svg-icon xs"><use href="#icon-clipboard"></use></svg>
+                            <span>Xem Worklist</span>
+                        </button>
+                        <button class="btn btn-outline" id="focus-btn-upload" style="padding: 6px 14px; font-size: 12.5px;">
+                            <svg class="svg-icon xs"><use href="#icon-upload"></use></svg>
+                            <span>Đẩy Ca Mới</span>
+                        </button>
+                        <button class="btn btn-outline" onclick="closeModalityFocus()" style="padding: 6px 10px; font-size: 12.5px;">
+                            <svg class="svg-icon xs"><use href="#icon-x"></use></svg>
+                        </button>
                     </div>
                 </div>
 
                 <div>
-                    <h4 style="font-size: 14px; font-weight: 600; margin-bottom: 0.75rem; color: var(--text-muted);">
-                        📋 Danh sách ca chụp gần nhất thuộc phân hệ này (Mới nhất ở đầu):
+                    <h4 style="font-size: 13px; font-weight: 700; margin-bottom: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">
+                        Danh sách ca chụp gần nhất thuộc phân hệ này (Mới nhất ở đầu):
                     </h4>
                     <div class="table-responsive">
                         <table>
@@ -817,17 +1274,26 @@
             <!-- Target Connection Info -->
             <div class="card">
                 <div class="section-title">
-                    <span>📌 Thông Tin Kết Nối Y Tế Đích</span>
-                    <span class="status-badge" style="padding: 4px 10px; font-size: 12px;">Dual-NIC Isolated</span>
-                </div>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; font-size: 14px; color: var(--text-muted);">
-                    <div>
-                        <strong style="color: var(--text-main);">🏥 PACS Server Đích:</strong>
-                        <div id="pacs-target-info" style="margin-top: 4px;">Đang tải...</div>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span class="icon-badge md"><svg class="svg-icon md"><use href="#icon-server"></use></svg></span>
+                        <span>Thông Tin Kết Nối Y Tế Đích</span>
                     </div>
-                    <div>
-                        <strong style="color: var(--text-main);">📋 RIS Modality Worklist:</strong>
-                        <div id="ris-target-info" style="margin-top: 4px;">Đang tải...</div>
+                    <span class="status-badge" style="padding: 4px 12px; font-size: 11.5px;">Dual-NIC Isolated</span>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.2rem; font-size: 13.5px; color: var(--text-muted);">
+                    <div style="background: var(--card-sub); padding: 12px 16px; border-radius: var(--radius-md); border: 1px solid var(--card-border);">
+                        <strong style="color: var(--text-main); display: flex; align-items: center; gap: 6px;">
+                            <span class="icon-badge sm"><svg class="svg-icon sm"><use href="#icon-server"></use></svg></span>
+                            <span>PACS Server Đích:</span>
+                        </strong>
+                        <div id="pacs-target-info" style="margin-top: 6px; font-family: 'JetBrains Mono', monospace; color: var(--primary-light);">Đang tải...</div>
+                    </div>
+                    <div style="background: var(--card-sub); padding: 12px 16px; border-radius: var(--radius-md); border: 1px solid var(--card-border);">
+                        <strong style="color: var(--text-main); display: flex; align-items: center; gap: 6px;">
+                            <span class="icon-badge sm"><svg class="svg-icon sm"><use href="#icon-clipboard"></use></svg></span>
+                            <span>RIS Modality Worklist:</span>
+                        </strong>
+                        <div id="ris-target-info" style="margin-top: 6px; font-family: 'JetBrains Mono', monospace; color: var(--primary-light);">Đang tải...</div>
                     </div>
                 </div>
             </div>
@@ -835,38 +1301,55 @@
 
         <!-- Tab 2: RIS Worklist -->
         <div id="tab-worklist" class="tab-content active">
-            <div class="workflow-steps" style="display: flex; gap: 10px; margin-bottom: 1.5rem; background: rgba(255,255,255,0.03); padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.08);">
-                <div class="step-item" style="flex: 1; text-align: center; padding: 8px; background: rgba(59, 130, 246, 0.15); border-radius: 6px; border: 1px solid rgba(59, 130, 246, 0.3);">
-                    <strong style="color: var(--primary);">Bước 1</strong>: 🔍 Load Worklist
+            <!-- Connected Workflow 4 Steps Bar -->
+            <div class="workflow-steps-connected">
+                <div class="workflow-step-card active" id="wf-step-1">
+                    <div class="step-number-badge">1</div>
+                    <div>
+                        <div style="font-size: 13px; font-weight: 700; color: var(--text-main);">Load Worklist</div>
+                        <div style="font-size: 11px; color: var(--text-muted);">Tra cứu chỉ định từ RIS</div>
+                    </div>
                 </div>
-                <div class="step-item" style="flex: 1; text-align: center; padding: 8px; background: rgba(255,255,255,0.05); border-radius: 6px;">
-                    <strong>Bước 2</strong>: 👤 Chọn Bệnh Nhân
+                <div class="workflow-step-card" id="wf-step-2">
+                    <div class="step-number-badge">2</div>
+                    <div>
+                        <div style="font-size: 13px; font-weight: 700; color: var(--text-main);">Chọn Bệnh Nhân</div>
+                        <div style="font-size: 11px; color: var(--text-muted);">Khớp thông tin hành chính</div>
+                    </div>
                 </div>
-                <div class="step-item" style="flex: 1; text-align: center; padding: 8px; background: rgba(255,255,255,0.05); border-radius: 6px;">
-                    <strong>Bước 3</strong>: 📸 Thực Hiện CLS (Add ảnh/PDF)
+                <div class="workflow-step-card" id="wf-step-3">
+                    <div class="step-number-badge">3</div>
+                    <div>
+                        <div style="font-size: 13px; font-weight: 700; color: var(--text-main);">Thực Hiện CLS</div>
+                        <div style="font-size: 11px; color: var(--text-muted);">Đính kèm ảnh / PDF</div>
+                    </div>
                 </div>
-                <div class="step-item" style="flex: 1; text-align: center; padding: 8px; background: rgba(16, 185, 129, 0.15); border-radius: 6px; border: 1px solid rgba(16, 185, 129, 0.3);">
-                    <strong style="color: var(--success);">Bước 4</strong>: 🚀 Đẩy PACS
+                <div class="workflow-step-card" id="wf-step-4">
+                    <div class="step-number-badge">4</div>
+                    <div>
+                        <div style="font-size: 13px; font-weight: 700; color: var(--text-main);">Đẩy Lên PACS</div>
+                        <div style="font-size: 11px; color: var(--text-muted);">Lưu trữ DICOM an toàn</div>
+                    </div>
                 </div>
             </div>
 
             <div class="card" style="margin-bottom: 1rem; padding: 14px 18px;">
                 <div style="display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap;">
                     <div style="flex: 1; min-width: 130px;">
-                        <label style="font-size: 12px; margin-bottom: 4px; display: block; color: var(--text-muted);">Ngày chỉ định</label>
-                        <input type="date" id="wl-search-date" class="form-control" style="padding: 6px 10px; font-size: 13px;">
+                        <label style="font-size: 11px; margin-bottom: 4px; display: block; color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Ngày chỉ định</label>
+                        <input type="date" id="wl-search-date" class="form-control" style="padding: 7px 10px; font-size: 13px;">
                     </div>
                     <div style="flex: 1.2; min-width: 140px;">
-                        <label style="font-size: 12px; margin-bottom: 4px; display: block; color: var(--text-muted);">Mã Bệnh Nhân</label>
-                        <input type="text" id="wl-search-pid" class="form-control" style="padding: 6px 10px; font-size: 13px;" placeholder="Ví dụ: BN18000991">
+                        <label style="font-size: 11px; margin-bottom: 4px; display: block; color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Mã Bệnh Nhân</label>
+                        <input type="text" id="wl-search-pid" class="form-control" style="padding: 7px 10px; font-size: 13px;" placeholder="Ví dụ: BN18000991">
                     </div>
                     <div style="flex: 1.5; min-width: 160px;">
-                        <label style="font-size: 12px; margin-bottom: 4px; display: block; color: var(--text-muted);">Họ và Tên Bệnh Nhân</label>
-                        <input type="text" id="wl-search-pname" class="form-control" style="padding: 6px 10px; font-size: 13px;" placeholder="Ví dụ: NGUYEN VAN A">
+                        <label style="font-size: 11px; margin-bottom: 4px; display: block; color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Họ và Tên Bệnh Nhân</label>
+                        <input type="text" id="wl-search-pname" class="form-control" style="padding: 7px 10px; font-size: 13px;" placeholder="Ví dụ: NGUYEN VAN A">
                     </div>
                     <div style="flex: 1.2; min-width: 150px;">
-                        <label style="font-size: 12px; margin-bottom: 4px; display: block; color: var(--text-muted);">Loại Thiết Bị (Modality)</label>
-                        <select id="wl-search-modality" class="form-control" style="padding: 6px 10px; font-size: 13px;">
+                        <label style="font-size: 11px; margin-bottom: 4px; display: block; color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Loại Thiết Bị (Modality)</label>
+                        <select id="wl-search-modality" class="form-control" style="padding: 7px 10px; font-size: 13px;">
                             <option value="">Tất cả Modality</option>
                             <option value="US">US - Siêu âm</option>
                             <option value="ES">ES - Nội soi</option>
@@ -884,7 +1367,8 @@
                         </select>
                     </div>
                     <button class="btn" onclick="fetchWorklist()" style="padding: 7px 18px; font-size: 13px; white-space: nowrap;">
-                        🔍 Load Worklist từ RIS
+                        <svg class="svg-icon sm"><use href="#icon-search"></use></svg>
+                        <span>Load Worklist RIS</span>
                     </button>
                 </div>
             </div>
@@ -892,21 +1376,24 @@
             <div class="card">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.85rem; flex-wrap: wrap; gap: 10px;">
                     <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
-                        <span style="font-size: 15px; font-weight: 600; color: var(--text-main);">📋 Danh Sách Ca Chỉ Định</span>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span class="icon-badge sm"><svg class="svg-icon sm"><use href="#icon-clipboard"></use></svg></span>
+                            <span style="font-size: 14.5px; font-weight: 700; color: var(--text-main);">Danh Sách Ca Chỉ Định</span>
+                        </div>
                         <div class="status-segmented-group" id="wl-segmented-filter-group">
                             <button type="button" class="wl-status-btn active" id="wl-status-pending" onclick="setWorklistStatusFilter('PENDING')">
-                                ⚪ Chờ thực hiện (<span id="wl-pending-count">0</span>)
+                                <span>Chờ thực hiện</span> (<span id="wl-pending-count">0</span>)
                             </button>
                             <button type="button" class="wl-status-btn" id="wl-status-completed" onclick="setWorklistStatusFilter('COMPLETED')">
-                                🟢 Đã đẩy PACS (<span id="wl-completed-count">0</span>)
+                                <span>Đã đẩy PACS</span> (<span id="wl-completed-count">0</span>)
                             </button>
                             <button type="button" class="wl-status-btn" id="wl-status-all" onclick="setWorklistStatusFilter('ALL')">
-                                📋 Tất cả (<span id="wl-all-count">0</span>)
+                                <span>Tất cả</span> (<span id="wl-all-count">0</span>)
                             </button>
                         </div>
                     </div>
                     <div style="display: flex; gap: 8px; align-items: center;">
-                        <span style="font-size: 12.5px; color: var(--text-muted);" id="wl-count-text">0 ca</span>
+                        <span style="font-size: 12px; color: var(--text-muted); font-family: 'JetBrains Mono', monospace;" id="wl-count-text">0 ca</span>
                     </div>
                 </div>
                 <div class="table-responsive">
@@ -927,7 +1414,7 @@
                         <tbody id="worklist-table-body">
                             <tr>
                                 <td colspan="9" style="text-align: center; color: var(--text-muted); padding: 2rem;">
-                                    Bấm nút "Load Worklist từ RIS" để tải danh sách chỉ định ca khám.
+                                    Bấm nút "Load Worklist RIS" để tải danh sách chỉ định ca khám.
                                 </td>
                             </tr>
                         </tbody>
@@ -936,35 +1423,41 @@
             </div>
         </div>
 
-        <!-- Tab 2: Manual Upload & Push to PACS (Pacs) -->
+        <!-- Tab 3: Manual Upload & Push to PACS (Pacs) -->
         <div id="tab-upload" class="tab-content">
             <!-- Selected Patient Banner (from Worklist) -->
-            <div id="selected-patient-banner" class="card" style="display: none; background: rgba(59, 130, 246, 0.12); border: 1px solid rgba(59, 130, 246, 0.4); margin-bottom: 0.75rem; padding: 8px 14px;">
+            <div id="selected-patient-banner" class="card" style="display: none; background: rgba(9, 68, 179, 0.22); border: 1px solid rgba(52, 140, 253, 0.35); margin-bottom: 0.9rem; padding: 12px 18px;">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <div>
-                        <div style="font-size: 11.5px; color: var(--primary); font-weight: 700; text-transform: uppercase;">
-                            ✅ ĐÃ CHỌN BỆNH NHÂN TỪ WORKLIST
-                        </div>
-                        <div style="font-size: 15px; font-weight: 700; color: var(--text-main); margin-top: 2px;" id="banner-patient-name">
-                            BN18000991 - NGUYEN VAN A
-                        </div>
-                        <div style="font-size: 12px; color: var(--text-muted);" id="banner-patient-details">
-                            Mã BN: 18000991 | Dịch vụ: Siêu âm ổ bụng tổng quát | Số CĐ: 3022292 | Modality: US
+                    <div style="display: flex; align-items: center; gap: 14px;">
+                        <span class="icon-badge lg"><svg class="svg-icon lg"><use href="#icon-user"></use></svg></span>
+                        <div>
+                            <div style="font-size: 11px; color: var(--primary-light); font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px;">
+                                ĐÃ CHỌN BỆNH NHÂN TỪ WORKLIST
+                            </div>
+                            <div style="font-size: 15px; font-weight: 700; color: var(--text-main); margin-top: 2px;" id="banner-patient-name">
+                                BN18000991 - NGUYEN VAN A
+                            </div>
+                            <div style="font-size: 12px; color: var(--text-sub); margin-top: 2px;" id="banner-patient-details">
+                                Mã BN: 18000991 | Dịch vụ: Siêu âm ổ bụng tổng quát | Số CĐ: 3022292 | Modality: US
+                            </div>
                         </div>
                     </div>
                     <div>
-                        <span style="font-size: 22px;">🩺</span>
+                        <span class="icon-badge md"><svg class="svg-icon md"><use href="#icon-stethoscope"></use></svg></span>
                     </div>
                 </div>
             </div>
 
             <!-- Card 1: Thông Tin Ca Khám & Bệnh Nhân -->
-            <div class="card" style="margin-bottom: 0.8rem; padding: 0.9rem 1.2rem;">
-                <div class="section-title" style="margin-bottom: 0.6rem;">
-                    <span>👤 1. Thông Tin Ca Khám & Bệnh Nhân</span>
-                    <span style="font-size: 12px; color: var(--text-muted);">Nhập thông tin hoặc tự động điền khi chọn từ Worklist</span>
+            <div class="card" style="margin-bottom: 0.9rem; padding: 1rem 1.3rem;">
+                <div class="section-title" style="margin-bottom: 0.75rem;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span class="icon-badge sm">1</span>
+                        <span>Thông Tin Ca Khám & Bệnh Nhân</span>
+                    </div>
+                    <span style="font-size: 11.5px; color: var(--text-muted);">Tự động điền khi chọn từ Worklist</span>
                 </div>
-                <div class="form-grid" style="grid-template-columns: repeat(4, 1fr); gap: 0.6rem;">
+                <div class="form-grid" style="grid-template-columns: repeat(4, 1fr); gap: 0.75rem;">
                     <div class="form-group">
                         <label>Mã Bệnh Nhân (PatientID)</label>
                         <input type="text" id="manual-patient-id" class="form-control" placeholder="Ví dụ: BN18000991">
@@ -1030,35 +1523,41 @@
             </div>
 
             <!-- Card 2: Đính Kèm File Kết Quả & Đẩy PACS -->
-            <div class="card" style="margin-bottom: 0.8rem; padding: 0.9rem 1.2rem;">
-                <div class="section-title" style="margin-bottom: 0.6rem;">
-                    <span>📸 2. File Kết Quả & Đóng Gói DICOM Đẩy PACS</span>
-                    <span id="file-count-badge" style="font-size: 12px; color: var(--text-muted);">Chưa có file nào được chọn</span>
+            <div class="card" style="margin-bottom: 0.9rem; padding: 1rem 1.3rem;">
+                <div class="section-title" style="margin-bottom: 0.75rem;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span class="icon-badge sm">2</span>
+                        <span>File Kết Quả & Đóng Gói DICOM Đẩy PACS</span>
+                    </div>
+                    <span id="file-count-badge" style="font-size: 11.5px; color: var(--text-muted); font-family: 'JetBrains Mono', monospace;">Chưa có file nào được chọn</span>
                 </div>
-                <div style="display: grid; grid-template-columns: 340px 1fr; gap: 1rem; align-items: stretch;">
+                <div style="display: grid; grid-template-columns: 320px 1fr; gap: 1.2rem; align-items: stretch;">
                     <!-- Dropzone -->
-                    <div class="dropzone" id="upload-dropzone" onclick="triggerFileInput()" style="cursor: pointer; padding: 1.5rem 1rem; text-align: center; border: 2px dashed rgba(59, 130, 246, 0.4); border-radius: 8px; background: rgba(15, 23, 42, 0.4); display: flex; flex-direction: column; align-items: center; justify-content: center; transition: all 0.2s ease;">
-                        <div style="font-size: 38px; margin-bottom: 8px;">📤</div>
+                    <div class="dropzone" id="upload-dropzone" onclick="triggerFileInput()" style="cursor: pointer; padding: 1.6rem 1.2rem; text-align: center; border: 2px dashed rgba(52, 140, 253, 0.35); border-radius: var(--radius-lg); background: var(--card-sub); display: flex; flex-direction: column; align-items: center; justify-content: center; transition: all 0.2s ease;">
+                        <span class="icon-badge lg" style="margin-bottom: 8px;"><svg class="svg-icon lg"><use href="#icon-upload"></use></svg></span>
                         <div style="font-size: 14px; font-weight: 700; color: var(--text-main);">Kéo & Thả File Vào Đây</div>
-                        <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Hoặc nhấp để duyệt file từ máy tính</div>
-                        <div style="font-size: 11px; color: #38bdf8; margin-top: 6px; background: rgba(56, 189, 248, 0.1); padding: 2px 8px; border-radius: 4px;">Hỗ trợ: .png, .jpg, .jpeg, .pdf</div>
+                        <div style="font-size: 11.5px; color: var(--text-muted); margin-top: 3px;">Hoặc nhấp để duyệt file từ máy tính</div>
+                        <div style="font-size: 11px; color: var(--primary-light); margin-top: 8px; background: rgba(52, 140, 253, 0.12); border: 1px solid rgba(52, 140, 253, 0.25); padding: 2px 8px; border-radius: 4px; font-weight: 600;">Hỗ trợ: .png, .jpg, .jpeg, .pdf</div>
                         <input type="file" id="file-input" multiple accept=".png,.jpg,.jpeg,.pdf" style="display: none;" onchange="handleFileSelect(event)">
                     </div>
 
                     <!-- File List & Action Area -->
-                    <div style="display: flex; flex-direction: column; justify-content: space-between; background: rgba(15, 23, 42, 0.3); border: 1px solid var(--card-border); border-radius: 8px; padding: 0.8rem 1rem;">
+                    <div style="display: flex; flex-direction: column; justify-content: space-between; background: var(--card-sub); border: 1px solid var(--card-border); border-radius: var(--radius-lg); padding: 1rem 1.2rem;">
                         <div id="file-list-container" style="max-height: 220px; overflow-y: auto; padding-right: 4px;">
                             <div style="text-align: center; color: var(--text-muted); padding: 2.5rem 1rem; font-size: 13px;">
-                                📁 Chưa có file kết quả nào được chọn.<br>
-                                <span style="font-size: 12px; color: rgba(255,255,255,0.4);">Hãy kéo thả hoặc chọn file ảnh/PDF kết quả cận lâm sàng từ khung bên trái.</span>
+                                <span class="icon-badge md" style="margin-bottom: 8px;"><svg class="svg-icon md"><use href="#icon-file"></use></svg></span>
+                                <div>Chưa có file kết quả nào được chọn.</div>
+                                <span style="font-size: 11.5px; color: rgba(255,255,255,0.4);">Hãy kéo thả hoặc chọn file ảnh/PDF kết quả cận lâm sàng từ khung bên trái.</span>
                             </div>
                         </div>
-                        <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--card-border); padding-top: 0.75rem; margin-top: 0.5rem;">
-                            <button class="btn btn-outline" style="padding: 6px 12px; font-size: 12.5px; color: var(--danger); border-color: rgba(239, 68, 68, 0.3);" onclick="clearAllSelectedFiles()">
-                                🗑️ Xóa tất cả file
+                        <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--card-border); padding-top: 0.85rem; margin-top: 0.6rem;">
+                            <button class="btn btn-outline" style="padding: 6px 12px; font-size: 12px; color: var(--danger-text); border-color: var(--danger-border);" onclick="clearAllSelectedFiles()">
+                                <svg class="svg-icon xs"><use href="#icon-trash"></use></svg>
+                                <span>Xóa tất cả file</span>
                             </button>
-                            <button class="btn" id="btn-push-pacs" onclick="sendManualUpload()" style="padding: 8px 24px; font-size: 14px; font-weight: 700; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);">
-                                🚀 Đẩy Lên PACS Server Ngay
+                            <button class="btn" id="btn-push-pacs" onclick="sendManualUpload()" style="padding: 8px 22px; font-size: 13.5px; font-weight: 700;">
+                                <svg class="svg-icon sm"><use href="#icon-send"></use></svg>
+                                <span>Đẩy Lên PACS Ngay</span>
                             </button>
                         </div>
                     </div>
@@ -1067,7 +1566,10 @@
 
             <div class="card" id="upload-results-card" style="display: none; margin-top: 0.75rem;">
                 <div class="section-title">
-                    <span>📋 Kết quả đẩy PACS</span>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span class="icon-badge sm"><svg class="svg-icon sm"><use href="#icon-check-circle"></use></svg></span>
+                        <span>Kết quả đẩy PACS</span>
+                    </div>
                 </div>
                 <div id="upload-results-list"></div>
             </div>
@@ -1075,17 +1577,20 @@
 
         <!-- Tab 4: Study History -->
         <div id="tab-history" class="tab-content">
-            <div class="card" style="margin-bottom: 0.75rem; padding: 10px 14px;">
-                <div style="display: flex; gap: 0.6rem; flex-wrap: wrap;">
-                    <select id="history-status-filter" class="form-control" style="width: 200px;" onchange="fetchStudiesHistory()">
+            <div class="card" style="margin-bottom: 0.85rem; padding: 12px 16px;">
+                <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                    <select id="history-status-filter" class="form-control" style="width: 220px;" onchange="fetchStudiesHistory()">
                         <option value="ALL">Tất cả trạng thái</option>
-                        <option value="SUCCESS">🟢 Đã đẩy PACS (Thành công)</option>
-                        <option value="RETRYING">🟠 Đang thử lại (Retry Queue)</option>
-                        <option value="FAILED">🔴 Thất bại (Lỗi)</option>
-                        <option value="DUPLICATE">🔵 File trùng lặp (Duplicate)</option>
+                        <option value="SUCCESS">Đã đẩy PACS (Thành công)</option>
+                        <option value="RETRYING">Đang thử lại (Retry Queue)</option>
+                        <option value="FAILED">Thất bại (Lỗi)</option>
+                        <option value="DUPLICATE">File trùng lặp (Duplicate)</option>
                     </select>
-                    <input type="text" id="history-search-kw" class="form-control" style="flex: 1; min-width: 220px;" placeholder="Tìm kiếm theo Tên BN, Mã BN, Số chỉ định, Tên file..." onkeyup="if(event.key==='Enter') fetchStudiesHistory()">
-                    <button class="btn" onclick="fetchStudiesHistory()" style="padding: 6px 14px;">🔍 Tìm kiếm</button>
+                    <input type="text" id="history-search-kw" class="form-control" style="flex: 1; min-width: 240px;" placeholder="Tìm kiếm theo Tên BN, Mã BN, Số chỉ định, Tên file..." onkeyup="if(event.key==='Enter') fetchStudiesHistory()">
+                    <button class="btn" onclick="fetchStudiesHistory()" style="padding: 7px 16px;">
+                        <svg class="svg-icon sm"><use href="#icon-search"></use></svg>
+                        <span>Tìm kiếm</span>
+                    </button>
                 </div>
             </div>
 
@@ -1116,12 +1621,17 @@
             </div>
         </div>
 
-        <!-- Tab 3: PACS & RIS Connection -->
+        <!-- Tab 5: PACS & RIS Connection -->
         <div id="tab-connection" class="tab-content">
             <div class="form-grid">
                 <!-- PACS Config -->
                 <div class="card">
-                    <div class="section-title">🏥 Cấu hình PACS Server</div>
+                    <div class="section-title">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span class="icon-badge sm"><svg class="svg-icon sm"><use href="#icon-server"></use></svg></span>
+                            <span>Cấu hình PACS Server</span>
+                        </div>
+                    </div>
                     <div class="form-group">
                         <label>Địa chỉ IP PACS Server</label>
                         <input type="text" id="pacs-ip" class="form-control" placeholder="192.168.1.100">
@@ -1138,17 +1648,23 @@
                         <label>Calling AE Title (Tên AE Gateway này)</label>
                         <input type="text" id="pacs-calling" class="form-control" placeholder="DICOM_GATEWAY">
                     </div>
-                    <button class="btn btn-outline" onclick="testPacsConnection()" style="margin-top: 0.5rem; width: 100%;">
-                        🔌 Kiểm tra kết nối PACS (C-ECHO)
+                    <button class="btn btn-outline" onclick="testPacsConnection()" style="margin-top: 0.6rem; width: 100%;">
+                        <svg class="svg-icon sm"><use href="#icon-activity"></use></svg>
+                        <span>Kiểm tra kết nối PACS (C-ECHO)</span>
                     </button>
                 </div>
 
                 <!-- RIS Worklist Config -->
                 <div class="card">
-                    <div class="section-title">📋 Cấu hình RIS Modality Worklist</div>
+                    <div class="section-title">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span class="icon-badge sm"><svg class="svg-icon sm"><use href="#icon-clipboard"></use></svg></span>
+                            <span>Cấu hình RIS Modality Worklist</span>
+                        </div>
+                    </div>
                     <div class="form-group" style="flex-direction: row; align-items: center; gap: 10px; margin-bottom: 1rem;">
-                        <input type="checkbox" id="ris-enabled" style="width: 18px; height: 18px;">
-                        <label for="ris-enabled" style="color: var(--text-main); cursor: pointer;">Bật tra cứu thông tin bệnh nhân từ RIS</label>
+                        <input type="checkbox" id="ris-enabled" style="width: 16px; height: 16px; cursor: pointer;">
+                        <label for="ris-enabled" style="color: var(--text-main); cursor: pointer; text-transform: none; font-size: 13px;">Bật tra cứu thông tin bệnh nhân từ RIS</label>
                     </div>
                     <div class="form-group">
                         <label>Địa chỉ IP RIS Server</label>
@@ -1166,24 +1682,31 @@
                         <label>Calling AE Title</label>
                         <input type="text" id="ris-calling" class="form-control" placeholder="DICOM_GATEWAY">
                     </div>
-                    <button class="btn btn-outline" onclick="testRisConnection()" style="margin-top: 0.5rem; width: 100%;">
-                        🔍 Kiểm tra kết nối RIS (C-ECHO)
+                    <button class="btn btn-outline" onclick="testRisConnection()" style="margin-top: 0.6rem; width: 100%;">
+                        <svg class="svg-icon sm"><use href="#icon-search"></use></svg>
+                        <span>Kiểm tra kết nối RIS (C-ECHO)</span>
                     </button>
                 </div>
             </div>
 
             <div style="margin-top: 1.5rem; display: flex; justify-content: flex-end;">
-                <button class="btn btn-success" onclick="saveConfiguration()">💾 Lưu thay đổi cấu hình</button>
+                <button class="btn btn-success" onclick="saveConfiguration()">
+                    <svg class="svg-icon sm"><use href="#icon-save"></use></svg>
+                    <span>Lưu thay đổi cấu hình</span>
+                </button>
             </div>
         </div>
 
-        <!-- Tab 3: Watch Folders & Modality -->
+        <!-- Tab 6: Watch Folders & Modality -->
         <div id="tab-folders" class="tab-content">
             <div class="card">
                 <div class="section-title">
-                    <span>📂 Thư mục theo dõi & Gán mã Modality</span>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span class="icon-badge sm"><svg class="svg-icon sm"><use href="#icon-folder"></use></svg></span>
+                        <span>Thư mục theo dõi & Gán mã Modality</span>
+                    </div>
                 </div>
-                <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 1rem;">
+                <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 1rem;">
                     Mỗi thư mục đại diện cho một thiết bị y tế. Gán mã Modality tương ứng để PACS phân loại đúng dịch vụ khám (Siêu âm, Hô hấp, Loãng xương...).
                 </p>
 
@@ -1202,8 +1725,8 @@
                     </table>
                 </div>
 
-                <div style="margin-top: 1.5rem; background-color: var(--input-bg); padding: 1rem; border-radius: 8px; border: 1px dashed var(--card-border);">
-                    <h4 style="font-size: 14px; margin-bottom: 0.8rem;">➕ Thêm thư mục theo dõi mới</h4>
+                <div style="margin-top: 1.5rem; background-color: var(--input-bg); padding: 1.1rem; border-radius: var(--radius-md); border: 1px dashed var(--card-border);">
+                    <h4 style="font-size: 12.5px; font-weight: 700; margin-bottom: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted);">Thêm thư mục theo dõi mới</h4>
                     <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                         <input type="text" id="new-folder-path" class="form-control" style="flex: 1; min-width: 250px;" placeholder="Ví dụ: D:/May_SieuAm/Output">
                         <select id="new-folder-modality" class="form-control" style="width: 220px;">
@@ -1221,12 +1744,18 @@
                             <option value="DOC">DOC - Báo cáo PDF</option>
                             <option value="OT">OT - Cận lâm sàng khác</option>
                         </select>
-                        <button class="btn" onclick="addWatchFolder()">Thêm vào danh sách</button>
+                        <button class="btn" onclick="addWatchFolder()">
+                            <svg class="svg-icon sm"><use href="#icon-plus"></use></svg>
+                            <span>Thêm thư mục</span>
+                        </button>
                     </div>
                 </div>
 
                 <div style="margin-top: 1.5rem; display: flex; justify-content: flex-end;">
-                    <button class="btn btn-success" onclick="saveConfiguration()">💾 Lưu danh sách thư mục</button>
+                    <button class="btn btn-success" onclick="saveConfiguration()">
+                        <svg class="svg-icon sm"><use href="#icon-save"></use></svg>
+                        <span>Lưu danh sách thư mục</span>
+                    </button>
                 </div>
             </div>
         </div>
@@ -1235,8 +1764,14 @@
         <div id="tab-stations" class="tab-content">
             <div class="card" style="margin-bottom: 1rem;">
                 <div class="section-title">
-                    <span>🏢 Quản Lý Nơi Thực Hiện & Phân Quyền Modality</span>
-                    <button class="btn" onclick="openAddStationModal()">➕ Thêm Nơi Thực Hiện Mới</button>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span class="icon-badge sm"><svg class="svg-icon sm"><use href="#icon-building"></use></svg></span>
+                        <span>Quản Lý Nơi Thực Hiện & Phân Quyền Modality</span>
+                    </div>
+                    <button class="btn" onclick="openAddStationModal()">
+                        <svg class="svg-icon sm"><use href="#icon-plus"></use></svg>
+                        <span>Thêm Nơi Thực Hiện</span>
+                    </button>
                 </div>
                 <div class="table-responsive">
                     <table>
@@ -1251,19 +1786,25 @@
                             </tr>
                         </thead>
                         <tbody id="stations-table-body">
-                            <tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 2rem;">⏳ Đang tải danh sách nơi thực hiện...</td></tr>
+                            <tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 2rem;">Đang tải danh sách nơi thực hiện...</td></tr>
                         </tbody>
                     </table>
                 </div>
             </div>
         </div>
 
-        <!-- Tab 5: User Management (Admin Only) -->
+        <!-- Tab: User Management (Admin Only) -->
         <div id="tab-users" class="tab-content">
             <div class="card" style="margin-bottom: 1rem;">
                 <div class="section-title">
-                    <span>👥 Quản Lý Tài Khoản & Phân Quyền Modality</span>
-                    <button class="btn" onclick="openAddUserModal()">➕ Thêm Tài Khoản Mới</button>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span class="icon-badge sm"><svg class="svg-icon sm"><use href="#icon-users"></use></svg></span>
+                        <span>Quản Lý Tài Khoản & Phân Quyền Modality</span>
+                    </div>
+                    <button class="btn" onclick="openAddUserModal()">
+                        <svg class="svg-icon sm"><use href="#icon-plus"></use></svg>
+                        <span>Thêm Tài Khoản</span>
+                    </button>
                 </div>
                 <div class="table-responsive">
                     <table>
@@ -1278,10 +1819,178 @@
                             </tr>
                         </thead>
                         <tbody id="users-table-body">
-                            <tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 2rem;">⏳ Đang tải danh sách tài khoản...</td></tr>
+                            <tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 2rem;">Đang tải danh sách tài khoản...</td></tr>
                         </tbody>
                     </table>
                 </div>
+            </div>
+        </div>
+
+        <!-- Tab: License & System (Admin Only) -->
+        <div id="tab-license" class="tab-content">
+            <div style="display: grid; grid-template-columns: 1.15fr 1fr; gap: 1.2rem; margin-bottom: 1.2rem;">
+                
+                <!-- Card 1: License Info Card -->
+                <div class="card" style="border-top: 2px solid var(--primary-light); display: flex; flex-direction: column; justify-content: space-between;">
+                    <div>
+                        <div class="section-title" style="margin-bottom: 1rem; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 0.75rem;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span class="icon-badge md"><svg class="svg-icon md"><use href="#icon-shield"></use></svg></span>
+                                <span style="font-size: 15px; font-weight: 700; color: #ffffff;">Thông Tin Bản Quyền Hệ Thống</span>
+                            </div>
+                            <span id="lic-badge-status" class="status-badge" style="font-size: 11.5px; padding: 3px 10px;">Đang tải...</span>
+                        </div>
+
+                        <!-- Customer Info Banner -->
+                        <div style="background: var(--card-sub); border: 1px solid var(--card-border); border-radius: var(--radius-md); padding: 12px 16px; margin-bottom: 1rem; display: flex; align-items: center; justify-content: space-between;">
+                            <div>
+                                <span style="color: var(--text-muted); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px;">Đơn vị sở hữu bản quyền</span>
+                                <div id="lic-customer-name" style="font-weight: 700; font-size: 15px; color: #ffffff; margin-top: 3px;">---</div>
+                            </div>
+                            <span class="icon-badge md"><svg class="svg-icon md"><use href="#icon-building"></use></svg></span>
+                        </div>
+
+                        <!-- 4 Stat Metric Tiles -->
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 1rem;">
+                            <div class="lic-metric-box">
+                                <span style="color: var(--text-muted); font-size: 11px; font-weight: 700; text-transform: uppercase;">GÓI BẢN QUYỀN</span>
+                                <div id="lic-plan-name" style="font-weight: 700; font-size: 13px; color: var(--primary-light); margin-top: 2px;">---</div>
+                            </div>
+                            <div class="lic-metric-box">
+                                <span style="color: var(--text-muted); font-size: 11px; font-weight: 700; text-transform: uppercase;">NGÀY HẾT HẠN</span>
+                                <div id="lic-expiration-date" style="font-weight: 700; font-size: 13px; color: #ffffff; margin-top: 2px;">---</div>
+                            </div>
+                            <div class="lic-metric-box">
+                                <span style="color: var(--text-muted); font-size: 11px; font-weight: 700; text-transform: uppercase;">SỐ TRẠM TỐI ĐA</span>
+                                <div id="lic-max-stations" style="font-weight: 700; font-size: 13px; color: #ffffff; margin-top: 2px;">---</div>
+                            </div>
+                            <div class="lic-metric-box" style="border-color: var(--success-border); background: var(--success-bg);">
+                                <span style="color: var(--text-muted); font-size: 11px; font-weight: 700; text-transform: uppercase;">THỜI HẠN CÒN LẠI</span>
+                                <div id="lic-days-remaining" style="font-weight: 700; font-size: 13px; color: var(--success-text); margin-top: 2px;">---</div>
+                            </div>
+                        </div>
+
+                        <!-- 30-Day Timeline Visual Progress Bar -->
+                        <div id="lic-trial-progress-container" style="background: var(--card-sub); border: 1px solid var(--card-border); border-radius: var(--radius-md); padding: 10px 14px; margin-bottom: 1rem;">
+                            <div style="display: flex; justify-content: space-between; font-size: 11.5px; font-weight: 600;">
+                                <span style="color: var(--text-muted);">Tiến độ dùng thử (Giới hạn 30 ngày):</span>
+                                <span id="lic-progress-text" style="color: var(--primary-light); font-family: 'JetBrains Mono', monospace;">30 / 30 ngày</span>
+                            </div>
+                            <div class="lic-progress-bar-bg">
+                                <div id="lic-progress-fill" class="lic-progress-bar-fill" style="width: 100%;"></div>
+                            </div>
+                        </div>
+
+                        <!-- Allowed Modalities Badges -->
+                        <div style="margin-bottom: 1rem;">
+                            <span style="color: var(--text-muted); font-size: 11px; font-weight: 700; display: block; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.6px;">Phân Hệ Modality Được Cấp Phép:</span>
+                            <div id="lic-modalities-badges" style="display: flex; flex-wrap: wrap; gap: 6px;">
+                                <!-- Badges -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Status Notification Banner -->
+                    <div id="lic-message-box" style="padding: 10px 14px; border-radius: var(--radius-md); font-size: 12.5px; background: rgba(9, 68, 179, 0.15); border: 1px solid var(--card-border); color: var(--primary-light); display: flex; align-items: center; gap: 8px;">
+                        <!-- Message populated via JS -->
+                    </div>
+                </div>
+
+                <!-- Card 2: Hardware ID & Activation -->
+                <div class="card" style="border-top: 2px solid var(--primary-light); display: flex; flex-direction: column; justify-content: space-between;">
+                    <div>
+                        <div class="section-title" style="margin-bottom: 0.8rem; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 0.75rem;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span class="icon-badge md"><svg class="svg-icon md"><use href="#icon-cpu"></use></svg></span>
+                                <span style="font-size: 15px; font-weight: 700; color: #ffffff;">Mã Định Danh Máy Tính (Hardware ID)</span>
+                            </div>
+                            <span class="status-badge" style="font-size: 11px;">RSA 2048-bit Locked</span>
+                        </div>
+
+                        <p style="font-size: 12.5px; color: var(--text-muted); margin-bottom: 0.8rem; line-height: 1.5;">
+                            Gửi mã phần cứng độc nhất bên dưới cho nhà sản xuất để nhận file bản quyền thương mại <code>license.key</code>.
+                        </p>
+
+                        <!-- Hardware ID Terminal Box -->
+                        <div style="display: flex; gap: 8px; margin-bottom: 1.2rem; background: #040e24; border: 1px solid var(--card-border); border-radius: var(--radius-md); padding: 4px 6px;">
+                            <input type="text" id="lic-hardware-id-input" class="form-control" readonly style="font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 13.5px; color: var(--primary-light); background: transparent; border: none; letter-spacing: 0.5px;" value="Đang tải...">
+                            <button class="btn btn-outline" id="btn-copy-hwid" onclick="copyHardwareId()" style="white-space: nowrap; padding: 6px 12px; font-size: 12px; border-radius: 6px;">
+                                <svg class="svg-icon xs"><use href="#icon-copy"></use></svg>
+                                <span>Sao Chép</span>
+                            </button>
+                        </div>
+
+                        <div class="section-title" style="margin-bottom: 0.6rem;">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span class="icon-badge sm"><svg class="svg-icon sm"><use href="#icon-key"></use></svg></span>
+                                <span style="font-size: 13.5px; font-weight: 700; color: #ffffff;">Kích Hoạt Bản Quyền</span>
+                            </div>
+                        </div>
+
+                        <!-- Drag-and-Drop License File Area -->
+                        <div class="lic-dropzone" id="lic-dropzone" onclick="document.getElementById('lic-file-input').click()">
+                            <input type="file" id="lic-file-input" accept=".key,.txt" style="display: none;" onchange="handleLicenseFileSelected(event)">
+                            <span class="icon-badge md" style="margin-bottom: 6px;"><svg class="svg-icon md"><use href="#icon-upload"></use></svg></span>
+                            <div style="font-size: 13px; font-weight: 600; color: var(--text-main);" id="lic-file-name-label">
+                                Kéo thả file <code style="color: var(--primary-light);">license.key</code> vào đây hoặc <span style="color: var(--primary-light); text-decoration: underline;">Nhấp để duyệt</span>
+                            </div>
+                            <div style="font-size: 11px; color: var(--text-muted); margin-top: 3px;">
+                                Hỗ trợ file định dạng .key, .txt (Chữ ký số RSA 2048-bit)
+                            </div>
+                        </div>
+
+                        <!-- Direct Paste Textarea Toggle -->
+                        <details style="margin-top: 10px; font-size: 11.5px; color: var(--text-muted);">
+                            <summary style="cursor: pointer; color: var(--primary-light); font-weight: 600; margin-bottom: 6px;">Hoặc dán chuỗi Base64 license</summary>
+                            <textarea id="lic-text-input" class="form-control" rows="2" placeholder="Dán chuỗi Base64 license vào đây..." style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; margin-top: 4px;"></textarea>
+                        </details>
+                    </div>
+
+                    <!-- Activation Button -->
+                    <button class="btn btn-success" onclick="activateLicense()" style="width: 100%; justify-content: center; padding: 9px; font-size: 13.5px; font-weight: 600; margin-top: 1rem; border-radius: var(--radius-md);">
+                        <svg class="svg-icon sm"><use href="#icon-key"></use></svg>
+                        <span>Kích Hoạt Bản Quyền</span>
+                    </button>
+                </div>
+
+                <!-- Card 3: Patch Update Card (Full Width) -->
+                <div class="card" style="grid-column: 1 / -1; border-top: 2px solid var(--primary-light);">
+                    <div class="section-title" style="margin-bottom: 0.8rem; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 0.75rem;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span class="icon-badge md"><svg class="svg-icon md"><use href="#icon-package"></use></svg></span>
+                            <span style="font-size: 15px; font-weight: 700; color: #ffffff;">Nâng Cấp Hệ Thống Bằng Bản Vá (.pkg Patch)</span>
+                        </div>
+                        <span class="status-badge" style="font-size: 11px;">1-Click Safe Update</span>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 1.5rem; align-items: center;">
+                        <div>
+                            <p style="font-size: 13px; color: var(--text-sub); margin-bottom: 8px; line-height: 1.6;">
+                                Nạp gói cập nhật tính năng mới (file <code>.pkg</code> do nhà sản xuất phát hành). 
+                                Hệ thống sẽ tự động xác thực chữ ký số <strong>RSA 2048-bit</strong>, kiểm tra mã băm SHA-256 từng tệp và cập nhật phiên bản mới chỉ trong vài giây.
+                            </p>
+                            <div style="font-size: 12px; color: var(--primary-light); background: rgba(9, 68, 179, 0.12); padding: 9px 12px; border-radius: var(--radius-md); border: 1px solid var(--card-border); display: flex; align-items: center; gap: 8px;">
+                                <span class="icon-badge sm"><svg class="svg-icon sm"><use href="#icon-shield"></use></svg></span>
+                                <span><strong>Bảo toàn dữ liệu:</strong> File cấu hình <code>config.yaml</code>, CSDL lịch sử ca khám và khóa bản quyền sẽ được giữ nguyên vẹn.</span>
+                            </div>
+                        </div>
+
+                        <div style="background: var(--card-sub); padding: 1.2rem; border-radius: var(--radius-md); border: 1px solid var(--card-border);">
+                            <label style="font-size: 11px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">
+                                Chọn file gói bản vá (<code>.pkg</code>):
+                            </label>
+                            <div style="display: flex; gap: 8px;">
+                                <input type="file" id="system-patch-file-input" class="form-control" accept=".pkg" style="font-size: 12px; padding: 6px 10px;">
+                                <button class="btn" id="btn-apply-patch" onclick="handleApplyPatch()" style="white-space: nowrap; padding: 6px 14px; font-weight: 600;">
+                                    <svg class="svg-icon sm"><use href="#icon-send"></use></svg>
+                                    <span>Cập Nhật Ngay</span>
+                                </button>
+                            </div>
+                            <div id="patch-status-msg" style="margin-top: 8px; font-size: 12px; display: none;"></div>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
 
@@ -1289,8 +1998,14 @@
         <div id="tab-logs" class="tab-content">
             <div class="card">
                 <div class="section-title">
-                    <span>📜 Nhật ký hoạt động hệ thống (Live Logs)</span>
-                    <button class="btn btn-outline" onclick="fetchLogs()">🔄 Làm mới Logs</button>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span class="icon-badge sm"><svg class="svg-icon sm"><use href="#icon-terminal"></use></svg></span>
+                        <span>Nhật ký hoạt động hệ thống (Live Logs)</span>
+                    </div>
+                    <button class="btn btn-outline" onclick="fetchLogs()">
+                        <svg class="svg-icon xs"><use href="#icon-refresh"></use></svg>
+                        <span>Làm mới Logs</span>
+                    </button>
                 </div>
                 <div class="terminal" id="log-terminal">
                     <!-- Logs loaded here -->
@@ -1303,25 +2018,31 @@
     <div id="modal-change-password" class="modal-overlay" style="display: none;">
         <div class="modal-card">
             <div class="modal-header">
-                <h3 style="font-size: 16px; font-weight: 700; color: var(--text-main);">🔑 Đổi Mật Khẩu Tài Khoản</h3>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span class="icon-badge sm"><svg class="svg-icon sm"><use href="#icon-key"></use></svg></span>
+                    <h3 style="font-size: 15px; font-weight: 700; color: var(--text-main);">Đổi Mật Khẩu Tài Khoản</h3>
+                </div>
                 <button class="btn-close" onclick="closeModal('modal-change-password')">✕</button>
             </div>
             <form onsubmit="handleChangePassword(event)">
                 <div class="form-group" style="margin-bottom: 0.8rem;">
-                    <label style="font-size: 13px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">Mật khẩu hiện tại</label>
+                    <label>Mật khẩu hiện tại</label>
                     <input type="password" id="change-pwd-old" class="form-control" required placeholder="Nhập mật khẩu cũ">
                 </div>
                 <div class="form-group" style="margin-bottom: 0.8rem;">
-                    <label style="font-size: 13px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">Mật khẩu mới (tối thiểu 4 ký tự)</label>
+                    <label>Mật khẩu mới (tối thiểu 4 ký tự)</label>
                     <input type="password" id="change-pwd-new" class="form-control" required placeholder="Nhập mật khẩu mới">
                 </div>
                 <div class="form-group" style="margin-bottom: 1.2rem;">
-                    <label style="font-size: 13px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">Xác nhận mật khẩu mới</label>
+                    <label>Xác nhận mật khẩu mới</label>
                     <input type="password" id="change-pwd-confirm" class="form-control" required placeholder="Nhập lại mật khẩu mới">
                 </div>
                 <div style="display: flex; justify-content: flex-end; gap: 8px;">
                     <button type="button" class="btn btn-outline" onclick="closeModal('modal-change-password')">Hủy</button>
-                    <button type="submit" class="btn btn-success">💾 Cập Nhật Mật Khẩu</button>
+                    <button type="submit" class="btn btn-success">
+                        <svg class="svg-icon xs"><use href="#icon-save"></use></svg>
+                        <span>Cập Nhật Mật Khẩu</span>
+                    </button>
                 </div>
             </form>
         </div>
@@ -1331,35 +2052,41 @@
     <div id="modal-edit-station" class="modal-overlay" style="display: none;">
         <div class="modal-card" style="max-width: 540px;">
             <div class="modal-header">
-                <h3 id="modal-station-title" style="font-size: 16px; font-weight: 700; color: var(--text-main);">➕ Thêm Nơi Thực Hiện Mới</h3>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span class="icon-badge sm"><svg class="svg-icon sm"><use href="#icon-building"></use></svg></span>
+                    <h3 id="modal-station-title" style="font-size: 15px; font-weight: 700; color: var(--text-main);">Thêm Nơi Thực Hiện Mới</h3>
+                </div>
                 <button class="btn-close" onclick="closeModal('modal-edit-station')">✕</button>
             </div>
             <form onsubmit="handleSaveStation(event)">
                 <div class="form-group" style="margin-bottom: 0.75rem;">
-                    <label style="font-size: 13px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">Mã Nơi Thực Hiện (ID - Viết hoa, không dấu)</label>
+                    <label>Mã Nơi Thực Hiện (ID - Viết hoa, không dấu)</label>
                     <input type="text" id="edit-station-id" class="form-control" required placeholder="Ví dụ: US_03" style="text-transform: uppercase;">
                 </div>
                 <div class="form-group" style="margin-bottom: 0.75rem;">
-                    <label style="font-size: 13px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">Tên Phòng Khám / Nơi Thực Hiện</label>
+                    <label>Tên Phòng Khám / Nơi Thực Hiện</label>
                     <input type="text" id="edit-station-name" class="form-control" required placeholder="Ví dụ: Phòng Siêu âm 03 (Sản Khoa)">
                 </div>
                 <div class="form-group" style="margin-bottom: 0.75rem;">
-                    <label style="font-size: 13px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">Khoa / Phòng Ban</label>
+                    <label>Khoa / Phòng Ban</label>
                     <input type="text" id="edit-station-dept" class="form-control" placeholder="Ví dụ: Khoa Chẩn đoán hình ảnh">
                 </div>
                 <div class="form-group" style="margin-bottom: 0.75rem;">
-                    <label style="font-size: 13px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">Biểu Tượng (Icon Emoji)</label>
-                    <input type="text" id="edit-station-icon" class="form-control" placeholder="Ví dụ: 🩺, 🔬, ❤️, ⚡, 📷" value="🏢">
+                    <label>Biểu Tượng Phân Hệ / Modality</label>
+                    <input type="text" id="edit-station-icon" class="form-control" placeholder="Ví dụ: US, ES, ECG..." value="US">
                 </div>
                 <div class="form-group" style="margin-bottom: 1.2rem;">
-                    <label style="font-size: 13px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">Các Modality được phép đẩy tại nơi này</label>
-                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; background: rgba(15,23,42,0.6); padding: 8px 12px; border-radius: 6px; border: 1px solid var(--card-border);" id="station-modalities-checkboxes-container">
+                    <label>Các Modality được phép đẩy tại nơi này</label>
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; background: var(--card-sub); padding: 8px 12px; border-radius: 6px; border: 1px solid var(--card-border);" id="station-modalities-checkboxes-container">
                         <!-- Dynamic checkboxes -->
                     </div>
                 </div>
                 <div style="display: flex; justify-content: flex-end; gap: 8px;">
                     <button type="button" class="btn btn-outline" onclick="closeModal('modal-edit-station')">Hủy</button>
-                    <button type="submit" class="btn btn-success">💾 Lưu Nơi Thực Hiện</button>
+                    <button type="submit" class="btn btn-success">
+                        <svg class="svg-icon xs"><use href="#icon-save"></use></svg>
+                        <span>Lưu Nơi Thực Hiện</span>
+                    </button>
                 </div>
             </form>
         </div>
@@ -1369,47 +2096,51 @@
     <div id="modal-edit-user" class="modal-overlay" style="display: none;">
         <div class="modal-card" style="max-width: 540px;">
             <div class="modal-header">
-                <h3 id="modal-user-title" style="font-size: 16px; font-weight: 700; color: var(--text-main);">➕ Thêm Tài Khoản Mới</h3>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span class="icon-badge sm"><svg class="svg-icon sm"><use href="#icon-user"></use></svg></span>
+                    <h3 id="modal-user-title" style="font-size: 15px; font-weight: 700; color: var(--text-main);">Thêm Tài Khoản Mới</h3>
+                </div>
                 <button class="btn-close" onclick="closeModal('modal-edit-user')">✕</button>
             </div>
             <form onsubmit="handleSaveUser(event)">
                 <div class="form-group" style="margin-bottom: 0.75rem;">
-                    <label style="font-size: 13px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">Tên đăng nhập (username)</label>
+                    <label>Tên đăng nhập (username)</label>
                     <input type="text" id="edit-user-name" class="form-control" required placeholder="Ví dụ: ktv_sieuam2">
                 </div>
                 <div class="form-group" style="margin-bottom: 0.75rem;">
-                    <label style="font-size: 13px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">Họ và tên hiển thị</label>
+                    <label>Họ và tên hiển thị</label>
                     <input type="text" id="edit-user-fullname" class="form-control" required placeholder="Ví dụ: Nguyễn Văn A">
                 </div>
                 <div class="form-group" style="margin-bottom: 0.75rem;">
-                    <label style="font-size: 13px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">Khoa / Phòng ban</label>
+                    <label>Khoa / Phòng ban</label>
                     <input type="text" id="edit-user-department" class="form-control" placeholder="Ví dụ: Công nghệ thông tin">
                 </div>
                 <div class="form-group" style="margin-bottom: 0.75rem;">
-                    <label style="font-size: 13px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">Mật khẩu <span id="edit-user-pwd-hint" style="font-size: 11px; color: var(--text-muted);">(Để trống nếu không đổi)</span></label>
+                    <label>Mật khẩu <span id="edit-user-pwd-hint" style="font-size: 11px; color: var(--text-muted);">(Để trống nếu không đổi)</span></label>
                     <input type="password" id="edit-user-pwd" class="form-control" placeholder="Nhập mật khẩu">
                 </div>
                 <div class="form-group" style="margin-bottom: 0.75rem;">
-                    <label style="font-size: 13px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">Vai trò hệ thống</label>
+                    <label>Vai trò hệ thống</label>
                     <select id="edit-user-role" class="form-control" onchange="toggleModalitySelect(this.value)">
                         <option value="TECHNICIAN">TECHNICIAN (Kỹ thuật viên phòng máy - Bị giới hạn Tab)</option>
                         <option value="ADMIN">ADMIN (Super Admin IT - Toàn quyền 7 Tab)</option>
                     </select>
                 </div>
                 <div class="form-group" id="edit-user-modalities-group" style="margin-bottom: 1.2rem;">
-                    <label style="font-size: 13px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">Các Modality được cấp quyền</label>
-                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; background: rgba(15,23,42,0.6); padding: 8px 12px; border-radius: 6px; border: 1px solid var(--card-border);" id="modalities-checkboxes-container">
+                    <label>Các Modality được cấp quyền</label>
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; background: var(--card-sub); padding: 8px 12px; border-radius: 6px; border: 1px solid var(--card-border);" id="modalities-checkboxes-container">
                         <!-- Checkboxes dynamically generated -->
                     </div>
                 </div>
                 <div style="display: flex; justify-content: flex-end; gap: 8px;">
                     <button type="button" class="btn btn-outline" onclick="closeModal('modal-edit-user')">Hủy</button>
-                    <button type="submit" class="btn btn-success">💾 Lưu Tài Khoản</button>
+                    <button type="submit" class="btn btn-success">
+                        <svg class="svg-icon xs"><use href="#icon-save"></use></svg>
+                        <span>Lưu Tài Khoản</span>
+                    </button>
                 </div>
             </form>
         </div>
-    </div>
-
     <div id="toast">Thông báo</div>
 
     <script>
@@ -1417,6 +2148,10 @@
         let currentConfig = null;
         let currentModalitiesData = [];
         let activeFocusModality = null;
+
+        function svgIcon(name, cls = 'sm') {
+            return `<svg class="svg-icon ${cls}"><use href="#icon-${name}"></use></svg>`;
+        }
 
         function showToast(message, isSuccess = true) {
             const toast = document.getElementById('toast');
@@ -1460,6 +2195,8 @@
                 fetchAdminStations();
             } else if (tabId === 'users') {
                 fetchAdminUsers();
+            } else if (tabId === 'license') {
+                fetchLicenseStatus();
             }
         }
 
@@ -1494,7 +2231,7 @@
 
             const rateBadge = document.getElementById('chart-kpi-success-rate');
             if (rateBadge) {
-                rateBadge.innerHTML = `⚡ Tỷ lệ: ${successRate}% Thành công`;
+                rateBadge.innerHTML = `Tỷ lệ: ${successRate}% Thành công`;
             }
             const activeBadge = document.getElementById('chart-kpi-active-mod');
             if (activeBadge) {
@@ -1599,12 +2336,12 @@
                             label: 'Số lượng ca',
                             data: [successStudies, retryStudies, failedStudies, dupStudies],
                             backgroundColor: [
-                                '#10b981',
-                                '#f59e0b',
-                                '#ef4444',
-                                '#3b82f6'
+                                '#05d97c', // customgreen.100
+                                '#f59e0b', // warning
+                                '#ef4444', // danger
+                                '#348cfd'  // primary.active
                             ],
-                            borderRadius: 4,
+                            borderRadius: 6,
                             barThickness: 16
                         }]
                     },
@@ -1624,12 +2361,12 @@
                         },
                         scales: {
                             x: {
-                                grid: { color: 'rgba(255,255,255,0.05)' },
-                                ticks: { color: '#94a3b8', font: { size: 10 }, precision: 0 }
+                                grid: { color: 'rgba(52, 140, 253, 0.12)' },
+                                ticks: { color: '#a19fad', font: { size: 10 }, precision: 0 }
                             },
                             y: {
                                 grid: { display: false },
-                                ticks: { color: '#f8fafc', font: { size: 11, weight: '500' } }
+                                ticks: { color: '#ffffff', font: { size: 11, weight: '600' } }
                             }
                         }
                     }
@@ -1656,8 +2393,8 @@
 
                 card.innerHTML = `
                     <div class="modality-card-header">
-                        <span class="modality-badge-code" style="background: ${mod.color}20; color: ${mod.color}; border: 1px solid ${mod.color}40;">
-                            ${mod.icon} ${mod.code}
+                        <span class="modality-badge-code" style="background: rgba(52, 140, 253, 0.12); color: var(--primary-light); border: 1px solid rgba(52, 140, 253, 0.28);">
+                            ${svgIcon('stethoscope', 'xs')} <span>${mod.code}</span>
                         </span>
                         <span class="modality-status-pill ${mod.status}">${mod.status}</span>
                     </div>
@@ -1667,7 +2404,7 @@
                     </div>
                     <div class="modality-stats-row">
                         <div class="modality-stat-item">
-                            <span class="num" style="color: var(--success);">${today.success}</span>
+                            <span class="num" style="color: var(--success-text);">${today.success}</span>
                             <span class="lbl">Thành công</span>
                         </div>
                         <div class="modality-stat-item">
@@ -1675,23 +2412,23 @@
                             <span class="lbl">Retry</span>
                         </div>
                         <div class="modality-stat-item">
-                            <span class="num" style="color: var(--danger);">${today.failed}</span>
+                            <span class="num" style="color: var(--danger-text);">${today.failed}</span>
                             <span class="lbl">Lỗi</span>
                         </div>
                     </div>
-                    <div style="font-size: 12px; color: var(--text-muted); display: flex; align-items: center; gap: 4px;">
-                        <span>⏱️ Gần nhất:</span>
+                    <div style="font-size: 11.5px; color: var(--text-muted); display: flex; align-items: center; gap: 4px;">
+                        <span>Gần nhất:</span>
                         <strong style="color: var(--text-main);">${lastSeen}</strong>
                     </div>
                     <div class="modality-card-footer">
                         <button class="modality-btn modality-btn-primary" onclick="quickFilterWorklist('${mod.code}')" title="Xem danh sách ca chờ chỉ định của ${mod.name_vi}">
-                            📋 Worklist
+                            ${svgIcon('clipboard', 'xs')} Worklist
                         </button>
                         <button class="modality-btn" onclick="quickUploadForModality('${mod.code}')" title="Đẩy ca nhanh cho ${mod.name_vi}">
-                            📤 Đẩy Ca
+                            ${svgIcon('upload', 'xs')} Đẩy Ca
                         </button>
                         <button class="modality-btn" onclick="selectModalityFocus('${mod.code}')" title="Xem chi tiết thiết bị">
-                            🔍 Chi Tiết
+                            ${svgIcon('search', 'xs')} Chi Tiết
                         </button>
                     </div>
                 `;
@@ -1712,7 +2449,6 @@
             const panel = document.getElementById('modality-focus-panel');
             if (!panel) return;
             panel.style.display = 'block';
-            document.getElementById('focus-mod-icon').innerText = mod.icon;
             document.getElementById('focus-mod-title').innerText = `${mod.name_vi} (${mod.code})`;
             
             const statusPill = document.getElementById('focus-mod-status');
@@ -1737,9 +2473,9 @@
                 } else {
                     modStudies.forEach(s => {
                         const tr = document.createElement('tr');
-                        let statusBadge = '<span class="badge" style="background: rgba(16, 185, 129, 0.15); color: var(--success);">🟢 Thành công</span>';
-                        if (s.status === 'RETRYING') statusBadge = '<span class="badge" style="background: rgba(245, 158, 11, 0.15); color: var(--warning);">🟠 Đang thử lại</span>';
-                        else if (s.status === 'FAILED') statusBadge = '<span class="badge" style="background: rgba(239, 68, 68, 0.15); color: var(--danger);">🔴 Thất bại</span>';
+                        let statusBadge = '<span class="status-badge" style="background: var(--success-bg); color: var(--success-text); border-color: var(--success-border);">Thành công</span>';
+                        if (s.status === 'RETRYING') statusBadge = '<span class="status-badge" style="background: rgba(245, 158, 11, 0.15); color: var(--warning); border-color: rgba(245, 158, 11, 0.35);">Đang thử lại</span>';
+                        else if (s.status === 'FAILED') statusBadge = '<span class="status-badge" style="background: var(--danger-bg); color: var(--danger-text); border-color: var(--danger-border);">Thất bại</span>';
 
                         let formattedFocusTime = '-';
                         if (s.created_at) {
@@ -2108,15 +2844,16 @@
                 if (countBadge) countBadge.innerText = 'Chưa có file nào được chọn';
                 container.innerHTML = `
                     <div style="text-align: center; color: var(--text-muted); padding: 2.5rem 1rem; font-size: 13px;">
-                        📁 Chưa có file kết quả nào được chọn.<br>
-                        <span style="font-size: 12px; color: rgba(255,255,255,0.4);">Hãy kéo thả hoặc chọn file ảnh/PDF kết quả cận lâm sàng từ khung bên trái.</span>
+                        <span class="icon-badge md" style="margin-bottom: 8px;">${svgIcon('file', 'md')}</span>
+                        <div>Chưa có file kết quả nào được chọn.</div>
+                        <span style="font-size: 11.5px; color: rgba(255,255,255,0.4);">Hãy kéo thả hoặc chọn file ảnh/PDF kết quả cận lâm sàng từ khung bên trái.</span>
                     </div>
                 `;
                 return;
             }
 
             if (countBadge) {
-                countBadge.innerHTML = `<strong style="color: var(--primary);">Đã chọn ${selectedUploadFiles.length} file kết quả</strong>`;
+                countBadge.innerHTML = `<strong style="color: var(--primary-light);">Đã chọn ${selectedUploadFiles.length} file kết quả</strong>`;
             }
 
             if (mainReportIndex >= selectedUploadFiles.length) mainReportIndex = 0;
@@ -2131,7 +2868,7 @@
                 const instStr = String(idx + 1).padStart(3, '0');
                 const dicomTargetName = `${cleanPId}_${cleanAcc}_${instStr}.dcm`;
                 const isPdf = file.name.toLowerCase().endsWith('.pdf');
-                const fileIcon = isPdf ? '📄' : '🖼️';
+                const fileIconSvg = isPdf ? svgIcon('file', 'sm') : svgIcon('image', 'sm');
 
                 const item = document.createElement('div');
                 item.className = 'file-item';
@@ -2140,26 +2877,29 @@
                 item.style.alignItems = 'center';
                 item.style.padding = '8px 12px';
                 item.style.marginBottom = '6px';
-                item.style.background = isMain ? 'rgba(16, 185, 129, 0.12)' : 'rgba(255,255,255,0.03)';
+                item.style.background = isMain ? 'var(--success-bg)' : 'var(--input-bg)';
                 item.style.borderRadius = '6px';
-                item.style.border = isMain ? '1px solid rgba(16, 185, 129, 0.45)' : '1px solid rgba(255,255,255,0.07)';
+                item.style.border = isMain ? '1px solid var(--success-border)' : '1px solid var(--card-border)';
                 
                 item.innerHTML = `
-                    <div style="display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0;">
-                        <span style="font-size: 18px;">${fileIcon}</span>
-                        <label style="cursor: pointer; font-size: 12.5px; margin: 0; display: inline-flex; align-items: center; gap: 5px; flex-shrink: 0;">
+                    <div style="display: flex; align-items: center; gap: 10px; flex-1; min-width: 0;">
+                        <span class="icon-badge sm">${fileIconSvg}</span>
+                        <label style="cursor: pointer; font-size: 12px; margin: 0; display: inline-flex; align-items: center; gap: 5px; flex-shrink: 0;">
                             <input type="radio" name="main_report_file" ${isMain ? 'checked' : ''} onchange="setMainReportIndex(${idx})" style="cursor: pointer;">
-                            <span style="${isMain ? 'color: #10b981; font-weight: 700;' : 'color: var(--text-muted);'}">
-                                ${isMain ? '⭐ [Report chính]' : '📄 [File phụ]'}
+                            <span style="${isMain ? 'color: var(--success-text); font-weight: 700;' : 'color: var(--text-muted);'}">
+                                ${isMain ? '[Report chính]' : '[File phụ]'}
                             </span>
                         </label>
                         <strong style="font-size: 13px; color: var(--text-main); word-break: break-all;">${file.name}</strong> 
-                        <span style="color: var(--text-muted); font-size: 11.5px; flex-shrink: 0;">(${(file.size / 1024).toFixed(1)} KB)</span>
-                        <span style="font-size: 11px; background: rgba(59, 130, 246, 0.15); color: #60a5fa; padding: 2px 8px; border-radius: 4px; font-family: monospace; flex-shrink: 0;">
-                            🏷️ DICOM: <strong>${dicomTargetName}</strong>
+                        <span style="color: var(--text-muted); font-size: 11px; flex-shrink: 0;">(${(file.size / 1024).toFixed(1)} KB)</span>
+                        <span style="font-size: 11px; background: rgba(52, 140, 253, 0.12); color: var(--primary-light); border: 1px solid var(--card-border); padding: 2px 8px; border-radius: 4px; font-family: monospace; flex-shrink: 0;">
+                            DICOM: <strong>${dicomTargetName}</strong>
                         </span>
                     </div>
-                    <button class="btn btn-outline" style="padding: 4px 10px; font-size: 12px; color: var(--danger); border-color: rgba(239, 68, 68, 0.3); flex-shrink: 0; margin-left: 8px;" onclick="removeSelectedFile(${idx})">Gỡ bỏ</button>
+                    <button class="btn btn-outline" style="padding: 4px 8px; font-size: 11.5px; color: var(--danger-text); border-color: var(--danger-border); flex-shrink: 0; margin-left: 8px;" onclick="removeSelectedFile(${idx})">
+                        ${svgIcon('trash', 'xs')}
+                        <span>Gỡ</span>
+                    </button>
                 `;
                 container.appendChild(item);
             });
@@ -2184,13 +2924,13 @@
             const accNum = document.getElementById('manual-accession').value.trim();
 
             if (!pId && !accNum) {
-                const confirmPush = confirm("⚠️ CẢNH BÁO: Bạn chưa nhập Mã Bệnh Nhân hoặc Số Chỉ Định!\n\nNếu đẩy lên PACS lúc này, PACS có thể xếp file vào khu vực chưa phân loại (Unmatched Studies) và không hiển thị trên danh sách tìm kiếm bệnh nhân.\n\nBạn có muốn tiếp tục đẩy không?");
+                const confirmPush = confirm("CẢNH BÁO: Bạn chưa nhập Mã Bệnh Nhân hoặc Số Chỉ Định!\n\nNếu đẩy lên PACS lúc này, PACS có thể xếp file vào khu vực chưa phân loại (Unmatched Studies) và không hiển thị trên danh sách tìm kiếm bệnh nhân.\n\nBạn có muốn tiếp tục đẩy không?");
                 if (!confirmPush) return;
             }
 
             const btn = document.getElementById('btn-push-pacs');
             btn.disabled = true;
-            btn.innerHTML = '⏳ Đang đóng gói & gửi PACS...';
+            btn.innerHTML = `${svgIcon('refresh', 'xs')} <span>Đang đóng gói & gửi PACS...</span>`;
 
             const formData = new FormData();
             selectedUploadFiles.forEach(f => formData.append('files', f));
@@ -2226,11 +2966,11 @@
                     div.style.padding = '10px 14px';
                     div.style.marginBottom = '8px';
                     div.style.borderRadius = '6px';
-                    div.style.border = '1px solid ' + (item.success ? 'rgba(16, 185, 129, 0.4)' : 'rgba(239, 68, 68, 0.4)');
-                    div.style.backgroundColor = item.success ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)';
+                    div.style.border = '1px solid ' + (item.success ? 'var(--success-border)' : 'var(--danger-border)');
+                    div.style.backgroundColor = item.success ? 'var(--success-bg)' : 'var(--danger-bg)';
                     div.innerHTML = `
-                        <div style="font-weight: 600; color: ${item.success ? 'var(--success)' : 'var(--danger)'};">
-                            ${item.success ? '✅ THÀNH CÔNG' : '❌ THẤT BẠI'} - ${item.file}
+                        <div style="font-weight: 700; color: ${item.success ? 'var(--success-text)' : 'var(--danger-text)'};">
+                            ${item.success ? 'THÀNH CÔNG' : 'THẤT BẠI'} - ${item.file}
                         </div>
                         <div style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">${item.message}</div>
                     `;
@@ -2240,6 +2980,14 @@
                 if (data.success) {
                     selectedUploadFiles = [];
                     renderSelectedFileList();
+                    
+                    // Update Workflow Step 4 to completed
+                    const step4 = document.getElementById('wf-step-4');
+                    if (step4) {
+                        step4.classList.remove('active');
+                        step4.classList.add('completed');
+                    }
+
                     // Tự động làm mới Worklist & Lịch sử để ẩn ca đã làm khỏi danh sách Chờ thực hiện
                     fetchWorklist();
                     fetchStudiesHistory();
@@ -2250,7 +2998,7 @@
                 showToast('Lỗi gửi yêu cầu tải lên PACS', false);
             } finally {
                 btn.disabled = false;
-                btn.innerHTML = '🚀 Đẩy Lên PACS Ngay';
+                btn.innerHTML = `${svgIcon('send', 'sm')} <span>Đẩy Lên PACS Ngay</span>`;
             }
         }
 
@@ -2278,7 +3026,7 @@
             params.append('status', currentWorklistStatusFilter);
 
             const tbody = document.getElementById('worklist-table-body');
-            tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; color: var(--text-muted); padding: 2rem;">⏳ Đang truy vấn RIS Worklist Server & đối soát trạng thái...</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; color: var(--text-muted); padding: 2rem;">Đang truy vấn RIS Worklist Server & đối soát trạng thái...</td></tr>';
 
             try {
                 const res = await fetch('/api/worklist?' + params.toString());
@@ -2304,7 +3052,7 @@
                 if (items.length === 0) {
                     let emptyMsg = 'Không tìm thấy ca chỉ định nào khớp với điều kiện tìm kiếm.';
                     if (currentWorklistStatusFilter === 'PENDING') {
-                        emptyMsg = '🎉 Tuyệt vời! Hiện không còn ca chỉ định nào đang chờ thực hiện.';
+                        emptyMsg = 'Hiện không còn ca chỉ định nào đang chờ thực hiện.';
                     } else if (currentWorklistStatusFilter === 'COMPLETED') {
                         emptyMsg = 'Chưa có ca chỉ định nào đã được đẩy PACS trong danh sách này.';
                     }
@@ -2318,7 +3066,7 @@
                     const isCompleted = !!item.is_completed;
                     if (isCompleted) {
                         tr.style.opacity = '0.92';
-                        tr.style.backgroundColor = 'rgba(16, 185, 129, 0.03)';
+                        tr.style.backgroundColor = 'var(--success-bg)';
                     }
 
                     const itemJson = JSON.stringify(item).replace(/'/g, "&apos;").replace(/"/g, '&quot;');
@@ -2344,7 +3092,7 @@
 
                     let timeDisplay = '-';
                     if (datePart && timePart) {
-                        timeDisplay = `${datePart} <span style="color: #38bdf8; font-family: monospace; font-size: 12px; margin-left: 4px;">${timePart}</span>`;
+                        timeDisplay = `${datePart} <span style="color: var(--primary-light); font-family: monospace; font-size: 12px; margin-left: 4px;">${timePart}</span>`;
                     } else if (datePart) {
                         timeDisplay = `${datePart}`;
                     } else if (timePart) {
@@ -2357,17 +3105,17 @@
                     if (isCompleted) {
                         const completedTimeStr = item.completed_at ? formatRelativeTime(item.completed_at) : '';
                         const titleHint = completedTimeStr ? `Đã đẩy PACS lúc ${completedTimeStr}` : 'Đã đẩy PACS';
-                        statusBadge = `<span class="status-badge" style="background: rgba(16, 185, 129, 0.15); color: var(--success); border-color: rgba(16, 185, 129, 0.3);" title="${titleHint}">🟢 Đã đẩy PACS</span>`;
+                        statusBadge = `<span class="status-badge" style="background: var(--success-bg); color: var(--success-text); border-color: var(--success-border);" title="${titleHint}">Đã đẩy PACS</span>`;
                         actionButton = `
-                            <button class="btn btn-outline" style="padding: 5px 12px; font-size: 12px; font-weight: 600; white-space: nowrap; color: #38bdf8; border-color: rgba(56, 189, 248, 0.3);" onclick='selectWorklistItem(${itemJson}, true)'>
-                                🔄 Đẩy bổ sung
+                            <button class="btn btn-outline" style="padding: 5px 12px; font-size: 12px; font-weight: 600; white-space: nowrap;" onclick='selectWorklistItem(${itemJson}, true)'>
+                                ${svgIcon('refresh', 'xs')} <span>Đẩy bổ sung</span>
                             </button>
                         `;
                     } else {
-                        statusBadge = `<span class="status-badge" style="background: rgba(148, 163, 184, 0.12); color: var(--text-muted); border-color: rgba(148, 163, 184, 0.25);">⚪ Chờ thực hiện</span>`;
+                        statusBadge = `<span class="status-badge" style="background: rgba(161, 159, 173, 0.15); color: var(--text-muted); border-color: rgba(161, 159, 173, 0.25);">Chờ thực hiện</span>`;
                         actionButton = `
-                            <button class="btn" style="padding: 6px 14px; font-size: 12px; font-weight: 600; white-space: nowrap;" onclick='selectWorklistItem(${itemJson}, false)'>
-                                🩺 Thực hiện CLS
+                            <button class="btn" style="padding: 5px 12px; font-size: 12px; font-weight: 600; white-space: nowrap;" onclick='selectWorklistItem(${itemJson}, false)'>
+                                ${svgIcon('stethoscope', 'xs')} <span>Thực hiện CLS</span>
                             </button>
                         `;
                     }
@@ -2387,7 +3135,7 @@
                 });
             } catch (err) {
                 showToast('Lỗi kết nối khi tải RIS Worklist', false);
-                tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; color: var(--danger); padding: 2rem;">Lỗi kết nối RIS Server.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; color: var(--danger-text); padding: 2rem;">Lỗi kết nối RIS Server.</td></tr>';
             }
         }
 
@@ -2401,7 +3149,7 @@
 
             if (isCompleted || item.is_completed) {
                 const timeInfo = item.completed_at ? `(${formatRelativeTime(item.completed_at)})` : '';
-                const confirmMsg = `⚠️ THÔNG BÁO CA ĐÃ HOÀN TẤT:\n\nChỉ định [${item.accession_number || '-'}] của bệnh nhân [${cleanPName || item.patient_id}] ĐÃ ĐƯỢC ĐẨY LÊN PACS ${timeInfo}.\n\nBạn có chắc chắn muốn chuyển sang màn hình tải file để ĐẨY BỔ SUNG ảnh/PDF kết quả cho ca này?`;
+                const confirmMsg = `THÔNG BÁO CA ĐÃ HOÀN TẤT:\n\nChỉ định [${item.accession_number || '-'}] của bệnh nhân [${cleanPName || item.patient_id}] ĐÃ ĐƯỢC ĐẨY LÊN PACS ${timeInfo}.\n\nBạn có chắc chắn muốn chuyển sang màn hình tải file để ĐẨY BỔ SUNG ảnh/PDF kết quả cho ca này?`;
                 if (!confirm(confirmMsg)) {
                     return;
                 }
@@ -2424,16 +3172,27 @@
                 document.getElementById('manual-modality').value = item.modality;
             }
 
+            // Update Connected Workflow Step Indicator
+            const step1 = document.getElementById('wf-step-1');
+            const step2 = document.getElementById('wf-step-2');
+            const step3 = document.getElementById('wf-step-3');
+            const step4 = document.getElementById('wf-step-4');
+
+            if (step1) { step1.classList.remove('active'); step1.classList.add('completed'); }
+            if (step2) { step2.classList.remove('active'); step2.classList.add('completed'); }
+            if (step3) { step3.classList.remove('completed'); step3.classList.add('active'); }
+            if (step4) { step4.classList.remove('active', 'completed'); }
+
             // Update Selected Patient Banner
             const banner = document.getElementById('selected-patient-banner');
             if (banner) {
                 banner.style.display = 'block';
                 if (isCompleted || item.is_completed) {
-                    banner.style.background = 'rgba(245, 158, 11, 0.12)';
-                    banner.style.borderColor = 'rgba(245, 158, 11, 0.4)';
+                    banner.style.background = 'rgba(245, 158, 11, 0.18)';
+                    banner.style.borderColor = 'rgba(245, 158, 11, 0.45)';
                 } else {
-                    banner.style.background = 'rgba(59, 130, 246, 0.12)';
-                    banner.style.borderColor = 'rgba(59, 130, 246, 0.4)';
+                    banner.style.background = 'rgba(9, 68, 179, 0.25)';
+                    banner.style.borderColor = 'rgba(52, 140, 253, 0.45)';
                 }
                 document.getElementById('banner-patient-name').innerText = `${item.patient_id} - ${cleanPName || 'Bệnh nhân'}`;
                 document.getElementById('banner-patient-details').innerText = `Mã BN: ${item.patient_id} | Dịch vụ: ${item.study_description || 'Chỉ định'} | Số CĐ: ${item.accession_number || '-'} | Modality: ${item.modality || 'OT'}`;
@@ -2458,7 +3217,7 @@
             if (searchKw) params.append('search', searchKw);
 
             const tbody = document.getElementById('history-table-body');
-            tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: var(--text-muted); padding: 2rem;">⏳ Đang tải dữ liệu lịch sử ca khám...</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: var(--text-muted); padding: 2rem;">Đang tải dữ liệu lịch sử ca khám...</td></tr>';
 
             try {
                 const res = await fetch('/api/studies?' + params.toString());
@@ -2474,10 +3233,10 @@
                 studies.forEach(s => {
                     const tr = document.createElement('tr');
                     let statusBadge = '<span style="color: var(--text-muted);">Mới tạo</span>';
-                    if (s.status === 'SUCCESS') statusBadge = '<span class="status-badge" style="background: rgba(16, 185, 129, 0.15); color: var(--success); border-color: rgba(16, 185, 129, 0.3);">🟢 Đã đẩy PACS</span>';
-                    else if (s.status === 'RETRYING') statusBadge = '<span class="status-badge" style="background: rgba(245, 158, 11, 0.15); color: var(--warning); border-color: rgba(245, 158, 11, 0.3);">🟠 Đang thử lại</span>';
-                    else if (s.status === 'FAILED') statusBadge = '<span class="status-badge" style="background: rgba(239, 68, 68, 0.15); color: var(--danger); border-color: rgba(239, 68, 68, 0.3);">🔴 Thất bại</span>';
-                    else if (s.status === 'DUPLICATE') statusBadge = '<span class="status-badge" style="background: rgba(59, 130, 246, 0.15); color: var(--primary); border-color: rgba(59, 130, 246, 0.3);">🔵 File trùng</span>';
+                    if (s.status === 'SUCCESS') statusBadge = '<span class="status-badge" style="background: var(--success-bg); color: var(--success-text); border-color: var(--success-border);">Đã đẩy PACS</span>';
+                    else if (s.status === 'RETRYING') statusBadge = '<span class="status-badge" style="background: rgba(245, 158, 11, 0.15); color: var(--warning); border-color: rgba(245, 158, 11, 0.35);">Đang thử lại</span>';
+                    else if (s.status === 'FAILED') statusBadge = '<span class="status-badge" style="background: var(--danger-bg); color: var(--danger-text); border-color: var(--danger-border);">Thất bại</span>';
+                    else if (s.status === 'DUPLICATE') statusBadge = '<span class="status-badge" style="background: rgba(52, 140, 253, 0.15); color: #38daff; border-color: rgba(52, 140, 253, 0.35);">File trùng</span>';
 
                     let formattedTime = '-';
                     if (s.created_at) {
@@ -2494,7 +3253,7 @@
                         }
                     }
 
-                    const sopOrErr = s.sop_instance_uid ? `<code style="font-size: 11px; color: #38bdf8;">${s.sop_instance_uid}</code>` : (s.last_error || '-');
+                    const sopOrErr = s.sop_instance_uid ? `<code style="font-size: 11px; color: var(--primary-light);">${s.sop_instance_uid}</code>` : (s.last_error || '-');
 
                     tr.innerHTML = `
                         <td><strong style="color: var(--text-main); font-size: 13px;">${formattedTime}</strong></td>
@@ -2510,7 +3269,7 @@
                 });
             } catch (err) {
                 console.error('Error fetching studies:', err);
-                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: var(--danger); padding: 2rem;">Lỗi nạp dữ liệu lịch sử ca khám.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: var(--danger-text); padding: 2rem;">Lỗi nạp dữ liệu lịch sử ca khám.</td></tr>';
             }
         }
 
@@ -2562,7 +3321,7 @@
 
             if (nameEl) {
                 if (isStation) {
-                    nameEl.innerHTML = `${currentUser.icon || '🏢'} <span>${currentUser.station_name || currentUser.full_name}</span>`;
+                    nameEl.innerHTML = `${svgIcon('building', 'xs')} <span>${currentUser.station_name || currentUser.full_name}</span>`;
                 } else {
                     nameEl.innerText = currentUser.full_name || currentUser.username;
                 }
@@ -2571,14 +3330,14 @@
             if (badgeEl) {
                 const deptStr = currentUser.department ? ` • ${currentUser.department}` : '';
                 if (isAdmin) {
-                    badgeEl.innerHTML = `👑 <span style="color: #c084fc; font-weight: 700;">Super Admin${deptStr}</span>`;
+                    badgeEl.innerHTML = `${svgIcon('shield', 'xs')} <span style="color: var(--primary-light); font-weight: 700;">Super Admin${deptStr}</span>`;
                 } else if (isStation) {
                     const tech = currentUser.technician_name ? `KTV: ${currentUser.technician_name} • ` : '';
                     const mods = (currentUser.allowed_modalities || []).join(', ');
-                    badgeEl.innerHTML = `🩺 <span style="color: #38bdf8; font-weight: 600;">${tech}[${mods || 'Chưa gán'}]${deptStr}</span>`;
+                    badgeEl.innerHTML = `${svgIcon('stethoscope', 'xs')} <span style="color: var(--primary-light); font-weight: 600;">${tech}[${mods || 'Chưa gán'}]${deptStr}</span>`;
                 } else {
                     const mods = (currentUser.allowed_modalities || []).join(', ');
-                    badgeEl.innerHTML = `🩺 <span style="color: #38bdf8; font-weight: 600;">KTV (${mods || 'Chưa gán'})${deptStr}</span>`;
+                    badgeEl.innerHTML = `${svgIcon('stethoscope', 'xs')} <span style="color: var(--primary-light); font-weight: 600;">KTV (${mods || 'Chưa gán'})${deptStr}</span>`;
                 }
             }
 
@@ -2693,7 +3452,7 @@
             try {
                 const res = await fetch('/api/admin/users');
                 if (res.status === 403) {
-                    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--danger); padding: 2rem;">⛔ Bạn không có quyền truy cập mục này.</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--danger-text); padding: 2rem;">Bạn không có quyền truy cập mục này.</td></tr>';
                     return;
                 }
                 const data = await res.json();
@@ -2702,7 +3461,7 @@
                     renderAdminUsersTable();
                 }
             } catch (err) {
-                tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--danger); padding: 2rem;">Lỗi tải người dùng: ${err.message}</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--danger-text); padding: 2rem;">Lỗi tải người dùng: ${err.message}</td></tr>`;
             }
         }
 
@@ -2722,8 +3481,8 @@
                 const tr = document.createElement('tr');
                 const isAdm = u.role === 'ADMIN';
                 const roleBadge = isAdm
-                    ? '<span class="status-badge" style="background: rgba(168,85,247,0.15); color: #c084fc; border-color: rgba(168,85,247,0.3);">👑 Super Admin</span>'
-                    : '<span class="status-badge" style="background: rgba(59,130,246,0.15); color: #60a5fa; border-color: rgba(59,130,246,0.3);">🩺 Technician</span>';
+                    ? '<span class="status-badge" style="background: rgba(52, 140, 253, 0.15); color: var(--primary-light); border-color: rgba(52, 140, 253, 0.3);">Super Admin</span>'
+                    : '<span class="status-badge" style="background: rgba(161, 159, 173, 0.12); color: var(--text-sub); border-color: rgba(161, 159, 173, 0.25);">Technician</span>';
 
                 const mods = (u.allowed_modalities || []).map(m => `<span class="modality-badge" style="margin: 2px;">${m}</span>`).join(' ');
                 const isSelf = (currentUser && currentUser.username === u.username);
@@ -2734,10 +3493,14 @@
                     <td>${u.full_name || '-'}</td>
                     <td><span style="color: #cbd5e1;">${u.department || '-'}</span></td>
                     <td>${roleBadge}</td>
-                    <td>${isAdm ? '<em style="color: #c084fc;">Tất cả Modality (*)</em>' : (mods || '<em style="color: var(--text-muted);">Chưa gán</em>')}</td>
+                    <td>${isAdm ? '<em style="color: var(--primary-light);">Tất cả Modality (*)</em>' : (mods || '<em style="color: var(--text-muted);">Chưa gán</em>')}</td>
                     <td>
-                        <button class="btn btn-outline" style="padding: 3px 8px; font-size: 11.5px; margin-right: 4px;" onclick="openEditUserModal('${u.username}')">✏️ Sửa</button>
-                        ${canDelete ? `<button class="btn btn-outline" style="padding: 3px 8px; font-size: 11.5px; color: var(--danger); border-color: rgba(239,68,68,0.4);" onclick="deleteUserAccount('${u.username}')">🗑️ Xóa</button>` : ''}
+                        <button class="btn btn-outline" style="padding: 3px 8px; font-size: 11.5px; margin-right: 4px;" onclick="openEditUserModal('${u.username}')">
+                            ${svgIcon('edit', 'xs')} <span>Sửa</span>
+                        </button>
+                        ${canDelete ? `<button class="btn btn-outline" style="padding: 3px 8px; font-size: 11.5px; color: var(--danger-text); border-color: var(--danger-border);" onclick="deleteUserAccount('${u.username}')">
+                            ${svgIcon('trash', 'xs')} <span>Xóa</span>
+                        </button>` : ''}
                     </td>
                 `;
                 tbody.appendChild(tr);
@@ -2769,7 +3532,7 @@
         }
 
         function openAddUserModal() {
-            document.getElementById('modal-user-title').innerText = '➕ Thêm Tài Khoản Mới';
+            document.getElementById('modal-user-title').innerText = 'Thêm Tài Khoản Mới';
             document.getElementById('edit-user-name').value = '';
             document.getElementById('edit-user-name').disabled = false;
             document.getElementById('edit-user-fullname').value = '';
@@ -2786,7 +3549,7 @@
             const user = allAdminUsers.find(u => u.username === username);
             if (!user) return;
 
-            document.getElementById('modal-user-title').innerText = `✏️ Chỉnh Sửa Tài Khoản [${username}]`;
+            document.getElementById('modal-user-title').innerText = `Chỉnh Sửa Tài Khoản [${username}]`;
             document.getElementById('edit-user-name').value = user.username;
             document.getElementById('edit-user-name').disabled = true;
             document.getElementById('edit-user-fullname').value = user.full_name || '';
@@ -2872,7 +3635,7 @@
             try {
                 const res = await fetch('/api/admin/stations');
                 if (res.status === 403) {
-                    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--danger); padding: 2rem;">⛔ Bạn không có quyền truy cập mục này.</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--danger-text); padding: 2rem;">Bạn không có quyền truy cập mục này.</td></tr>';
                     return;
                 }
                 const data = await res.json();
@@ -2881,7 +3644,7 @@
                     renderAdminStationsTable();
                 }
             } catch (err) {
-                tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--danger); padding: 2rem;">Lỗi tải nơi thực hiện: ${err.message}</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--danger-text); padding: 2rem;">Lỗi tải nơi thực hiện: ${err.message}</td></tr>`;
             }
         }
 
@@ -2901,14 +3664,18 @@
                 const canDelete = allAdminStations.length > 1;
 
                 tr.innerHTML = `
-                    <td><strong style="color: #38bdf8;">${st.id}</strong></td>
-                    <td><strong>${st.icon || '🏢'} ${st.name}</strong></td>
-                    <td><span style="color: #cbd5e1;">${st.department || '-'}</span></td>
+                    <td><strong style="color: var(--primary-light);">${st.id}</strong></td>
+                    <td><strong>${st.name}</strong></td>
+                    <td><span style="color: var(--text-sub);">${st.department || '-'}</span></td>
                     <td>${mods || '<em style="color: var(--text-muted);">Chưa gán</em>'}</td>
-                    <td><span class="modality-badge" style="background: rgba(16,185,129,0.15); color: #34d399; border-color: rgba(16,185,129,0.3);">${st.default_modality || (st.allowed_modalities && st.allowed_modalities[0]) || '-'}</span></td>
+                    <td><span class="modality-badge" style="background: var(--success-bg); color: var(--success-text); border-color: var(--success-border);">${st.default_modality || (st.allowed_modalities && st.allowed_modalities[0]) || '-'}</span></td>
                     <td>
-                        <button class="btn btn-outline" style="padding: 3px 8px; font-size: 11.5px; margin-right: 4px;" onclick="openEditStationModal('${st.id}')">✏️ Sửa</button>
-                        ${canDelete ? `<button class="btn btn-outline" style="padding: 3px 8px; font-size: 11.5px; color: var(--danger); border-color: rgba(239,68,68,0.4);" onclick="deleteStationAccount('${st.id}')">🗑️ Xóa</button>` : ''}
+                        <button class="btn btn-outline" style="padding: 3px 8px; font-size: 11.5px; margin-right: 4px;" onclick="openEditStationModal('${st.id}')">
+                            ${svgIcon('edit', 'xs')} <span>Sửa</span>
+                        </button>
+                        ${canDelete ? `<button class="btn btn-outline" style="padding: 3px 8px; font-size: 11.5px; color: var(--danger-text); border-color: var(--danger-border);" onclick="deleteStationAccount('${st.id}')">
+                            ${svgIcon('trash', 'xs')} <span>Xóa</span>
+                        </button>` : ''}
                     </td>
                 `;
                 tbody.appendChild(tr);
@@ -2933,12 +3700,12 @@
         }
 
         function openAddStationModal() {
-            document.getElementById('modal-station-title').innerText = '➕ Thêm Nơi Thực Hiện Mới';
+            document.getElementById('modal-station-title').innerText = 'Thêm Nơi Thực Hiện Mới';
             document.getElementById('edit-station-id').value = '';
             document.getElementById('edit-station-id').disabled = false;
             document.getElementById('edit-station-name').value = '';
             document.getElementById('edit-station-dept').value = 'Khoa Chẩn đoán hình ảnh';
-            document.getElementById('edit-station-icon').value = '🩺';
+            document.getElementById('edit-station-icon').value = 'US';
             renderStationModalityCheckboxes(['US']);
             document.getElementById('modal-edit-station').style.display = 'flex';
         }
@@ -2947,12 +3714,12 @@
             const st = allAdminStations.find(s => s.id === stationId);
             if (!st) return;
 
-            document.getElementById('modal-station-title').innerText = `✏️ Chỉnh Sửa Nơi Thực Hiện [${stationId}]`;
+            document.getElementById('modal-station-title').innerText = `Chỉnh Sửa Nơi Thực Hiện [${stationId}]`;
             document.getElementById('edit-station-id').value = st.id;
             document.getElementById('edit-station-id').disabled = true;
             document.getElementById('edit-station-name').value = st.name || '';
             document.getElementById('edit-station-dept').value = st.department || '';
-            document.getElementById('edit-station-icon').value = st.icon || '🏢';
+            document.getElementById('edit-station-icon').value = st.icon || 'US';
             renderStationModalityCheckboxes(st.allowed_modalities || []);
             document.getElementById('modal-edit-station').style.display = 'flex';
         }
@@ -2962,7 +3729,7 @@
             const id = document.getElementById('edit-station-id').value.trim().toUpperCase();
             const name = document.getElementById('edit-station-name').value.trim();
             const dept = document.getElementById('edit-station-dept').value.trim();
-            const icon = document.getElementById('edit-station-icon').value.trim() || '🏢';
+            const icon = document.getElementById('edit-station-icon').value.trim() || 'US';
 
             let allowedModalities = [];
             const cbs = document.querySelectorAll('.station-mod-cb:checked');
@@ -3017,20 +3784,303 @@
             }
         }
 
+        function handleLicenseFileSelected(e) {
+            const file = e.target.files && e.target.files[0];
+            const label = document.getElementById('lic-file-name-label');
+            if (file && label) {
+                label.innerHTML = `Đã chọn file: <strong style="color: var(--success-text);">${file.name}</strong> (${(file.size / 1024).toFixed(1)} KB)`;
+                showToast(`Đã chọn file: ${file.name}`, true);
+            }
+        }
+
+        // Setup Drag & Drop for License Key Dropzone
+        setTimeout(() => {
+            const dropzone = document.getElementById('lic-dropzone');
+            if (dropzone) {
+                ['dragenter', 'dragover'].forEach(eventName => {
+                    dropzone.addEventListener(eventName, (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        dropzone.classList.add('dragover');
+                    }, false);
+                });
+                ['dragleave', 'drop'].forEach(eventName => {
+                    dropzone.addEventListener(eventName, (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        dropzone.classList.remove('dragover');
+                    }, false);
+                });
+                dropzone.addEventListener('drop', (e) => {
+                    const dt = e.dataTransfer;
+                    const files = dt.files;
+                    if (files && files.length > 0) {
+                        const fileInput = document.getElementById('lic-file-input');
+                        if (fileInput) {
+                            fileInput.files = files;
+                            handleLicenseFileSelected({ target: { files: files } });
+                        }
+                    }
+                }, false);
+            }
+        }, 500);
+
+        async function fetchLicenseStatus() {
+            try {
+                const res = await fetch('/api/license/status');
+                const data = await res.json();
+                if (!data.success) return;
+                const lic = data.license || {};
+
+                const hwInput = document.getElementById('lic-hardware-id-input');
+                if (hwInput) hwInput.value = lic.hardware_id || 'TTSG-UNKNOWN';
+
+                const custElem = document.getElementById('lic-customer-name');
+                if (custElem) custElem.innerText = lic.customer_name || 'Khách Hàng Dùng Thử';
+
+                const planElem = document.getElementById('lic-plan-name');
+                if (planElem) planElem.innerText = lic.plan_name || 'Bản Dùng Thử 30 Ngày';
+
+                const expElem = document.getElementById('lic-expiration-date');
+                if (expElem) expElem.innerText = lic.expiration_date === 'PERMANENT' ? 'Vĩnh viễn (Permanent)' : (lic.expiration_date || '---');
+
+                const maxStElem = document.getElementById('lic-max-stations');
+                if (maxStElem) maxStElem.innerText = lic.max_stations ? `${lic.max_stations} Trạm phòng khám` : 'Không giới hạn';
+
+                const daysElem = document.getElementById('lic-days-remaining');
+                const progressContainer = document.getElementById('lic-trial-progress-container');
+                const progressText = document.getElementById('lic-progress-text');
+                const progressFill = document.getElementById('lic-progress-fill');
+
+                if (daysElem) {
+                    if (lic.expiration_date === 'PERMANENT') {
+                        daysElem.innerText = 'Vô thời hạn (Vĩnh viễn)';
+                        daysElem.style.color = 'var(--success-text)';
+                        if (progressContainer) progressContainer.style.display = 'none';
+                    } else if (lic.days_remaining <= 0) {
+                        daysElem.innerText = `Đã hết hạn (${lic.expiration_date})`;
+                        daysElem.style.color = 'var(--danger-text)';
+                        if (progressContainer) {
+                            progressContainer.style.display = 'block';
+                            if (progressText) progressText.innerText = '0 / 30 ngày (Đã hết hạn)';
+                            if (progressFill) {
+                                progressFill.style.width = '0%';
+                                progressFill.style.background = 'var(--danger-border)';
+                            }
+                        }
+                    } else {
+                        daysElem.innerText = `${lic.days_remaining} ngày`;
+                        daysElem.style.color = lic.days_remaining < 7 ? 'var(--warning)' : 'var(--success-text)';
+                        
+                        if (progressContainer) {
+                            progressContainer.style.display = 'block';
+                            const totalDays = 30;
+                            const remain = Math.min(30, Math.max(0, lic.days_remaining));
+                            const percent = Math.round((remain / totalDays) * 100);
+                            if (progressText) progressText.innerText = `Còn ${remain} / ${totalDays} ngày (${percent}%)`;
+                            if (progressFill) {
+                                progressFill.style.width = `${percent}%`;
+                                progressFill.style.background = remain < 7 ? 'rgba(245, 158, 11, 0.8)' : 'var(--primary-light)';
+                            }
+                        }
+                    }
+                }
+
+                const badge = document.getElementById('lic-badge-status');
+                if (badge) {
+                    if (lic.status === 'VALID') {
+                        badge.innerText = 'Bản Quyền Hợp Lệ';
+                        badge.style.background = 'var(--success-bg)';
+                        badge.style.color = 'var(--success-text)';
+                        badge.style.borderColor = 'var(--success-border)';
+                    } else if (lic.status === 'DEMO') {
+                        badge.innerText = 'Bản Dùng Thử 30 Ngày';
+                        badge.style.background = 'rgba(245, 158, 11, 0.15)';
+                        badge.style.color = '#fbbf24';
+                        badge.style.borderColor = 'rgba(245, 158, 11, 0.35)';
+                    } else if (lic.status === 'EXPIRED') {
+                        badge.innerText = 'Đã Hết Hạn Dùng Thử';
+                        badge.style.background = 'var(--danger-bg)';
+                        badge.style.color = 'var(--danger-text)';
+                        badge.style.borderColor = 'var(--danger-border)';
+                    } else {
+                        badge.innerText = `${lic.status || 'Chưa Hợp Lệ'}`;
+                        badge.style.background = 'var(--danger-bg)';
+                        badge.style.color = 'var(--danger-text)';
+                        badge.style.borderColor = 'var(--danger-border)';
+                    }
+                }
+
+                const modContainer = document.getElementById('lic-modalities-badges');
+                if (modContainer) {
+                    modContainer.innerHTML = '';
+                    const allowedMods = lic.allowed_modalities || ['*'];
+                    if (allowedMods.includes('*') || allowedMods.includes('ALL')) {
+                        modContainer.innerHTML = '<span class="modality-badge" style="background: var(--success-bg); color: var(--success-text); border-color: var(--success-border);">Toàn Bộ Modality (Full Medical Package)</span>';
+                    } else {
+                        allowedMods.forEach(m => {
+                            modContainer.innerHTML += `<span class="modality-badge">${m}</span> `;
+                        });
+                    }
+                }
+
+                const msgBox = document.getElementById('lic-message-box');
+                if (msgBox) {
+                    msgBox.innerHTML = `<span>${svgIcon('shield', 'xs')}</span> <span>${lic.message || 'Hệ thống hoạt động bình thường.'}</span>`;
+                }
+            } catch (err) {
+                console.error('Error fetching license status:', err);
+            }
+        }
+
+        function copyHardwareId() {
+            const input = document.getElementById('lic-hardware-id-input');
+            const btn = document.getElementById('btn-copy-hwid');
+            if (!input) return;
+            navigator.clipboard.writeText(input.value).then(() => {
+                showToast(`Đã sao chép mã máy: ${input.value}`, true);
+                if (btn) {
+                    btn.innerHTML = `${svgIcon('check', 'xs')} <span>Đã Chép!</span>`;
+                    btn.style.color = 'var(--success-text)';
+                    btn.style.borderColor = 'var(--success-border)';
+                    setTimeout(() => {
+                        btn.innerHTML = `${svgIcon('copy', 'xs')} <span>Sao Chép</span>`;
+                        btn.style.color = '';
+                        btn.style.borderColor = '';
+                    }, 2000);
+                }
+            }).catch(() => {
+                input.select();
+                document.execCommand('copy');
+                showToast(`Đã sao chép mã máy: ${input.value}`, true);
+            });
+        }
+
+        async function activateLicense() {
+            const fileInput = document.getElementById('lic-file-input');
+            const textInput = document.getElementById('lic-text-input');
+            let licenseKey = textInput ? textInput.value.trim() : '';
+
+            if (fileInput && fileInput.files && fileInput.files[0]) {
+                try {
+                    licenseKey = await fileInput.files[0].text();
+                } catch (e) {
+                    showToast('Lỗi đọc file license.key: ' + e.message, false);
+                    return;
+                }
+            }
+
+            if (!licenseKey) {
+                showToast('Vui lòng chọn file license.key hoặc dán chuỗi bản quyền!', false);
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/license/activate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ license_key: licenseKey })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showToast(data.message || 'Kích hoạt bản quyền thành công!', true);
+                    if (fileInput) fileInput.value = '';
+                    if (textInput) textInput.value = '';
+                    const label = document.getElementById('lic-file-name-label');
+                    if (label) label.innerHTML = `Kéo thả file <code style="color: var(--primary-light);">license.key</code> vào đây hoặc <span style="color: var(--primary-light); text-decoration: underline;">Nhấp để duyệt</span>`;
+                    fetchLicenseStatus();
+                } else {
+                    showToast(data.message || 'Kích hoạt bản quyền thất bại!', false);
+                }
+            } catch (err) {
+                showToast('Lỗi gửi yêu cầu kích hoạt: ' + err.message, false);
+            }
+        }
+
+        async function handleApplyPatch() {
+            const fileInput = document.getElementById('system-patch-file-input');
+            const statusMsg = document.getElementById('patch-status-msg');
+            const btn = document.getElementById('btn-apply-patch');
+
+            if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+                showToast('Vui lòng chọn file bản vá nâng cấp (.pkg)!', false);
+                return;
+            }
+
+            const file = fileInput.files[0];
+            if (!confirm(`Bạn có chắc chắn muốn nâng cấp hệ thống bằng bản vá [${file.name}]?`)) {
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = `${svgIcon('refresh', 'xs')} <span>Đang nâng cấp...</span>`;
+            if (statusMsg) {
+                statusMsg.style.display = 'block';
+                statusMsg.style.color = 'var(--primary-light)';
+                statusMsg.innerText = 'Đang tải lên và kiểm tra chữ ký RSA 2048-bit...';
+            }
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const res = await fetch('/api/system/update-patch', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showToast(data.message || 'Cập nhật thành công!', true);
+                    if (statusMsg) {
+                        statusMsg.style.color = 'var(--success-text)';
+                        statusMsg.innerText = `${data.message}`;
+                    }
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 2000);
+                } else {
+                    showToast(data.message || 'Cập nhật thất bại!', false);
+                    if (statusMsg) {
+                        statusMsg.style.color = 'var(--danger-text)';
+                        statusMsg.innerText = `Lỗi: ${data.message}`;
+                    }
+                    btn.disabled = false;
+                    btn.innerHTML = `${svgIcon('send', 'sm')} <span>Cập Nhật Ngay</span>`;
+                }
+            } catch (err) {
+                showToast('Lỗi: ' + err.message, false);
+                if (statusMsg) {
+                    statusMsg.style.color = 'var(--danger-text)';
+                    statusMsg.innerText = `Lỗi kết nối: ${err.message}`;
+                }
+                btn.disabled = false;
+                btn.innerHTML = `${svgIcon('send', 'sm')} <span>Cập Nhật Ngay</span>`;
+            }
+        }
+
+        function renderWhiteLabelingLogo() {
+            const container = document.getElementById('app-logo-title-container');
+            if (container && window.config && window.config.whiteLabeling && typeof window.config.whiteLabeling.createLogoComponentFn === 'function') {
+                container.innerHTML = window.config.whiteLabeling.createLogoComponentFn();
+            }
+        }
+
         // Set today date as default for worklist search
         const todayDateStr = new Date().toISOString().substring(0, 10);
         if (document.getElementById('wl-search-date')) {
             document.getElementById('wl-search-date').value = todayDateStr;
         }
 
-        // Init - Xác thực User trước rồi mới load data
+        // Init - Khởi chạy WhiteLabeling và nạp dữ liệu
         async function initializeApp() {
+            renderWhiteLabelingLogo();
             await fetchCurrentUserProfile();
             fetchStatus();
             fetchWorklist();
             if (currentUser && currentUser.role === 'ADMIN') {
                 fetchConfig();
                 fetchAdminStations();
+                fetchLicenseStatus();
             }
         }
 

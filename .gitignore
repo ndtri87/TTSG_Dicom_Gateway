@@ -39,7 +39,10 @@ Client/export/failed/*
 !Client/export/failed/.gitkeep
 *.sqlite3
 *.db
+.secret_key
+*.pkg
 
 # OS generated
 .DS_Store
 Thumbs.db
+

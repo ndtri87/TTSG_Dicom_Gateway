@@ -5,6 +5,7 @@ xem thống kê, nhật ký log thời gian thực và theo dõi hoạt động 
 """
 import os
 import threading
+import time
 from datetime import timedelta
 from functools import wraps
 from flask import Flask, jsonify, redirect, render_template, request, session, url_for
@@ -32,11 +33,23 @@ from utils import (
     update_user_password,
     upsert_station,
     upsert_user,
+    get_or_create_secret_key,
 )
+import sys
+from license_manager import LicenseManager
 from worklist_client import WorklistClient
 
-app = Flask(__name__, template_folder='templates', static_folder='static')
-app.secret_key = 'TTSG_DICOM_GATEWAY_SUPER_SECRET_KEY_2026'
+if getattr(sys, 'frozen', False):
+    _base_dir = getattr(sys, '_MEIPASS', os.path.dirname(sys.executable))
+else:
+    _base_dir = os.path.dirname(os.path.abspath(__file__))
+
+_template_dir = os.path.join(_base_dir, 'templates')
+_static_dir = os.path.join(_base_dir, 'static')
+
+app = Flask(__name__, template_folder=_template_dir, static_folder=_static_dir)
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 
 # Global references set by main.py
 app_config = None
@@ -45,21 +58,85 @@ retry_worker_ref = None
 logger_ref = None
 start_time = None
 registry_ref = None
+license_manager_ref = None
 
 
-def init_web_app(config, cfg_path, retry_worker=None, logger=None, app_start_time=None, registry=None):
-    global app_config, config_path, retry_worker_ref, logger_ref, start_time, registry_ref
+class AuthRateLimiter:
+    """Kiểm soát tần suất đăng nhập và khóa tài khoản khi bị dò mật khẩu (Brute-Force Protection)."""
+
+    def __init__(self, max_attempts: int = 5, lockout_seconds: int = 300):
+        self.max_attempts = max_attempts
+        self.lockout_seconds = lockout_seconds
+        self._lock = threading.Lock()
+        self._records = {}
+
+    def _get_key(self, ip: str, username: str = None) -> str:
+        clean_ip = (ip or 'unknown').strip()
+        clean_user = (username or '').strip().lower()
+        return f"{clean_ip}:{clean_user}" if clean_user else clean_ip
+
+    def is_locked(self, ip: str, username: str = None) -> tuple[bool, int]:
+        """Kiểm tra IP/User có đang bị khóa hay không. Trả về (is_locked, remaining_seconds)."""
+        key = self._get_key(ip, username)
+        now = time.time()
+        with self._lock:
+            rec = self._records.get(key)
+            if not rec:
+                return False, 0
+            if rec.get('locked_until', 0) > now:
+                remaining = int(rec['locked_until'] - now)
+                return True, remaining
+            if rec.get('locked_until', 0) > 0 and rec.get('locked_until', 0) <= now:
+                del self._records[key]
+            return False, 0
+
+    def record_failure(self, ip: str, username: str = None) -> tuple[bool, int]:
+        """Ghi nhận 1 lần đăng nhập thất bại. Trả về (is_locked, remaining_seconds)."""
+        key = self._get_key(ip, username)
+        now = time.time()
+        with self._lock:
+            rec = self._records.setdefault(key, {'attempts': 0, 'locked_until': 0, 'last_attempt': now})
+            rec['attempts'] += 1
+            rec['last_attempt'] = now
+            if rec['attempts'] >= self.max_attempts:
+                rec['locked_until'] = now + self.lockout_seconds
+                return True, self.lockout_seconds
+            return False, 0
+
+    def record_success(self, ip: str, username: str = None):
+        """Xóa lịch sử khi đăng nhập thành công."""
+        key = self._get_key(ip, username)
+        with self._lock:
+            self._records.pop(key, None)
+
+
+auth_rate_limiter = AuthRateLimiter(max_attempts=5, lockout_seconds=300)
+
+
+def init_web_app(config, cfg_path, retry_worker=None, logger=None, app_start_time=None, registry=None, license_mgr=None):
+    global app_config, config_path, retry_worker_ref, logger_ref, start_time, registry_ref, license_manager_ref
     app_config = config
     config_path = cfg_path
     retry_worker_ref = retry_worker
     logger_ref = logger
     start_time = app_start_time
     registry_ref = registry
+    auth_rate_limiter._records.clear()
+
+    # Khởi tạo License Manager
+    if license_mgr:
+        license_manager_ref = license_mgr
+    else:
+        data_dir = os.path.dirname(os.path.abspath(cfg_path)) if cfg_path else './data'
+        lic_file = os.path.join(data_dir, 'license.key')
+        license_manager_ref = LicenseManager(license_path=lic_file)
 
     auth_cfg = get_auth_config(config)
-    app.secret_key = auth_cfg.get('secret_key', 'TTSG_DICOM_GATEWAY_SUPER_SECRET_KEY_2026')
+    data_dir = os.path.dirname(os.path.abspath(cfg_path)) if cfg_path else './data'
+    app.secret_key = get_or_create_secret_key(data_dir, auth_cfg.get('secret_key'))
     lifetime_days = int(auth_cfg.get('session_lifetime_days', 30))
     app.permanent_session_lifetime = timedelta(days=lifetime_days)
+
 
 
 def get_current_user():
@@ -224,11 +301,35 @@ def api_auth_login():
     username = (data.get('username') or '').strip()
     password = data.get('password') or ''
     remember = bool(data.get('remember', True))
+    client_ip = request.remote_addr or 'unknown'
+
+    # Kiểm tra Brute-force Lockout
+    is_locked, remaining = auth_rate_limiter.is_locked(client_ip, username)
+    if is_locked:
+        if logger_ref:
+            logger_ref.warning(f"Chặn đăng nhập do IP/Tài khoản [{client_ip} / {username}] đang bị khóa (còn {remaining}s)")
+        return jsonify({
+            'success': False,
+            'message': f'Tài khoản đang bị tạm khóa do nhập sai nhiều lần. Vui lòng thử lại sau {remaining} giây.',
+            'code': 'LOCKED_OUT',
+            'lockout_remaining': remaining
+        }), 429
 
     user = authenticate_user(app_config, username, password)
     if not user:
+        is_locked_now, wait_sec = auth_rate_limiter.record_failure(client_ip, username)
+        if is_locked_now:
+            if logger_ref:
+                logger_ref.warning(f"Tài khoản [{username}] từ IP [{client_ip}] đã bị tạm khóa 5 phút do nhập sai 5 lần liên tiếp")
+            return jsonify({
+                'success': False,
+                'message': f'Bạn đã nhập sai quá 5 lần. Tài khoản bị tạm khóa trong {wait_sec} giây.',
+                'code': 'LOCKED_OUT',
+                'lockout_remaining': wait_sec
+            }), 429
         return jsonify({'success': False, 'message': 'Tên đăng nhập hoặc mật khẩu không chính xác'}), 401
 
+    auth_rate_limiter.record_success(client_ip, username)
     session.clear()
     session.permanent = remember
     session['username'] = user['username']
@@ -251,6 +352,76 @@ def api_auth_logout():
     if logger_ref:
         logger_ref.info(f"Phiên làm việc [{uname}] đã đăng xuất")
     return jsonify({'success': True, 'message': 'Đã đăng xuất thành công'})
+
+
+@app.route('/api/license/status', methods=['GET'])
+def api_license_status():
+    if not license_manager_ref:
+        from license_manager import LicenseManager
+        return jsonify({'success': True, 'license': LicenseManager().get_summary()})
+    return jsonify({'success': True, 'license': license_manager_ref.get_summary()})
+
+
+@app.route('/api/license/activate', methods=['POST'])
+@admin_required
+def api_license_activate():
+    if not license_manager_ref:
+        return jsonify({'success': False, 'message': 'License Manager chưa sẵn sàng'}), 500
+
+    data = request.get_json(silent=True) or {}
+    key_content = (data.get('license_key') or '').strip()
+    if not key_content and 'file' in request.files:
+        try:
+            key_content = request.files['file'].read().decode('utf-8', errors='ignore').strip()
+        except Exception:
+            pass
+
+    if not key_content:
+        return jsonify({'success': False, 'message': 'Vui lòng cung cấp nội dung hoặc file license.key'}), 400
+
+    res = license_manager_ref.activate_license(key_content)
+    if res.get('is_valid'):
+        if logger_ref:
+            logger_ref.info(f"Kích hoạt bản quyền thành công cho [{res.get('customer_name')}] - Gói: {res.get('plan_name')}")
+        return jsonify({
+            'success': True,
+            'message': 'Kích hoạt bản quyền thành công!',
+            'license': res
+        })
+    return jsonify({
+        'success': False,
+        'message': res.get('message', 'Bản quyền không hợp lệ'),
+        'license': res
+    }), 400
+
+
+@app.route('/api/system/update-patch', methods=['POST'])
+@admin_required
+def api_system_update_patch():
+    """Nhận và nạp gói cập nhật .pkg trực tiếp từ Web Dashboard."""
+    if 'file' not in request.files:
+        return jsonify({'success': False, 'message': 'Vui lòng chọn file cập nhật (.pkg)'}), 400
+
+    patch_file = request.files['file']
+    if not patch_file.filename or not patch_file.filename.lower().endswith('.pkg'):
+        return jsonify({'success': False, 'message': 'File cập nhật phải có định dạng .pkg'}), 400
+
+    from patch_builder import verify_and_apply_patch
+
+    if getattr(sys, 'frozen', False):
+        app_dir = os.path.dirname(sys.executable)
+    else:
+        app_dir = os.path.dirname(os.path.abspath(__file__))
+
+    patch_bytes = patch_file.read()
+    res = verify_and_apply_patch(patch_bytes, app_dir)
+    if res.get('success'):
+        if logger_ref:
+            logger_ref.info(f"Hệ thống đã được cập nhật thành công lên bản v{res.get('version')} ({res.get('updated_files_count')} tệp)")
+        return jsonify(res)
+    return jsonify(res), 400
+
+
 
 
 @app.route('/api/auth/me', methods=['GET'])
@@ -973,23 +1144,25 @@ def api_retry_now():
     return jsonify({'success': False, 'message': 'Tiến trình Retry Worker chưa sẵn sàng'}), 400
 
 
-def run_web_server(config, cfg_path, retry_worker=None, logger=None, app_start_time=None, registry=None):
-    init_web_app(config, cfg_path, retry_worker, logger, app_start_time, registry)
+def run_web_server(config, cfg_path, retry_worker=None, logger=None, app_start_time=None, registry=None, license_mgr=None):
+    init_web_app(config, cfg_path, retry_worker, logger, app_start_time, registry, license_mgr)
     web_cfg = config.get('web_ui', {})
     host = web_cfg.get('host', '0.0.0.0')
     port = int(web_cfg.get('port', 5000))
     if logger:
-        logger.info(f"Khởi chạy Web Control Panel tại: http://{host if host != '0.0.0.0' else 'localhost'}:{port}")
+        logger.info(f"Khởi chạy Production WSGI Server (Waitress) tại: http://{host if host != '0.0.0.0' else 'localhost'}:{port}")
 
-    # Chạy server ẩn log Werkzeug thừa
-    import logging as py_logging
-    log = py_logging.getLogger('werkzeug')
-    log.setLevel(py_logging.ERROR)
+    # Chạy WSGI Server Waitress đa luồng production
+    try:
+        import waitress
+        waitress.serve(app, host=host, port=port, threads=8, channel_timeout=60)
+    except ImportError:
+        if logger:
+            logger.warning("Thư viện 'waitress' chưa được cài đặt, fallback về Flask Server")
+        app.run(host=host, port=port, debug=False, use_reloader=False)
 
-    app.run(host=host, port=port, debug=False, use_reloader=False)
 
-
-def start_web_server_thread(config, cfg_path, retry_worker=None, logger=None, app_start_time=None, registry=None):
+def start_web_server_thread(config, cfg_path, retry_worker=None, logger=None, app_start_time=None, registry=None, license_mgr=None):
     if not config.get('web_ui', {}).get('enabled', True):
         if logger:
             logger.info("Web UI đang bị tắt trong config.yaml (web_ui.enabled: false)")
@@ -997,8 +1170,9 @@ def start_web_server_thread(config, cfg_path, retry_worker=None, logger=None, ap
 
     t = threading.Thread(
         target=run_web_server,
-        args=(config, cfg_path, retry_worker, logger, app_start_time, registry),
+        args=(config, cfg_path, retry_worker, logger, app_start_time, registry, license_mgr),
         daemon=True
     )
     t.start()
     return t
+

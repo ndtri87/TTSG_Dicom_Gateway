@@ -144,17 +144,19 @@ def test_api_upload_manual_study_instance_uid_batch():
             assert data['success'] is True
             assert len(sent_dicom_files) == 2
 
-            ds1 = pydicom.dcmread(sent_dicom_files[0])
-            ds2 = pydicom.dcmread(sent_dicom_files[1])
+            with open(sent_dicom_files[0], 'rb') as f1:
+                ds1 = pydicom.dcmread(f1)
+                assert ds1.PatientID == 'BN18000991'
+                assert ds1.AccessionNumber == '3040784'
+                assert ds1.StudyInstanceUID == expected_study_uid
+                assert ds1.InstanceNumber == '1'
 
-            assert ds1.PatientID == 'BN18000991'
-            assert ds2.PatientID == 'BN18000991'
-            assert ds1.AccessionNumber == '3040784'
-            assert ds2.AccessionNumber == '3040784'
-            assert ds1.StudyInstanceUID == expected_study_uid
-            assert ds2.StudyInstanceUID == expected_study_uid
-            assert ds1.InstanceNumber == '1'
-            assert ds2.InstanceNumber == '2'
+            with open(sent_dicom_files[1], 'rb') as f2:
+                ds2 = pydicom.dcmread(f2)
+                assert ds2.PatientID == 'BN18000991'
+                assert ds2.AccessionNumber == '3040784'
+                assert ds2.StudyInstanceUID == expected_study_uid
+                assert ds2.InstanceNumber == '2'
 
 
 def test_api_modalities_summary():
@@ -665,6 +667,123 @@ def test_admin_station_management():
         res_del = client.delete('/api/admin/stations/ES_01')
         assert res_del.status_code == 200
         assert res_del.get_json()['success'] is True
+
+
+def test_auth_brute_force_lockout():
+    from web_server import auth_rate_limiter
+    auth_rate_limiter._records.clear()
+
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        cfg_path = os.path.join(tmp_dir, 'config.yaml')
+        config = {
+            'auth': {
+                'enabled': True,
+                'users': [
+                    {'username': 'trind', 'password_hash': hash_password('correct_pwd'), 'full_name': 'Super Admin', 'role': 'ADMIN', 'allowed_modalities': ['*']}
+                ]
+            },
+            'pacs': {'ip': '127.0.0.1', 'port': 6002, 'called_ae_title': 'PACS', 'calling_ae_title': 'GATEWAY'},
+            'ris': {'enabled': False},
+            'watcher': {'watch_folders': [], 'stability_check_interval_sec': 1, 'stability_check_count': 2},
+            'paths': {
+                'dicom_staging_folder': os.path.join(tmp_dir, 'staging'),
+                'processed_folder': os.path.join(tmp_dir, 'processed'),
+                'failed_folder': os.path.join(tmp_dir, 'failed'),
+                'duplicates_folder': os.path.join(tmp_dir, 'duplicates'),
+                'retry_queue_folder': os.path.join(tmp_dir, 'queue'),
+                'registry_db': os.path.join(tmp_dir, 'registry.sqlite3'),
+            },
+            'filename_pattern': {'regex': r'^(?P<patient_id>[A-Za-z0-9]+)', 'date_format': '%Y%m%d'},
+            'metadata': {'default_value': 'UNKNOWN', 'specific_character_set': 'ISO_IR 192'},
+            'retry': {'scan_interval_sec': 300, 'backoff_schedule_sec': [300], 'max_attempts': 3},
+            'logging': {'log_folder': tmp_dir, 'level': 'INFO', 'retention_days': 90},
+        }
+        init_web_app(config, cfg_path, None, None, 1000)
+        client = app.test_client()
+
+        # 4 lần gõ sai đầu tiên trả về 401
+        for i in range(4):
+            res = client.post('/api/auth/login', json={'username': 'trind', 'password': f'wrong_{i}'})
+            assert res.status_code == 401
+            assert res.get_json()['success'] is False
+
+        # Lần gõ sai thứ 5 -> kích hoạt khóa 429
+        res5 = client.post('/api/auth/login', json={'username': 'trind', 'password': 'wrong_5'})
+        assert res5.status_code == 429
+        data5 = res5.get_json()
+        assert data5['code'] == 'LOCKED_OUT'
+        assert data5['lockout_remaining'] > 0
+
+        # Lần thứ 6 dù gõ đúng mật khẩu vẫn bị chặn 429 vì đang trong thời gian khóa
+        res6 = client.post('/api/auth/login', json={'username': 'trind', 'password': 'correct_pwd'})
+        assert res6.status_code == 429
+        assert res6.get_json()['code'] == 'LOCKED_OUT'
+
+
+def test_api_license_endpoints():
+    from license_generator import generate_license_data
+    from license_manager import get_machine_fingerprint
+
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        cfg_path = os.path.join(tmp_dir, 'config.yaml')
+        config = {
+            'auth': {
+                'enabled': True,
+                'users': [
+                    {'username': 'trind', 'password_hash': hash_password('admin123'), 'full_name': 'Super Admin', 'role': 'ADMIN', 'allowed_modalities': ['*']}
+                ]
+            },
+            'pacs': {'ip': '127.0.0.1', 'port': 6002, 'called_ae_title': 'PACS', 'calling_ae_title': 'GATEWAY'},
+            'ris': {'enabled': False},
+            'watcher': {'watch_folders': [], 'stability_check_interval_sec': 1, 'stability_check_count': 2},
+            'paths': {
+                'dicom_staging_folder': os.path.join(tmp_dir, 'staging'),
+                'processed_folder': os.path.join(tmp_dir, 'processed'),
+                'failed_folder': os.path.join(tmp_dir, 'failed'),
+                'duplicates_folder': os.path.join(tmp_dir, 'duplicates'),
+                'retry_queue_folder': os.path.join(tmp_dir, 'queue'),
+                'registry_db': os.path.join(tmp_dir, 'registry.sqlite3'),
+            },
+            'filename_pattern': {'regex': r'^(?P<patient_id>[A-Za-z0-9]+)', 'date_format': '%Y%m%d'},
+            'metadata': {'default_value': 'UNKNOWN', 'specific_character_set': 'ISO_IR 192'},
+            'retry': {'scan_interval_sec': 300, 'backoff_schedule_sec': [300], 'max_attempts': 3},
+            'logging': {'log_folder': tmp_dir, 'level': 'INFO', 'retention_days': 90},
+        }
+        init_web_app(config, cfg_path, None, None, 1000)
+        client = app.test_client()
+
+        # 1. Kiểm tra trạng thái License ban đầu (Mặc định DEMO)
+        res_status = client.get('/api/license/status')
+        assert res_status.status_code == 200
+        lic_init = res_status.get_json()['license']
+        assert lic_init['status'] == 'DEMO'
+        assert lic_init['hardware_id'].startswith('TTSG-')
+
+        # 2. Đăng nhập Admin để kích hoạt
+        client.post('/api/auth/login', json={'username': 'trind', 'password': 'admin123'})
+
+        # 3. Kích hoạt License hợp lệ
+        hwid = get_machine_fingerprint()
+        lic_payload = generate_license_data(
+            customer_name='Bệnh viện Đa khoa Tâm Trí Sài Gòn',
+            hardware_id=hwid,
+            expiration_date='2035-12-31',
+            allowed_modalities=['US', 'ES', 'ECG'],
+            max_stations=30,
+            plan_name='Enterprise Medical Edition'
+        )
+
+        res_act = client.post('/api/license/activate', json={'license_key': lic_payload})
+        assert res_act.status_code == 200
+        act_data = res_act.get_json()
+        assert act_data['success'] is True
+        assert act_data['license']['status'] == 'VALID'
+        assert act_data['license']['customer_name'] == 'Bệnh viện Đa khoa Tâm Trí Sài Gòn'
+
+        # 4. Kiểm tra lại qua GET /api/license/status
+        res_check = client.get('/api/license/status')
+        assert res_check.get_json()['license']['status'] == 'VALID'
+
 
 
 

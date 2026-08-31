@@ -39,7 +39,14 @@ from web_server import start_web_server_thread
 from worklist_client import WorklistClient
 
 SUPPORTED_EXTENSIONS = {'.png', '.jpg', '.jpeg', '.pdf'}
-CONFIG_PATH = os.environ.get('DICOM_GATEWAY_CONFIG', os.path.join(os.path.dirname(__file__), 'config.yaml'))
+
+if getattr(sys, 'frozen', False):
+    APP_DIR = os.path.dirname(sys.executable)
+else:
+    APP_DIR = os.path.dirname(os.path.abspath(__file__))
+
+CONFIG_PATH = os.environ.get('DICOM_GATEWAY_CONFIG', os.path.join(APP_DIR, 'config.yaml'))
+
 
 
 class InboxHandler(FileSystemEventHandler):
@@ -217,6 +224,13 @@ def main():
     if worklist_client is not None:
         logger.info(f"Tra cứu metadata qua RIS Worklist: {config['ris']['ip']}:{config['ris']['port']}")
 
+    # Khởi tạo License Manager
+    from license_manager import LicenseManager
+    lic_path = os.path.join(os.path.dirname(os.path.abspath(CONFIG_PATH)), 'data', 'license.key')
+    license_manager = LicenseManager(license_path=lic_path)
+    lic_summary = license_manager.get_summary()
+    logger.info(f"[Bản Quyền] Trạng thái: {lic_summary.get('status')} | Gói: {lic_summary.get('plan_name')} | Khách hàng: {lic_summary.get('customer_name')} (Hardware ID: {lic_summary.get('hardware_id')})")
+
     work_queue = queue.Queue()
     worker = GatewayWorker(config, work_queue, registry, sender, worklist_client, logger)
     worker.start()
@@ -235,7 +249,7 @@ def main():
     logger.info(f"Đang theo dõi các thư mục: {watch_folders_list}")
 
     # Khởi chạy Web Control Panel
-    start_web_server_thread(config, CONFIG_PATH, retry_worker, logger, start_time, registry)
+    start_web_server_thread(config, CONFIG_PATH, retry_worker, logger, start_time, registry, license_manager)
 
     stop_event = threading.Event()
 
