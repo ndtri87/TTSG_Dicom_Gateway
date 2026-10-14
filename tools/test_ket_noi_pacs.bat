@@ -1,5 +1,5 @@
 @echo off
-cd /d %~dp0
+cd /d %~dp0..
 
 if not exist ".venv\Scripts\python.exe" (
     echo [LOI] Chua cai dat. Hay chay setup.bat truoc.
@@ -7,5 +7,5 @@ if not exist ".venv\Scripts\python.exe" (
     exit /b 1
 )
 
-.venv\Scripts\python.exe test_pacs_connection.py
+.venv\Scripts\python.exe tools\test_pacs_connection.py
 pause

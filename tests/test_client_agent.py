@@ -3,7 +3,7 @@ import tempfile
 import sys
 from unittest.mock import MagicMock, patch
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'Client'))
 
 from client_agent import is_file_stable, move_file, send_file_to_server  # noqa: E402
 

@@ -6,6 +6,11 @@ from pydicom.uid import generate_uid
 
 sys.stdout.reconfigure(encoding='utf-8')
 
+import os as _os
+import sys as _sys
+# Công cụ nằm trong tools/: cho phép import các module lõi ở thư mục gốc
+_sys.path.insert(0, _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))))
+
 from dicom_builder import build_dicom_from_file
 from dicom_sender import DicomSender
 from utils import load_config

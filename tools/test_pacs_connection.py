@@ -6,6 +6,11 @@ import sys
 from pynetdicom import AE
 from pynetdicom.sop_class import Verification
 
+import os as _os
+import sys as _sys
+# Công cụ nằm trong tools/: cho phép import các module lõi ở thư mục gốc
+_sys.path.insert(0, _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))))
+
 from utils import ConfigError, load_config
 
 CONFIG_PATH = 'config.yaml'

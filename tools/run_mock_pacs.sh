@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-cd "$(dirname "$0")"
+cd "$(dirname "$0")/.."
 
 if [ ! -f ".venv/bin/python" ]; then
     echo "[LOI] Chua cai dat. Hay chay ./setup.sh truoc."
@@ -9,4 +9,4 @@ fi
 echo "Dang khoi dong PACS gia lap (dung de test cuc bo)..."
 echo "File nhan duoc se luu vao ./data/mock_pacs_received"
 echo "Nhan Ctrl+C de dung."
-./.venv/bin/python mock_pacs_server.py
+./.venv/bin/python tools/mock_pacs_server.py
