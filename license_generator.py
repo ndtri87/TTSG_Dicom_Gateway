@@ -12,35 +12,23 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives.serialization import load_pem_private_key
 
-# Master RSA 2048-bit Private Key dùng để ký số bản quyền
-DEFAULT_PRIVATE_KEY_PEM = """-----BEGIN PRIVATE KEY-----
-MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDQhxe/lwICweBx
-PBzsaP47ZwtHO+UxGHvUyc+Ac+ipMyeae3qx0SVb7gaXMpmAwKRpEgTdUUKNwSzG
-srEXISZI0rK4wf0szg7dDcTcVD+33/tyv7b1+eHD2diVAtmNZ8mWzrkr6RaF6NXL
-E5hQpsngc+rsRbiFDoRJjgoHKAH4LwwMAVl0J2MIokMfYCuPi24Pdsooq/RIwXE0
-rFvoO2NTjclgyeBjldjDKq1YBlR6nLu8axN23M7s2CmDucRgphhaBMk6gqJ1mIIn
-8Zx6q7k/YBTFoSPVnTj9sMjgb5eSmJ2B1Tca4eqtIhrDoeZgrh9ZMBDVwwQz4xha
-kVcu+N6lAgMBAAECggEAIEPu8EWw2XVfQZYgEZJzWASrMZP6dBzKOFQbp9AHfXq9
-U4FsrCvk4HMVkPqS1uG37swLdaU3q5Bq2bnXffEyp8z2O3FEt9SQZzLUtZTRoSVm
-lkxExo2qGbBQ+0mMGP2oqw2EiF9SDVlID1qSVFRiYzj8bh+hm/DxliIEujO+DkUN
-vxJPUmRJbVBK/oR5NWN9tQxrb0dGy3mICTwGPU1eErv7RJ6e+giNKo4G3DCkiujX
-s8xpetAYXFLoAajv01k+T+v8txDT1dYbdLBUah9ctT6znjh04yHidphRt7sDGwji
-/R/Hf5PdPEQzsiRnmetbVWO29Ia3NOeupb3wTrjxhwKBgQDyM6IVC6/lZamueDH3
-6Val9HiE41RAaWAADoTkqutBh4OCsNrgMx2jjlLzgO+ABdMufZq+q6JWzQQEBaZR
-kHn3WT1o1a7+RKXj0LcDVcq1LUrW5FCW9od4m55zAC68Xv62HYYZ9oHjE6089yoB
-bZ/G2gbPOLRti5r9atMMepq19wKBgQDcaFg9NUQ8GOYeW7xW+I0jRyGm/Y1fTp2m
-2gm9drSciYE4JLVjdmxwQKPWHAV7AsHWIzr8UOZ/vOK3n418Eiyq6fmJFoPEifbQ
-giBHAnmqeOwIP5qeBfsqcGqcQjZB4rphoRsHmU1dkat/iWOXSWVilrBFqMd0OD7t
-XuIztvL5QwKBgCkh77LXS0YQH+MLcqEBtb91Z0paOSK/Qph/3r3e8Rkt5H27f1B4
-Hd56+0dzbDk3xAevOSqMh4NqSfZM51QOz0fclftJ3vA7xFiOR6Z/WW+vg3g/Shh5
-QcSP2Tb6nvVKxMM0/GNIZAKmgtNJvo6DiZEB0go7PRkljmrfS3xhDgk9AoGBAL6h
-dShDaOf9tRKuzz/9q7zGagHPrTWwfkRwsxnukJoPh/byMPx80Z9pGQs3oznYkaRP
-RlYy9pmm2gRteGbGJWISCiSal48msJV45sfkCSz7d1JPCMECdVEod9z8m4byvbdx
-KzqwSizSsB0XzE5uScUyhfVJ3HDVsP+HIGgQJSiXAoGBANsYznUfU4IkzRTKXWWk
-NCIfjkdXQl7slSIx+HhsFpRiAOEaUvOCdShOnzbo7mYT9NWArYAJYb8MeJ+y/O2W
-rstQFirGfGszEWdht5VvyrgwI7Y9dZZeFSVFhhI9XmNt1ZNtEiLDcNwUWmiCKjB/
-zweEYscq85L9lkKEGmJNpVUA
------END PRIVATE KEY-----"""
+# Private key KHÔNG BAO GIỜ được nhúng trong mã nguồn hay đóng gói vào bản build giao khách.
+# Đọc từ biến môi trường TTSG_LICENSE_PRIVATE_KEY (đường dẫn file PEM) hoặc keys/license_private.pem
+# (thư mục keys/ đã bị .gitignore). Hãy sao lưu file này ở nơi an toàn — mất nó là không ký được license mới.
+PRIVATE_KEY_ENV = 'TTSG_LICENSE_PRIVATE_KEY'
+DEFAULT_PRIVATE_KEY_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'keys', 'license_private.pem')
+
+
+def load_private_key_pem() -> str:
+    """Đọc RSA private key PEM dùng để ký license / bản vá."""
+    key_path = os.environ.get(PRIVATE_KEY_ENV) or DEFAULT_PRIVATE_KEY_PATH
+    if not os.path.isfile(key_path):
+        raise FileNotFoundError(
+            f"Không tìm thấy private key ký bản quyền tại '{key_path}'. "
+            f"Đặt file vào keys/license_private.pem hoặc khai báo biến môi trường {PRIVATE_KEY_ENV}."
+        )
+    with open(key_path, 'r', encoding='utf-8') as f:
+        return f.read()
 
 
 def generate_license_data(
@@ -53,7 +41,7 @@ def generate_license_data(
     private_key_pem: str = None
 ) -> str:
     """Tạo dữ liệu bản quyền có chữ ký số RSA 2048-bit."""
-    priv_key_pem = private_key_pem or DEFAULT_PRIVATE_KEY_PEM
+    priv_key_pem = private_key_pem or load_private_key_pem()
     priv_key = load_pem_private_key(priv_key_pem.encode('utf-8'), password=None)
 
     data_payload = {

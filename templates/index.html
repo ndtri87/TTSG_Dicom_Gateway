@@ -1655,6 +1655,34 @@
                 </div>
             </div>
 
+            <!-- Cổng dịch vụ của chính Gateway -->
+            <div class="card" style="margin-top: 1rem;">
+                <div class="section-title">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span class="icon-badge sm"><svg class="svg-icon sm"><use href="#icon-server"></use></svg></span>
+                        <span>Cổng dịch vụ của Gateway</span>
+                    </div>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Cổng Web / REST API</label>
+                        <input type="number" id="web-port" class="form-control" placeholder="5000" min="1" max="65535">
+                    </div>
+                    <div class="form-group">
+                        <label>Cổng Storage Commitment (PACS gọi ngược)</label>
+                        <input type="number" id="sc-port" class="form-control" placeholder="105" min="1" max="65535">
+                    </div>
+                    <div class="form-group" style="flex-direction: row; align-items: center; gap: 10px;">
+                        <input type="checkbox" id="sc-enabled" style="width: 16px; height: 16px; cursor: pointer;">
+                        <label for="sc-enabled" style="color: var(--text-main); cursor: pointer; text-transform: none; font-size: 13px;">Bật Storage Commitment</label>
+                    </div>
+                </div>
+                <p style="font-size: 12px; color: var(--text-muted); margin-top: 0.6rem;">
+                    Đổi cổng: dịch vụ tự khởi động lại và tự mở Windows Firewall cho cổng mới. Nhớ cập nhật <code>server_url</code> trên các Client Agent
+                    và báo IT bệnh viện sửa cổng callback trên PACS.
+                </p>
+            </div>
+
             <div style="margin-top: 1.5rem; display: flex; justify-content: flex-end;">
                 <button class="btn btn-success" onclick="saveConfiguration()">
                     <svg class="svg-icon sm"><use href="#icon-save"></use></svg>
@@ -1996,7 +2024,7 @@
                     <input type="password" id="change-pwd-old" class="form-control" required placeholder="Nhập mật khẩu cũ">
                 </div>
                 <div class="form-group" style="margin-bottom: 0.8rem;">
-                    <label>Mật khẩu mới (tối thiểu 4 ký tự)</label>
+                    <label>Mật khẩu mới (tối thiểu 6 ký tự)</label>
                     <input type="password" id="change-pwd-new" class="form-control" required placeholder="Nhập mật khẩu mới">
                 </div>
                 <div class="form-group" style="margin-bottom: 1.2rem;">
@@ -2558,6 +2586,12 @@
                 document.getElementById('pacs-called').value = currentConfig.pacs.called_ae_title || '';
                 document.getElementById('pacs-calling').value = currentConfig.pacs.calling_ae_title || '';
 
+                // Populate cổng dịch vụ của Gateway
+                const scCfg = currentConfig.pacs.storage_commitment || {};
+                document.getElementById('web-port').value = (currentConfig.web_ui && currentConfig.web_ui.port) || 5000;
+                document.getElementById('sc-enabled').checked = !!scCfg.enabled;
+                document.getElementById('sc-port').value = scCfg.listen_port || 105;
+
                 // Populate RIS
                 document.getElementById('ris-enabled').checked = currentConfig.ris.enabled || false;
                 document.getElementById('ris-ip').value = currentConfig.ris.ip || '';
@@ -2635,6 +2669,23 @@
             currentConfig.ris.called_ae_title = document.getElementById('ris-called').value.trim();
             currentConfig.ris.calling_ae_title = document.getElementById('ris-calling').value.trim();
 
+            // Update cổng dịch vụ của Gateway
+            const webPort = parseInt(document.getElementById('web-port').value);
+            const scPort = parseInt(document.getElementById('sc-port').value);
+            if (!(webPort >= 1 && webPort <= 65535) || !(scPort >= 1 && scPort <= 65535) || webPort === scPort) {
+                showToast('Cổng không hợp lệ (1-65535) hoặc cổng Web trùng cổng Storage Commitment!', false);
+                return;
+            }
+            const oldWebPort = (currentConfig.web_ui && currentConfig.web_ui.port) || 5000;
+            if (webPort !== oldWebPort && !confirm(`Đổi cổng Web từ ${oldWebPort} sang ${webPort}? Dịch vụ sẽ khởi động lại và trang sẽ chuyển sang cổng mới. Các Client Agent cần sửa server_url.`)) {
+                return;
+            }
+            currentConfig.web_ui = Object.assign({}, currentConfig.web_ui, { port: webPort });
+            currentConfig.pacs.storage_commitment = Object.assign({}, currentConfig.pacs.storage_commitment, {
+                enabled: document.getElementById('sc-enabled').checked,
+                listen_port: scPort,
+            });
+
             try {
                 const res = await fetch('/api/config', {
                     method: 'POST',
@@ -2643,10 +2694,40 @@
                 });
                 const data = await res.json();
                 showToast(data.message, data.success);
-                fetchStatus();
+                if (data.restarting) {
+                    reloadWhenServiceIsBack();
+                } else {
+                    fetchStatus();
+                }
             } catch (err) {
                 showToast('Lỗi khi lưu cấu hình', false);
             }
+        }
+
+        // Service đang khởi động lại (sau khi lưu cấu hình / nạp bản vá): chờ server lên lại rồi tải lại trang.
+        // Nếu đã đổi port Web, trang cũ sẽ không kết nối được nữa -> báo địa chỉ mới.
+        function reloadWhenServiceIsBack() {
+            const newPort = currentConfig && currentConfig.web_ui && currentConfig.web_ui.port;
+            const portChanged = newPort && String(newPort) !== (window.location.port || '80');
+            if (portChanged) {
+                const newUrl = `${window.location.protocol}//${window.location.hostname}:${newPort}/`;
+                showToast(`Đã đổi cổng Web sang ${newPort}. Đang chuyển tới ${newUrl} ...`, true);
+                setTimeout(() => { window.location.href = newUrl; }, 12000);
+                return;
+            }
+            let attempts = 0;
+            setTimeout(function poll() {
+                attempts++;
+                fetch('/login', { cache: 'no-store' })
+                    .then(r => { if (r.ok) window.location.reload(); else throw new Error(); })
+                    .catch(() => {
+                        if (attempts < 30) {
+                            setTimeout(poll, 2000);
+                        } else {
+                            showToast('Dịch vụ chưa phản hồi, vui lòng kiểm tra Windows Service TTSG_DicomGateway.', false);
+                        }
+                    });
+            }, 6000);
         }
 
         async function testPacsConnection() {
@@ -3376,8 +3457,8 @@
                 showToast('Mật khẩu xác nhận không khớp!', false);
                 return;
             }
-            if (newPass.length < 4) {
-                showToast('Mật khẩu mới phải có ít nhất 4 ký tự!', false);
+            if (newPass.length < 6) {
+                showToast('Mật khẩu mới phải có ít nhất 6 ký tự!', false);
                 return;
             }
 
@@ -3504,7 +3585,7 @@
             document.getElementById('edit-user-fullname').value = '';
             document.getElementById('edit-user-department').value = '';
             document.getElementById('edit-user-pwd').value = '';
-            document.getElementById('edit-user-pwd-hint').innerText = '(Mặc định nếu để trống: 123456)';
+            document.getElementById('edit-user-pwd-hint').innerText = '(Bắt buộc, tối thiểu 6 ký tự)';
             document.getElementById('edit-user-role').value = 'TECHNICIAN';
             toggleModalitySelect('TECHNICIAN');
             renderModalityCheckboxes(['US']);
@@ -3636,6 +3717,12 @@
                     <td>${mods || '<em style="color: var(--text-muted);">Chưa gán</em>'}</td>
                     <td><span class="modality-badge" style="background: var(--success-bg); color: var(--success-text); border-color: var(--success-border);">${st.default_modality || (st.allowed_modalities && st.allowed_modalities[0]) || '-'}</span></td>
                     <td>
+                        <button class="btn btn-outline" style="padding: 3px 8px; font-size: 11.5px; margin-right: 4px;" title="Mã kết nối cho Client Agent máy trạm (station_key)" onclick="showStationAgentKey('${st.id}')">
+                            ${svgIcon('key', 'xs')} <span>${st.api_key ? 'Mã Client Agent' : 'Tạo mã Client Agent'}</span>
+                        </button>
+                        ${st.api_key ? `<button class="btn btn-outline" style="padding: 3px 8px; font-size: 11.5px; margin-right: 4px;" title="Tạo mã mới, mã cũ ngừng hoạt động" onclick="regenerateStationAgentKey('${st.id}')">
+                            ${svgIcon('refresh', 'xs')} <span>Tạo lại</span>
+                        </button>` : ''}
                         <button class="btn btn-outline" style="padding: 3px 8px; font-size: 11.5px; margin-right: 4px;" onclick="openEditStationModal('${st.id}')">
                             ${svgIcon('edit', 'xs')} <span>Sửa</span>
                         </button>
@@ -3734,6 +3821,35 @@
             }
         }
 
+        async function showStationAgentKey(stationId) {
+            const st = allAdminStations.find(s => s.id === stationId);
+            if (st && st.api_key) {
+                window.prompt(`Mã Client Agent của [${stationId}] — dán vào client_config.yaml (station_key) trên máy trạm:`, st.api_key);
+                return;
+            }
+            await requestStationAgentKey(stationId);
+        }
+
+        async function regenerateStationAgentKey(stationId) {
+            if (!confirm(`Tạo mã mới cho [${stationId}]? Client Agent đang dùng mã cũ sẽ bị từ chối cho tới khi cập nhật mã mới.`)) return;
+            await requestStationAgentKey(stationId);
+        }
+
+        async function requestStationAgentKey(stationId) {
+            try {
+                const res = await fetch(`/api/admin/stations/${stationId}/api-key`, { method: 'POST' });
+                const data = await res.json();
+                if (!data.success) {
+                    showToast(data.message || 'Lỗi tạo mã Client Agent', false);
+                    return;
+                }
+                window.prompt(`Mã Client Agent mới của [${stationId}] — dán vào client_config.yaml (station_key):`, data.api_key);
+                fetchAdminStations();
+            } catch (err) {
+                showToast('Lỗi: ' + err.message, false);
+            }
+        }
+
         async function deleteStationAccount(stationId) {
             if (!confirm(`Bạn có chắc chắn muốn xóa nơi thực hiện [${stationId}]?`)) return;
             try {
@@ -3811,7 +3927,7 @@
                 if (expElem) expElem.innerText = lic.expiration_date === 'PERMANENT' ? 'Vĩnh viễn (Permanent)' : (lic.expiration_date || '---');
 
                 const maxStElem = document.getElementById('lic-max-stations');
-                if (maxStElem) maxStElem.innerText = lic.max_stations ? `${lic.max_stations} Trạm phòng khám` : 'Không giới hạn';
+                if (maxStElem) maxStElem.innerText = lic.is_valid ? (lic.max_stations ? `${lic.max_stations} Trạm phòng khám` : 'Không giới hạn') : '0 (bản quyền không hợp lệ)';
 
                 const daysElem = document.getElementById('lic-days-remaining');
                 const progressContainer = document.getElementById('lic-trial-progress-container');
@@ -3819,7 +3935,12 @@
                 const progressFill = document.getElementById('lic-progress-fill');
 
                 if (daysElem) {
-                    if (lic.expiration_date === 'PERMANENT') {
+                    if (!lic.is_valid && lic.status !== 'EXPIRED') {
+                        // Sai máy / sai chữ ký / file hỏng: không phải hết hạn
+                        daysElem.innerText = `Không hợp lệ (${lic.status})`;
+                        daysElem.style.color = 'var(--danger-text)';
+                        if (progressContainer) progressContainer.style.display = 'none';
+                    } else if (lic.expiration_date === 'PERMANENT') {
                         daysElem.innerText = 'Vô thời hạn (Vĩnh viễn)';
                         daysElem.style.color = 'var(--success-text)';
                         if (progressContainer) progressContainer.style.display = 'none';
@@ -4001,9 +4122,11 @@
                         statusMsg.style.color = 'var(--success-text)';
                         statusMsg.innerText = `${data.message}`;
                     }
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 2000);
+                    if (data.restarting) {
+                        reloadWhenServiceIsBack();
+                    } else {
+                        setTimeout(() => window.location.reload(), 2000);
+                    }
                 } else {
                     showToast(data.message || 'Cập nhật thất bại!', false);
                     if (statusMsg) {

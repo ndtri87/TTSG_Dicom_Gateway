@@ -8,6 +8,7 @@ import os
 import platform
 import subprocess
 import sys
+import time
 import uuid
 from datetime import datetime, date, timedelta
 
@@ -15,15 +16,17 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives.serialization import load_pem_public_key
 
-# Master RSA 2048-bit Public Key nhúng sẵn vào Gateway Server
+# Master RSA 2048-bit Public Key nhúng sẵn vào Gateway Server.
+# Private key tương ứng nằm NGOÀI repo (keys/license_private.pem, xem license_generator.py).
+# Cặp khóa được thay mới ngày 2026-10-14 do khóa cũ bị lộ — license/bản vá ký bằng khóa cũ không còn hợp lệ.
 DEFAULT_PUBLIC_KEY_PEM = """-----BEGIN PUBLIC KEY-----
-MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA0IcXv5cCAsHgcTwc7Gj+
-O2cLRzvlMRh71MnPgHPoqTMnmnt6sdElW+4GlzKZgMCkaRIE3VFCjcEsxrKxFyEm
-SNKyuMH9LM4O3Q3E3FQ/t9/7cr+29fnhw9nYlQLZjWfJls65K+kWhejVyxOYUKbJ
-4HPq7EW4hQ6ESY4KBygB+C8MDAFZdCdjCKJDH2Arj4tuD3bKKKv0SMFxNKxb6Dtj
-U43JYMngY5XYwyqtWAZUepy7vGsTdtzO7Ngpg7nEYKYYWgTJOoKidZiCJ/Gcequ5
-P2AUxaEj1Z04/bDI4G+XkpidgdU3GuHqrSIaw6HmYK4fWTAQ1cMEM+MYWpFXLvje
-pQIDAQAB
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAvjuw3MQnnVIUdAG+qDKl
+l/cGy4qSVTLYeNaCc+ybZqGMmMJ/MzHS2PfUP/RH7eaJuxHRrR1fo0nZBiGhT2/g
+929HNxWRTKeYTfWhWnFIJTEKzPFoJ/CO5BSLVloThli+sMZ5fGvvRluaLrPulLjl
+ttLnzIqMWcxkltF6GpK/t0U1QEL6YEsmjHq3v2Pspn72IqUs5TSWXNYaqA87CySo
+efj9/qQs+snr0TBpnvhLqmN19d+VXWtVb0jvO2m5K4WJte8eTkxO/WiEDy30jWbE
+tztL7FErUCmAEOILCzvxcJL0IPuPvq702wesKdY3LM9fib5lZrLvILHTNBLDabBv
+1QIDAQAB
 -----END PUBLIC KEY-----"""
 
 
@@ -73,29 +76,29 @@ def get_machine_fingerprint() -> str:
 class LicenseManager:
     """Quản lý trạng thái và xác thực chữ ký bản quyền RSA 2048-bit."""
 
+    REFRESH_INTERVAL_SEC = 300
+
     def __init__(self, license_path: str = None, public_key_pem: str = None):
         if license_path:
             self.license_path = license_path
         else:
-            base_dir = os.path.dirname(os.path.abspath(__file__))
-            data_lic = os.path.join(base_dir, 'data', 'license.key')
-            root_lic = os.path.join(base_dir, 'license.key')
-            if os.path.exists(data_lic):
-                self.license_path = data_lic
-            elif os.path.exists(root_lic):
-                self.license_path = root_lic
+            if getattr(sys, 'frozen', False):
+                base_dir = os.path.dirname(sys.executable)
             else:
-                self.license_path = data_lic
+                base_dir = os.path.dirname(os.path.abspath(__file__))
+            self.license_path = os.path.join(base_dir, 'data', 'license.key')
 
         self.public_key_pem = public_key_pem or DEFAULT_PUBLIC_KEY_PEM
         self.current_hardware_id = get_machine_fingerprint()
         self._cached_status = None
+        self._evaluated_at = 0.0
         self.evaluate_license()
 
     def _get_demo_trial_info(self) -> dict:
         """Lấy hoặc khởi tạo thông tin bản dùng thử giới hạn 1 tháng (30 ngày)."""
-        base_dir = os.path.dirname(os.path.abspath(__file__))
-        trial_file = os.path.join(base_dir, 'data', '.trial.json')
+        # Lưu cạnh license.key (thư mục data/ của bản cài), không dùng __file__ vì
+        # khi đóng gói PyInstaller __file__ trỏ vào _internal/.
+        trial_file = os.path.join(os.path.dirname(os.path.abspath(self.license_path)), '.trial.json')
         os.makedirs(os.path.dirname(trial_file), exist_ok=True)
         now_dt = datetime.now()
 
@@ -142,6 +145,7 @@ class LicenseManager:
 
     def evaluate_license(self) -> dict:
         """Đọc và đánh giá tính hợp lệ của file license hiện tại."""
+        self._evaluated_at = time.monotonic()
         if not os.path.exists(self.license_path):
             trial = self._get_demo_trial_info()
             if trial['is_expired']:
@@ -179,6 +183,12 @@ class LicenseManager:
                 content = f.read().strip()
 
             info = self.verify_license_data(content)
+            if not info.get('is_valid'):
+                # Kết quả lỗi phải đủ trường để giao diện không hiện "undefined ngày" / "Không giới hạn" trạm
+                for key, default in (('is_demo', False), ('plan_name', 'Không Hợp Lệ'), ('customer_name', 'N/A'),
+                                     ('hardware_id', self.current_hardware_id), ('expiration_date', 'N/A'),
+                                     ('days_remaining', 0), ('max_stations', 0), ('allowed_modalities', [])):
+                    info.setdefault(key, default)
             self._cached_status = info
             return info
         except Exception as exc:
@@ -309,14 +319,33 @@ class LicenseManager:
         self.evaluate_license()
         return self._cached_status
 
+    def _refresh_if_stale(self):
+        # Service chạy 24/7: đánh giá lại định kỳ để bản dùng thử / license hết hạn có hiệu lực ngay
+        if time.monotonic() - self._evaluated_at > self.REFRESH_INTERVAL_SEC:
+            self.evaluate_license()
+
     def is_modality_licensed(self, modality_code: str) -> bool:
         """Kiểm tra một modality có nằm trong gói bản quyền đã mua hay không."""
+        self._refresh_if_stale()
         if not self._cached_status or not self._cached_status.get('is_valid'):
             return False
         allowed = self._cached_status.get('allowed_modalities', ['*'])
         if '*' in allowed or 'ALL' in allowed:
             return True
         return (modality_code or '').strip().upper() in [m.upper() for m in allowed]
+
+    def check_processing_allowed(self, modality_code: str) -> tuple[bool, str]:
+        """Có được phép chuyển đổi & gửi ca mới với modality này không. Trả về (ok, lý do)."""
+        if self.is_modality_licensed(modality_code):
+            return True, ''
+        status = self._cached_status or {}
+        if not status.get('is_valid'):
+            return False, f"Bản quyền không hợp lệ ({status.get('status', 'UNKNOWN')}): {status.get('message', '')}"
+        return False, f"Modality [{modality_code}] không nằm trong gói bản quyền đã cấp ({', '.join(status.get('allowed_modalities', []))})."
+
+    def max_stations(self) -> int:
+        self._refresh_if_stale()
+        return int((self._cached_status or {}).get('max_stations') or 0)
 
     def get_summary(self) -> dict:
         """Lấy thông tin tổng hợp cho Web API."""

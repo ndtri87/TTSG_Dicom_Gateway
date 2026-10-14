@@ -19,11 +19,20 @@ if "%EXP%"=="" set "EXP=PERMANENT"
 set /p STATIONS="4. Nhap so luong phong kham toi da (Mac dinh: 100): "
 if "%STATIONS%"=="" set "STATIONS=100"
 
+set /p MODS="5. Nhap Modality duoc phep, cach nhau dau phay (VD: US,ES,ECG - Enter = TAT CA [*]): "
+if "%MODS%"=="" set "MODS=*"
+
 echo.
 echo [*] Dang tao chu ky so RSA 2048-bit va tao file license.key...
-call .venv\Scripts\python.exe license_generator.py --customer "%CUSTOMER%" --hwid "%HWID%" --exp "%EXP%" --modalities "*" --stations %STATIONS% --plan "Ban Quyen Doanh Nghiep (Enterprise Edition)" --out "data/license.key"
+call .venv\Scripts\python.exe license_generator.py --customer "%CUSTOMER%" --hwid "%HWID%" --exp "%EXP%" --modalities "%MODS%" --stations %STATIONS% --plan "Ban Quyen Doanh Nghiep (Enterprise Edition)" --out "data/license.key"
 
-if errorlevel 0 (
+if errorlevel 1 (
+    echo [LOI] Tao license that bai. Kiem tra private key tai keys\license_private.pem.
+    pause
+    exit /b 1
+)
+
+if not errorlevel 1 (
     if exist "dist\TTSG_DicomGateway\data\" copy /y "data\license.key" "dist\TTSG_DicomGateway\data\license.key" >nul
     if exist "C:\Program Files\TTSG DICOM Gateway\data\" copy /y "data\license.key" "C:\Program Files\TTSG DICOM Gateway\data\license.key" >nul
     

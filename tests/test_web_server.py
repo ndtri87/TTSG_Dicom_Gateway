@@ -791,3 +791,42 @@ def test_api_license_endpoints():
 
 
 
+
+
+def test_api_upload_manual_blocks_path_traversal():
+    """Tên file dạng '../../x.png' không được ghi ra ngoài thư mục staging/processed."""
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        processed_dir = os.path.join(tmp_dir, 'data', 'processed')
+        config = {
+            'paths': {
+                'dicom_staging_folder': os.path.join(tmp_dir, 'data', 'staging'),
+                'processed_folder': processed_dir,
+                'failed_folder': os.path.join(tmp_dir, 'data', 'failed'),
+            },
+            'filename_pattern': {
+                'regex': r'^(?P<patient_id>[A-Za-z0-9]+)_(?P<patient_name>[^_]+)_(?P<study_date>\d{8})',
+                'date_format': '%Y%m%d',
+            },
+            'metadata': {'default_value': 'UNKNOWN'},
+            'pacs': {'ip': '127.0.0.1', 'port': 6002, 'called_ae_title': 'PACS', 'calling_ae_title': 'GATEWAY'},
+            'ris': {'enabled': False},
+        }
+        init_web_app(config, os.path.join(tmp_dir, 'config.yaml'), None, None, 1000)
+        client = app.test_client()
+
+        img_bytes = io.BytesIO()
+        Image.new('RGB', (10, 10), color='white').save(img_bytes, format='PNG')
+        img_bytes.seek(0)
+
+        with patch('web_server.DicomSender') as MockSender:
+            MockSender.return_value.send.return_value = (True, None)
+            res = client.post(
+                '/api/upload-manual',
+                data={'files': (img_bytes, '../../evil.png'), 'patient_id': 'BN001', 'modality': 'US'},
+                content_type='multipart/form-data',
+            )
+
+        assert res.status_code == 200
+        assert res.get_json()['results'][0]['file'] == 'evil.png'
+        assert os.path.exists(os.path.join(processed_dir, 'evil.png'))
+        assert not os.path.exists(os.path.join(tmp_dir, 'evil.png'))

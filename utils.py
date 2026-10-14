@@ -91,6 +91,17 @@ def _validate_config(config):
     folders = get_watch_folders_list(config)
     if not folders:
         raise ConfigError("watcher.watch_folders không được rỗng")
+
+    # Cổng sai sẽ khiến service khởi động lại mà không mở được Web -> chặn ngay khi lưu
+    try:
+        web_port, sc_port = get_firewall_ports(config)
+    except (TypeError, ValueError):
+        raise ConfigError("web_ui.port / storage_commitment.listen_port phải là số")
+    for name, port in (('web_ui.port', web_port), ('pacs.storage_commitment.listen_port', sc_port)):
+        if port is not None and not 1 <= port <= 65535:
+            raise ConfigError(f"{name} phải trong khoảng 1-65535")
+    if sc_port is not None and sc_port == web_port:
+        raise ConfigError("Cổng Web và cổng Storage Commitment không được trùng nhau")
     if not config['retry']['backoff_schedule_sec']:
         raise ConfigError("retry.backoff_schedule_sec không được rỗng")
 
@@ -106,9 +117,22 @@ def _validate_config(config):
         raise ConfigError(f"filename_pattern.regex không hợp lệ: {exc}")
 
 
+_STATS_CACHE_TTL_SEC = 10
+_stats_cache = {'at': 0.0, 'key': None, 'value': None}
+_stats_cache_lock = threading.Lock()
+
+
 def get_system_stats(config):
-    """Đếm số lượng file trong các thư mục chính."""
+    """Đếm số lượng file trong các thư mục chính.
+
+    Dashboard gọi liên tục mà thư mục processed/ tăng không giới hạn, nên kết quả
+    được cache ngắn hạn để không quét đĩa ở mỗi lần poll."""
     paths = config.get('paths', {})
+    cache_key = tuple(sorted(paths.items()))
+    with _stats_cache_lock:
+        if _stats_cache['key'] == cache_key and time.monotonic() - _stats_cache['at'] < _STATS_CACHE_TTL_SEC:
+            return dict(_stats_cache['value'])
+
     def _count_files(folder_path, ext=None):
         if not os.path.exists(folder_path):
             return 0
@@ -119,12 +143,15 @@ def get_system_stats(config):
                     count += 1
         return count
 
-    return {
+    stats = {
         'processed_count': _count_files(paths.get('processed_folder', '')),
         'retry_count': _count_files(paths.get('retry_queue_folder', ''), ext='.dcm'),
         'failed_count': _count_files(paths.get('failed_folder', '')),
         'duplicates_count': _count_files(paths.get('duplicates_folder', '')),
     }
+    with _stats_cache_lock:
+        _stats_cache.update(at=time.monotonic(), key=cache_key, value=stats)
+    return dict(stats)
 
 
 def test_ris_connection(ris_config):
@@ -360,6 +387,15 @@ class ProcessedRegistry:
                 )
                 """
             )
+            # Index cho các truy vấn Dashboard (đối soát Worklist, thống kê theo ngày, lọc trạng thái)
+            # — tránh quét toàn bảng khi lịch sử ca chụp lên hàng trăm nghìn dòng.
+            self._conn.execute("CREATE INDEX IF NOT EXISTS idx_studies_accession ON studies(accession_number, status)")
+            self._conn.execute("CREATE INDEX IF NOT EXISTS idx_studies_status ON studies(status)")
+            self._conn.execute("CREATE INDEX IF NOT EXISTS idx_studies_study_date ON studies(study_date)")
+            self._conn.execute("CREATE INDEX IF NOT EXISTS idx_studies_created_at ON studies(created_at)")
+            # WAL: ghi không chặn đọc, ít fsync hơn, vẫn an toàn khi mất điện
+            self._conn.execute("PRAGMA journal_mode=WAL")
+            self._conn.execute("PRAGMA synchronous=NORMAL")
             self._conn.commit()
 
     def is_processed(self, file_hash):
@@ -577,6 +613,105 @@ class ProcessedRegistry:
             self._conn.close()
 
 
+FIREWALL_RULE_WEB = 'TTSG DICOM Gateway Web UI'
+FIREWALL_RULE_SC = 'TTSG DICOM Storage Commitment'
+
+# Các mục cấu hình mà tiến trình nền (watcher, retry, RIS, listener, web server) chỉ đọc
+# lúc khởi động — đổi các mục này phải khởi động lại service mới có hiệu lực đồng bộ.
+RESTART_REQUIRED_SECTIONS = ('pacs', 'ris', 'watcher', 'paths', 'retry', 'web_ui',
+                             'logging', 'filename_pattern', 'metadata')
+
+
+def config_changes_require_restart(old_config: dict, new_config: dict) -> list[str]:
+    """Trả về danh sách mục cấu hình đã đổi cần khởi động lại service."""
+    return [s for s in RESTART_REQUIRED_SECTIONS if (old_config or {}).get(s) != (new_config or {}).get(s)]
+
+
+def get_firewall_ports(config: dict) -> tuple[int, int | None]:
+    """Port Web UI và port Storage Commitment (None nếu tắt) theo cấu hình."""
+    web_port = int(config.get('web_ui', {}).get('port', 5000))
+    sc_cfg = (config.get('pacs', {}) or {}).get('storage_commitment', {}) or {}
+    sc_port = int(sc_cfg.get('listen_port', 105)) if sc_cfg.get('enabled') else None
+    return web_port, sc_port
+
+
+def configure_firewall(config: dict, logger=None) -> bool:
+    """Đồng bộ Windows Firewall theo port trong config.yaml (xóa rule cũ, mở port hiện tại).
+
+    Cần quyền Administrator/LocalSystem (service WinSW chạy bằng LocalSystem)."""
+    import subprocess
+    if os.name != 'nt':
+        return False
+    web_port, sc_port = get_firewall_ports(config)
+    commands = [
+        ['netsh', 'advfirewall', 'firewall', 'delete', 'rule', f'name={FIREWALL_RULE_WEB}'],
+        ['netsh', 'advfirewall', 'firewall', 'delete', 'rule', f'name={FIREWALL_RULE_SC}'],
+        ['netsh', 'advfirewall', 'firewall', 'add', 'rule', f'name={FIREWALL_RULE_WEB}',
+         'dir=in', 'action=allow', 'protocol=TCP', f'localport={web_port}'],
+    ]
+    if sc_port:
+        commands.append(['netsh', 'advfirewall', 'firewall', 'add', 'rule', f'name={FIREWALL_RULE_SC}',
+                         'dir=in', 'action=allow', 'protocol=TCP', f'localport={sc_port}'])
+    ok = True
+    for i, cmd in enumerate(commands):
+        res = subprocess.run(cmd, capture_output=True, timeout=15,
+                             creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
+        if i >= 2 and res.returncode != 0:  # lỗi "rule không tồn tại" khi xóa là bình thường
+            ok = False
+    if logger:
+        if ok:
+            logger.info(f"Windows Firewall: đã mở TCP {web_port} (Web)" + (f", {sc_port} (Storage Commitment)" if sc_port else ""))
+        else:
+            logger.warning("Không cấu hình được Windows Firewall (cần quyền Administrator). Hãy chạy service_install.bat bằng quyền Admin.")
+    return ok
+
+
+MIN_PASSWORD_LENGTH = 6
+INITIAL_ADMIN_PASSWORD_FILE = 'initial_admin_password.txt'
+
+
+def ensure_bootstrap_admin(config: dict, config_path: str, data_dir: str, logger=None) -> str | None:
+    """Lần chạy đầu tại site mới (auth bật nhưng chưa có tài khoản nào): tạo tài khoản 'admin'
+    với mật khẩu ngẫu nhiên riêng cho từng máy, ghi vào data/initial_admin_password.txt.
+
+    Tránh việc bộ cài mang theo mật khẩu mẫu giống nhau ở mọi bệnh viện. Trả về mật khẩu nếu vừa tạo."""
+    import secrets
+    auth = config.get('auth')
+    if not isinstance(auth, dict) or not auth.get('enabled', True) or auth.get('users'):
+        return None
+
+    password = secrets.token_urlsafe(9)
+    auth['users'] = [{
+        'username': 'admin',
+        'password_hash': hash_password(password),
+        'full_name': 'Quản Trị Viên Hệ Thống',
+        'department': 'Công nghệ thông tin',
+        'role': 'ADMIN',
+        'allowed_modalities': ['*'],
+    }]
+    save_config(config, config_path)
+
+    os.makedirs(data_dir, exist_ok=True)
+    pwd_file = os.path.join(data_dir, INITIAL_ADMIN_PASSWORD_FILE)
+    with open(pwd_file, 'w', encoding='utf-8') as f:
+        f.write(
+            "TTSG DICOM Gateway - Mat khau quan tri ban dau\n"
+            f"Tai khoan: admin\nMat khau : {password}\n\n"
+            "Dang nhap http://localhost:5000 va DOI MAT KHAU NGAY. File nay tu xoa sau khi doi mat khau.\n"
+        )
+    if logger:
+        logger.warning(f"Đã tạo tài khoản quản trị ban đầu 'admin'. Mật khẩu lưu tại: {os.path.abspath(pwd_file)}")
+    return password
+
+
+def remove_initial_admin_password_file(data_dir: str):
+    """Xóa file mật khẩu ban đầu khi admin đã đổi mật khẩu."""
+    try:
+        os.remove(os.path.join(data_dir, INITIAL_ADMIN_PASSWORD_FILE))
+    except FileNotFoundError:
+        pass
+
+
 def hash_password(password: str) -> str:
     """Tạo chuỗi băm mật khẩu an toàn."""
     return generate_password_hash(password)
@@ -670,9 +805,13 @@ def upsert_user(config: dict, config_path: str, user_data: dict) -> dict:
         if user_data.get('allowed_modalities') is not None:
             existing['allowed_modalities'] = user_data['allowed_modalities']
         if user_data.get('password'):
+            if len(user_data['password']) < MIN_PASSWORD_LENGTH:
+                raise ValueError(f"Mật khẩu phải có tối thiểu {MIN_PASSWORD_LENGTH} ký tự")
             existing['password_hash'] = hash_password(user_data['password'])
     else:
-        password = user_data.get('password') or '123456'
+        password = user_data.get('password') or ''
+        if len(password) < MIN_PASSWORD_LENGTH:
+            raise ValueError(f"Tài khoản mới bắt buộc có mật khẩu tối thiểu {MIN_PASSWORD_LENGTH} ký tự")
         new_u = {
             'username': username,
             'password_hash': hash_password(password),
@@ -778,20 +917,50 @@ def get_stations_config(config: dict) -> list[dict]:
     return config['stations']
 
 
-def list_stations(config: dict) -> list[dict]:
-    """Trả về danh sách trạm thực hiện chuẩn hóa."""
+def list_stations(config: dict, include_api_key: bool = False) -> list[dict]:
+    """Trả về danh sách trạm thực hiện chuẩn hóa.
+
+    Danh sách công khai (màn hình đăng nhập) KHÔNG BAO GIỜ chứa api_key; chỉ trang
+    quản trị mới truyền include_api_key=True."""
     stations = get_stations_config(config)
     result = []
     for s in stations:
-        result.append({
+        item = {
             'id': s.get('id', ''),
             'name': s.get('name', ''),
             'department': s.get('department', ''),
             'allowed_modalities': s.get('allowed_modalities', []),
             'default_modality': s.get('default_modality', ''),
             'icon': s.get('icon', '🏢'),
-        })
+        }
+        if include_api_key:
+            item['api_key'] = s.get('api_key') or ''
+        result.append(item)
     return result
+
+
+def generate_station_api_key(config: dict, config_path: str, station_id: str) -> str:
+    """Sinh (hoặc sinh lại, vô hiệu khóa cũ) mã kết nối Client Agent cho một trạm."""
+    import secrets
+    station = get_station_by_id(config, station_id)
+    if not station:
+        raise ValueError(f"Không tìm thấy nơi thực hiện [{station_id}]")
+    station['api_key'] = 'ttsg_' + secrets.token_urlsafe(24)
+    save_config(config, config_path)
+    return station['api_key']
+
+
+def get_station_by_api_key(config: dict, api_key: str) -> dict | None:
+    """Tìm trạm theo mã kết nối Client Agent (so sánh hằng thời gian)."""
+    import hmac
+    key = (api_key or '').strip()
+    if len(key) < 16:
+        return None
+    for s in get_stations_config(config):
+        st_key = s.get('api_key') or ''
+        if st_key and hmac.compare_digest(st_key.encode('utf-8'), key.encode('utf-8')):
+            return s
+    return None
 
 
 def get_station_by_id(config: dict, station_id: str) -> dict | None:

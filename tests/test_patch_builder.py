@@ -3,6 +3,7 @@ import os
 import sys
 import tempfile
 import zipfile
+from unittest.mock import patch
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -153,13 +154,86 @@ def test_api_system_update_patch_endpoint():
         # 2. Đăng nhập Admin
         client.post('/api/auth/login', json={'username': 'trind', 'password': 'admin123'})
 
-        # 3. Nạp file patch thành công
-        res_auth = client.post(
-            '/api/system/update-patch',
-            data={'file': (io.BytesIO(pkg_bytes), 'patch.pkg')},
-            content_type='multipart/form-data'
-        )
+        # 3. Nạp file patch thành công (áp vào thư mục tạm, KHÔNG phải thư mục mã nguồn thật)
+        fake_app_dir = os.path.join(tmp_dir, 'installed_app')
+        os.makedirs(fake_app_dir, exist_ok=True)
+        with patch('patch_builder.verify_and_apply_patch',
+                   side_effect=lambda pkg, _target: verify_and_apply_patch(pkg, fake_app_dir)):
+            res_auth = client.post(
+                '/api/system/update-patch',
+                data={'file': (io.BytesIO(pkg_bytes), 'patch.pkg')},
+                content_type='multipart/form-data'
+            )
+        assert os.path.exists(os.path.join(fake_app_dir, 'run_server.bat'))
         assert res_auth.status_code == 200
         data = res_auth.get_json()
         assert data['success'] is True
         assert data['version'] == '2.1.0'
+
+
+def test_patch_with_path_traversal_rejected():
+    """Gói đã ký nhưng chứa đường dẫn '../' (zip-slip) phải bị từ chối, không ghi file nào."""
+    with tempfile.TemporaryDirectory() as dev_dir, tempfile.TemporaryDirectory() as client_root:
+        client_app_dir = os.path.join(client_root, 'app')
+        os.makedirs(client_app_dir)
+
+        with open(os.path.join(dev_dir, 'TTSG_DicomGateway.exe'), 'wb') as f:
+            f.write(b"EXE")
+        pkg_file = os.path.join(dev_dir, 'patch.pkg')
+        create_patch_package('2.1.0', 'Test', dev_dir, pkg_file)
+
+        # Ký lại manifest có đường dẫn thoát khỏi thư mục ứng dụng (giả lập kẻ tấn công có khóa)
+        import base64
+        import hashlib
+        import json
+        from cryptography.hazmat.primitives import hashes
+        from cryptography.hazmat.primitives.asymmetric import padding
+        from cryptography.hazmat.primitives.serialization import load_pem_private_key
+        from license_generator import load_private_key_pem
+
+        payload = b"PWNED"
+        manifest = {'package_type': 'TTSG_GATEWAY_PATCH', 'version': '9.9.9', 'created_at': '', 'release_notes': '',
+                    'files': [{'path': '../evil.bat', 'sha256': hashlib.sha256(payload).hexdigest(), 'size': len(payload)}]}
+        key = load_pem_private_key(load_private_key_pem().encode('utf-8'), password=None)
+        sig = key.sign(json.dumps(manifest, sort_keys=True).encode('utf-8'), padding.PKCS1v15(), hashes.SHA256())
+        evil_pkg = os.path.join(dev_dir, 'evil.pkg')
+        with zipfile.ZipFile(evil_pkg, 'w') as zf:
+            zf.writestr('manifest.json', json.dumps({'manifest': manifest, 'signature': base64.b64encode(sig).decode()}))
+            zf.writestr('payload/../evil.bat', payload)
+
+        res = verify_and_apply_patch(evil_pkg, client_app_dir)
+        assert res['success'] is False
+        assert not os.path.exists(os.path.join(client_root, 'evil.bat'))
+
+
+def test_patch_replaces_locked_running_exe():
+    """Exe đang chạy trên Windows không ghi đè được: phải đổi tên sang .old rồi ghi bản mới."""
+    import builtins
+    with tempfile.TemporaryDirectory() as dev_dir, tempfile.TemporaryDirectory() as client_app_dir:
+        with open(os.path.join(dev_dir, 'TTSG_DicomGateway.exe'), 'wb') as f:
+            f.write(b"NEW_EXE")
+        pkg_file = os.path.join(dev_dir, 'patch.pkg')
+        create_patch_package('2.2.0', 'Test', dev_dir, pkg_file)
+
+        target_exe = os.path.join(client_app_dir, 'TTSG_DicomGateway.exe')
+        with open(target_exe, 'wb') as f:
+            f.write(b"OLD_RUNNING_EXE")
+
+        real_open = builtins.open
+        state = {'locked': True}
+
+        def fake_open(path, mode='r', *args, **kwargs):
+            if os.path.abspath(str(path)) == os.path.abspath(target_exe) and 'w' in mode and state['locked']:
+                state['locked'] = False  # sau khi đổi tên, đường dẫn mới không còn bị khóa
+                raise PermissionError(13, 'locked')
+            return real_open(path, mode, *args, **kwargs)
+
+        with patch('builtins.open', side_effect=fake_open):
+            res = verify_and_apply_patch(pkg_file, client_app_dir)
+
+        assert res['success'] is True
+        assert res['restart_required'] is True
+        with open(target_exe, 'rb') as f:
+            assert f.read() == b"NEW_EXE"
+        with open(target_exe + '.old', 'rb') as f:
+            assert f.read() == b"OLD_RUNNING_EXE"

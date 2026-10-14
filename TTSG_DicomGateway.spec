@@ -1,4 +1,6 @@
 # -*- mode: python ; coding: utf-8 -*-
+# Nguồn cấu hình build DUY NHẤT cho Gateway Server — build_server_exe.bat chạy file này.
+# Sửa hidden imports / datas tại đây, không thêm tham số CLI vào các file .bat.
 
 
 a = Analysis(
@@ -10,7 +12,8 @@ a = Analysis(
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
-    excludes=[],
+    # license_generator là công cụ ký license của nhà phát triển — không bao giờ giao cho khách
+    excludes=['license_generator', 'pytest'],
     noarchive=False,
     optimize=0,
 )

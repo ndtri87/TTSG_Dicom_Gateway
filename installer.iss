@@ -1,11 +1,11 @@
-; Inno Setup Script cho TTSG DICOM Gateway
+; Inno Setup Script cho DNC DICOM Gateway
 ; Tao file cai dat Setup.exe 1-Click chuan Y Te
 
-#define MyAppName "TTSG DICOM Gateway"
-#define MyAppVersion "2.0.0"
-#define MyAppPublisher "Tam Tri Saigon Hospital Solutions"
+#define MyAppName "DNC DICOM Gateway"
+#define MyAppVersion "1.0"
+#define MyAppPublisher "DNC DICOM Gateway"
 #define MyAppURL "http://localhost:5000"
-#define MyAppExeName "TTSG_DicomGateway.exe"
+#define MyAppExeName "DNC_DicomGateway.exe"
 
 [Setup]
 AppId={{D37B4C82-95E2-4C10-86A9-51B4791E428F}
@@ -19,7 +19,7 @@ DefaultDirName={autopf}\{#MyAppName}
 DefaultGroupName={#MyAppName}
 AllowNoIcons=yes
 OutputDir=dist
-OutputBaseFilename=TTSG_DicomGateway_Setup_v2.0
+OutputBaseFilename=DNC_DicomGateway_Setup_v1.0
 SetupIconFile=static\favicon.ico
 Compression=lzma2/ultra64
 SolidCompression=yes
@@ -37,7 +37,8 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 
 [Files]
 ; Copy tat ca file binary va giao dien (Loai bo toan bo file markdown .md)
-Source: "dist\TTSG_DicomGateway\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "*.md,config.yaml"
+; KHONG dong goi du lieu runtime (data\, logs\, .secret_key) - tranh ghi de CSDL / license cua benh vien khi nang cap
+Source: "dist\TTSG_DicomGateway\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "*.md,config.yaml,\data\*,\logs\*,.secret_key,*.old"
 
 ; File config.yaml khong bi ghi de neu da ton tai
 Source: "dist\TTSG_DicomGateway\config.yaml"; DestDir: "{app}"; Flags: onlyifdoesntexist
@@ -49,15 +50,15 @@ Name: "{app}\logs"; Permissions: users-full
 
 [Icons]
 Name: "{group}\{#MyAppName} Web Control Panel"; Filename: "{#MyAppURL}"; IconFilename: "{app}\static\favicon.ico"
-Name: "{group}\Khởi Động Lại Service (Restart Service)"; Filename: "{app}\TTSG_Service.exe"; Parameters: "restart"; IconFilename: "{app}\static\favicon.ico"
-Name: "{group}\Chỉnh Sửa Cấu Hình (config.yaml)"; Filename: "notepad.exe"; Parameters: """{app}\config.yaml"""
-Name: "{group}\Gỡ Cài Đặt {#MyAppName}"; Filename: "{uninstallexe}"
+Name: "{group}\Khoi Dong Lai Service (Restart Service)"; Filename: "{app}\TTSG_Service.exe"; Parameters: "restart"; IconFilename: "{app}\static\favicon.ico"
+Name: "{group}\Chinh Sua Cau Hinh (config.yaml)"; Filename: "notepad.exe"; Parameters: """{app}\config.yaml"""
+Name: "{group}\Go Cai Dat {#MyAppName}"; Filename: "{uninstallexe}"
 Name: "{autodesktop}\{#MyAppName} Control Panel"; Filename: "{#MyAppURL}"; IconFilename: "{app}\static\favicon.ico"; Tasks: desktopicon
 
 [Run]
-; 1. Mo cong Windows Firewall cho Web UI (5000) va DICOM Storage Commitment (105)
-Filename: "netsh.exe"; Parameters: "advfirewall firewall add rule name=""TTSG DICOM Gateway Web UI"" dir=in action=allow protocol=TCP localport=5000"; Flags: runhidden waituntilterminated; StatusMsg: "Dang thiet lap Windows Firewall..."
-Filename: "netsh.exe"; Parameters: "advfirewall firewall add rule name=""TTSG DICOM Storage Commitment"" dir=in action=allow protocol=TCP localport=105"; Flags: runhidden waituntilterminated; StatusMsg: "Dang thiet lap Windows Firewall cho DICOM..."
+; 1. Mo Windows Firewall theo dung port trong config.yaml (web_ui.port, storage_commitment.listen_port)
+;    (service cung tu dong bo lai firewall moi lan khoi dong, nen doi port sau nay khong can cai lai)
+Filename: "{app}\{#MyAppExeName}"; Parameters: "--configure-firewall"; WorkingDir: "{app}"; Flags: runhidden waituntilterminated; StatusMsg: "Dang thiet lap Windows Firewall..."
 
 ; 2. Dang ky va khoi dong Windows Service chay ngam 24/7
 Filename: "{app}\TTSG_Service.exe"; Parameters: "install"; Flags: runhidden waituntilterminated; StatusMsg: "Dang dang ky Windows Service chay ngam 24/7..."
@@ -72,3 +73,14 @@ Filename: "{app}\TTSG_Service.exe"; Parameters: "stop"; Flags: runhidden waitunt
 Filename: "{app}\TTSG_Service.exe"; Parameters: "uninstall"; Flags: runhidden waituntilterminated; RunOnceId: "TTSG_UninstallService"
 Filename: "netsh.exe"; Parameters: "advfirewall firewall delete rule name=""TTSG DICOM Gateway Web UI"""; Flags: runhidden waituntilterminated; RunOnceId: "TTSG_DelFw1"
 Filename: "netsh.exe"; Parameters: "advfirewall firewall delete rule name=""TTSG DICOM Storage Commitment"""; Flags: runhidden waituntilterminated; RunOnceId: "TTSG_DelFw2"
+
+[Code]
+// Khi nang cap de len ban cu: dung service truoc de giai phong file exe/DLL dang bi khoa
+function PrepareToInstall(var NeedsRestart: Boolean): String;
+var
+  ResultCode: Integer;
+begin
+  Exec(ExpandConstant('{sys}\sc.exe'), 'stop TTSG_DicomGateway', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+  Sleep(3000);
+  Result := '';
+end;

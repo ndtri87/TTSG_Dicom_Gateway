@@ -28,6 +28,11 @@ if %VENV_OK%==0 (
     )
 )
 
+if not exist "config.yaml" (
+    echo Tao config.yaml tu mau config.default.yaml...
+    copy /y "config.default.yaml" "config.yaml" >nul
+)
+
 echo Dang cai thu vien...
 .venv\Scripts\python.exe -m pip install --upgrade pip >nul
 .venv\Scripts\python.exe -m pip install -r requirements.txt
@@ -42,6 +47,6 @@ echo.
 echo === Cai dat xong ===
 echo Buoc tiep theo:
 echo   1. Mo config.yaml, sua IP/Port/AE Title cua PACS that va duong dan thu muc theo doi.
-echo   2. Chay test_ket_noi_pacs.bat de kiem tra ket noi PACS.
+echo   2. Chay tools\test_ket_noi_pacs.bat de kiem tra ket noi PACS.
 echo   3. Chay run.bat de khoi dong service.
 pause

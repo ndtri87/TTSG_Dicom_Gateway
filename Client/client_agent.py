@@ -11,6 +11,8 @@ import requests
 import yaml
 
 CONFIG_FILE = 'client_config.yaml'
+STATION_KEY_HEADER = 'X-Station-Key'
+AUTH_ERROR_PREFIX = 'AUTH:'
 
 
 def setup_logging():
@@ -34,6 +36,7 @@ def load_client_config(cfg_path):
             'poll_interval_sec': 3,
             'max_retries': 10,
             'retry_delay_sec': 5,
+            'station_key': '',
         }
         with open(cfg_path, 'w', encoding='utf-8') as f:
             yaml.safe_dump(default_cfg, f, default_flow_style=False)
@@ -58,15 +61,21 @@ def is_file_stable(file_path, checks=2, delay=1.0):
         return False
 
 
-def send_file_to_server(server_url, file_path, logger):
+def send_file_to_server(server_url, file_path, logger, station_key=None):
     filename = os.path.basename(file_path)
     url = f"{server_url.rstrip('/')}/api/upload-manual"
     
     try:
         with open(file_path, 'rb') as f:
             files = {'files': (filename, f, 'application/octet-stream')}
-            res = requests.post(url, files=files, timeout=15)
-            
+            headers = {STATION_KEY_HEADER: station_key} if station_key else {}
+            res = requests.post(url, files=files, headers=headers, timeout=60)
+
+        if res.status_code in (401, 403):
+            msg = (f"{AUTH_ERROR_PREFIX} Gateway từ chối xác thực (HTTP {res.status_code}). "
+                   "Kiểm tra 'station_key' trong client_config.yaml (Admin > Nơi thực hiện > Mã Client Agent).")
+            logger.error(f"⛔ {msg}")
+            return False, msg
         if res.status_code == 200:
             data = res.json()
             if data.get('success'):
@@ -112,11 +121,14 @@ def main():
     sent_folder = config.get('sent_folder', './export/sent')
     failed_folder = config.get('failed_folder', './export/failed')
     poll_interval = config.get('poll_interval_sec', 3)
+    station_key = (config.get('station_key') or '').strip()
 
     for folder in (watch_folder, sent_folder, failed_folder):
         os.makedirs(folder, exist_ok=True)
 
     logger.info(f"📍 Gateway Server: {server_url}")
+    if not station_key:
+        logger.warning("⚠️ Chưa khai báo 'station_key' trong client_config.yaml — Gateway bật đăng nhập sẽ từ chối file.")
     logger.info(f"📂 Thư mục theo dõi local: {os.path.abspath(watch_folder)}")
     logger.info(f"📁 Thư mục đã gửi: {os.path.abspath(sent_folder)}")
     logger.info("⏳ Đang lắng nghe file ảnh/PDF mới... Press Ctrl+C to exit.")
@@ -139,12 +151,15 @@ def main():
                     continue
 
                 logger.info(f"🔍 Phát hiện file mới từ thiết bị: {item}")
-                success, msg = send_file_to_server(server_url, file_path, logger)
+                success, msg = send_file_to_server(server_url, file_path, logger, station_key)
 
                 if success:
                     move_file(file_path, sent_folder)
                     if item in retry_counts:
                         del retry_counts[item]
+                elif str(msg).startswith(AUTH_ERROR_PREFIX):
+                    # Lỗi cấu hình mã trạm: giữ nguyên file chờ sửa cấu hình, không tính vào số lần thử
+                    break
                 else:
                     count = retry_counts.get(item, 0) + 1
                     retry_counts[item] = count

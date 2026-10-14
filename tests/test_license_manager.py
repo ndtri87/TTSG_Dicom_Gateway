@@ -156,21 +156,17 @@ def test_license_demo_expired_after_30_days():
     """Kiểm tra bản dùng thử hết hạn khi vượt quá 30 ngày kể từ lúc cài đặt."""
     with tempfile.TemporaryDirectory() as tmp_dir:
         non_existent = os.path.join(tmp_dir, 'no_such_license.key')
-        trial_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'data', '.trial.json')
-        
+        trial_file = os.path.join(tmp_dir, '.trial.json')
+
         # Mô phỏng cài đặt từ 35 ngày trước
-        os.makedirs(os.path.dirname(trial_file), exist_ok=True)
+        installed_at = (date.today() - timedelta(days=35)).isoformat()
         with open(trial_file, 'w', encoding='utf-8') as f:
-            json.dump({'installed_at': '2026-01-01T00:00:00', 'trial_days': 30}, f)
+            json.dump({'installed_at': installed_at, 'trial_days': 30}, f)
 
-        try:
-            lm = LicenseManager(license_path=non_existent)
-            summary = lm.get_summary()
+        lm = LicenseManager(license_path=non_existent)
+        summary = lm.get_summary()
 
-            assert summary['status'] == 'EXPIRED'
-            assert summary['is_valid'] is False
-            assert summary['days_remaining'] == 0
-        finally:
-            if os.path.exists(trial_file):
-                os.remove(trial_file)
+        assert summary['status'] == 'EXPIRED'
+        assert summary['is_valid'] is False
+        assert summary['days_remaining'] == 0
 

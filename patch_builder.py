@@ -14,8 +14,6 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives.serialization import load_pem_private_key
 
-from license_generator import DEFAULT_PRIVATE_KEY_PEM
-
 # Các file và thư mục được phép đưa vào bản vá nâng cấp
 INCLUDE_ITEMS = [
     'TTSG_DicomGateway.exe',
@@ -57,7 +55,12 @@ def create_patch_package(
     if not os.path.exists(source_dist_dir):
         raise ValueError(f"Thư mục nguồn không tồn tại: {source_dist_dir}")
 
-    priv_key_pem = private_key_pem or DEFAULT_PRIVATE_KEY_PEM
+    if not private_key_pem:
+        # Import muộn: module này cũng chạy trên server khách (verify_and_apply_patch),
+        # nơi không có và không được có private key.
+        from license_generator import load_private_key_pem
+        private_key_pem = load_private_key_pem()
+    priv_key_pem = private_key_pem
     priv_key = load_pem_private_key(priv_key_pem.encode('utf-8'), password=None)
 
     manifest = {
@@ -170,20 +173,28 @@ def verify_and_apply_patch(pkg_source, target_app_dir: str, public_key_pem: str 
             if file_sha.lower() != f_info.get('sha256', '').lower():
                 return {'success': False, 'message': f"Mã băm SHA-256 của file {f_info['path']} không khớp (có thể bị lỗi khi tải về)."}
 
-        # 3. Áp dụng các file vào thư mục đích (Bảo vệ không bao giờ ghi đè file cấu hình / CSDL)
+        # 3. Chặn path traversal (zip-slip): mọi file phải nằm trong thư mục ứng dụng
+        for f_info in manifest.get('files', []):
+            dest_path = os.path.abspath(os.path.join(target_app_dir, f_info['path'].replace('/', os.sep)))
+            if os.path.commonpath([dest_path, target_app_dir]) != target_app_dir:
+                return {'success': False, 'message': f"Đường dẫn không hợp lệ trong gói cập nhật: {f_info['path']}"}
+
+        # 4. Áp dụng các file vào thư mục đích (Bảo vệ không bao giờ ghi đè file cấu hình / CSDL)
+        exclude_lower = [x.lower() for x in EXCLUDE_ITEMS]
         extracted_count = 0
+        restart_required = False
         for f_info in manifest.get('files', []):
             rel_p = f_info['path']
             # Chặn ghi đè dữ liệu người dùng
             first_part = rel_p.split('/')[0].lower()
-            if first_part in EXCLUDE_ITEMS or rel_p.lower() in [x.lower() for x in EXCLUDE_ITEMS]:
+            if first_part in exclude_lower or rel_p.lower() in exclude_lower:
                 continue
 
             dest_path = os.path.join(target_app_dir, rel_p.replace('/', os.sep))
             os.makedirs(os.path.dirname(dest_path), exist_ok=True)
             content = zf.read(f"payload/{rel_p}")
-            with open(dest_path, 'wb') as out_f:
-                out_f.write(content)
+            if _write_replacing_locked(dest_path, content):
+                restart_required = True
             extracted_count += 1
 
     return {
@@ -191,8 +202,29 @@ def verify_and_apply_patch(pkg_source, target_app_dir: str, public_key_pem: str 
         'version': manifest.get('version', 'Unknown'),
         'release_notes': manifest.get('release_notes', ''),
         'updated_files_count': extracted_count,
+        'restart_required': restart_required,
         'message': f"Đã nâng cấp thành công lên phiên bản v{manifest.get('version')} ({extracted_count} tệp tin đã cập nhật)!"
     }
+
+
+def _write_replacing_locked(dest_path: str, content: bytes) -> bool:
+    """Ghi file; nếu file đang bị khóa (exe/DLL của tiến trình đang chạy trên Windows) thì
+    đổi tên file cũ sang .old rồi ghi file mới — Windows cho đổi tên nhưng không cho ghi đè.
+    Trả về True nếu đã phải dùng cách này (cần khởi động lại để bản mới có hiệu lực)."""
+    try:
+        with open(dest_path, 'wb') as out_f:
+            out_f.write(content)
+        return False
+    except PermissionError:
+        old_path = dest_path + '.old'
+        try:
+            os.remove(old_path)
+        except FileNotFoundError:
+            pass
+        os.replace(dest_path, old_path)
+        with open(dest_path, 'wb') as out_f:
+            out_f.write(content)
+        return True
 
 
 

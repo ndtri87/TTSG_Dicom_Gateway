@@ -20,3 +20,8 @@ max_retries: 10
 
 # Thời gian chờ giữa các lần thử lại (giây)
 retry_delay_sec: 10
+
+# Mã kết nối của trạm (BẮT BUỘC khi Gateway bật đăng nhập).
+# Lấy tại Web Admin > Tab Bản Quyền & Hệ Thống > Nơi thực hiện > nút "Mã Client Agent".
+# Modality của file gửi lên được giới hạn theo trạm này.
+station_key: ""

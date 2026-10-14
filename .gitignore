@@ -42,6 +42,14 @@ Client/export/failed/*
 .secret_key
 *.pkg
 
+# Secrets — private key ký license/bản vá và file license cấp cho từng khách hàng
+keys/
+*.pem
+license.key
+
+# Cấu hình thật của từng máy (mật khẩu, IP nội bộ, mã Client Agent) — mẫu dùng chung là config.default.yaml
+config.yaml
+
 # OS generated
 .DS_Store
 Thumbs.db

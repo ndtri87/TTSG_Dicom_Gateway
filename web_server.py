@@ -6,6 +6,7 @@ xem thống kê, nhật ký log thời gian thực và theo dõi hoạt động 
 import os
 import threading
 import time
+from collections import deque
 from datetime import timedelta
 from functools import wraps
 from flask import Flask, jsonify, redirect, render_template, request, session, url_for, send_file
@@ -15,11 +16,16 @@ from dicom_sender import DicomSender
 from utils import (
     ConfigError,
     authenticate_user,
+    config_changes_require_restart,
     dedupe_destination,
     delete_station,
     delete_user,
     extract_metadata_from_filename,
+    generate_station_api_key,
     get_auth_config,
+    get_station_by_api_key,
+    MIN_PASSWORD_LENGTH,
+    remove_initial_admin_password_file,
     get_station_by_id,
     get_stations_config,
     get_system_stats,
@@ -112,6 +118,14 @@ class AuthRateLimiter:
 
 auth_rate_limiter = AuthRateLimiter(max_attempts=5, lockout_seconds=300)
 
+STATION_KEY_HEADER = 'X-Station-Key'
+
+
+def _data_dir():
+    """Thư mục data/ của bản cài (cạnh config.yaml)."""
+    base = os.path.dirname(os.path.abspath(config_path)) if config_path else '.'
+    return os.path.join(base, 'data')
+
 
 def init_web_app(config, cfg_path, retry_worker=None, logger=None, app_start_time=None, registry=None, license_mgr=None):
     global app_config, config_path, retry_worker_ref, logger_ref, start_time, registry_ref, license_manager_ref
@@ -123,13 +137,8 @@ def init_web_app(config, cfg_path, retry_worker=None, logger=None, app_start_tim
     registry_ref = registry
     auth_rate_limiter._records.clear()
 
-    # Khởi tạo License Manager
-    if license_mgr:
-        license_manager_ref = license_mgr
-    else:
-        data_dir = os.path.dirname(os.path.abspath(cfg_path)) if cfg_path else './data'
-        lic_file = os.path.join(data_dir, 'license.key')
-        license_manager_ref = LicenseManager(license_path=lic_file)
+    # Khởi tạo License Manager (cùng vị trí data/license.key với main.py)
+    license_manager_ref = license_mgr or LicenseManager(license_path=os.path.join(_data_dir(), 'license.key'))
 
     auth_cfg = get_auth_config(config)
     data_dir = os.path.dirname(os.path.abspath(cfg_path)) if cfg_path else './data'
@@ -152,6 +161,27 @@ def get_current_user():
             'role': 'ADMIN',
             'allowed_modalities': ['*'],
             'is_station': False,
+        }
+
+    # 0. Client Agent máy trạm: xác thực bằng mã kết nối của trạm (header X-Station-Key)
+    station_key = request.headers.get(STATION_KEY_HEADER)
+    if station_key:
+        st = get_station_by_api_key(app_config, station_key)
+        if not st:
+            return None
+        return {
+            'is_station': True,
+            'is_agent': True,
+            'station_id': st['id'],
+            'station_name': st['name'],
+            'username': f"agent_{st['id'].lower()}",
+            'full_name': f"Client Agent - {st['name']}",
+            'technician_name': '',
+            'department': st.get('department', ''),
+            'role': 'TECHNICIAN',
+            'allowed_modalities': st.get('allowed_modalities', []),
+            'default_modality': st.get('default_modality', ''),
+            'icon': st.get('icon', '🏢'),
         }
 
     # 1. Kiểm tra nếu đăng nhập theo Nơi thực hiện / Trạm máy (Station Login)
@@ -234,10 +264,35 @@ def add_no_cache_header(response):
     response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
     response.headers['Pragma'] = 'no-cache'
     response.headers['Expires'] = '0'
-    response.headers['Access-Control-Allow-Origin'] = '*'
-    response.headers['Access-Control-Allow-Headers'] = '*'
-    response.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    response.headers['X-Frame-Options'] = 'SAMEORIGIN'
     return response
+
+
+def _schedule_service_restart(reason: str) -> bool:
+    """Khởi động lại service sau khi kịp trả response.
+
+    Chỉ áp dụng cho bản cài (exe chạy dưới WinSW): thoát với mã lỗi, WinSW (TTSG_Service.xml,
+    onfailure=restart) tự chạy lại sau ~5 giây. Khi chạy từ mã nguồn thì trả về False."""
+    if not getattr(sys, 'frozen', False):
+        return False
+    if logger_ref:
+        logger_ref.info(f"Khởi động lại dịch vụ để {reason}...")
+    threading.Timer(2.0, lambda: os._exit(3)).start()
+    return True
+
+
+def _restart_note(restarting: bool) -> str:
+    if restarting:
+        return ' Dịch vụ đang tự khởi động lại, vui lòng tải lại trang sau khoảng 10 giây.'
+    return ' ⚠️ Cần khởi động lại dịch vụ (hoặc run.bat) để thay đổi có hiệu lực đầy đủ.'
+
+
+def _safe_upload_name(raw_name: str) -> str:
+    """Chỉ giữ phần tên file (chặn path traversal kiểu '../../x.pdf'), vẫn giữ tiếng Việt có dấu."""
+    name = os.path.basename((raw_name or '').replace('\\', '/')).strip()
+    name = ''.join(ch for ch in name if ch not in '<>:"|?*' and ord(ch) >= 32)
+    return name.lstrip('.') or 'upload'
 
 
 @app.route('/login')
@@ -259,9 +314,6 @@ def docs_page():
     docs_path = os.path.join(_base_dir, 'docs', 'index.html')
     if os.path.exists(docs_path):
         return send_file(docs_path)
-    doc_fallback = os.path.join(_base_dir, 'documentation.html')
-    if os.path.exists(doc_fallback):
-        return send_file(doc_fallback)
     return "Tài liệu kỹ thuật đang được cập nhật.", 404
 
 
@@ -430,6 +482,9 @@ def api_system_update_patch():
     if res.get('success'):
         if logger_ref:
             logger_ref.info(f"Hệ thống đã được cập nhật thành công lên bản v{res.get('version')} ({res.get('updated_files_count')} tệp)")
+        if res.get('restart_required'):
+            res['restarting'] = _schedule_service_restart('áp dụng bản vá')
+            res['message'] += _restart_note(res['restarting'])
         return jsonify(res)
     return jsonify(res), 400
 
@@ -471,8 +526,8 @@ def api_auth_change_password():
     old_pass = data.get('old_password', '')
     new_pass = data.get('new_password', '')
 
-    if not new_pass or len(new_pass) < 4:
-        return jsonify({'success': False, 'message': 'Mật khẩu mới phải có ít nhất 4 ký tự'}), 400
+    if not new_pass or len(new_pass) < MIN_PASSWORD_LENGTH:
+        return jsonify({'success': False, 'message': f'Mật khẩu mới phải có ít nhất {MIN_PASSWORD_LENGTH} ký tự'}), 400
 
     check_u = authenticate_user(app_config, user['username'], old_pass)
     if not check_u:
@@ -480,6 +535,8 @@ def api_auth_change_password():
 
     ok = update_user_password(app_config, config_path, user['username'], new_pass)
     if ok:
+        if user.get('role') == 'ADMIN':
+            remove_initial_admin_password_file(_data_dir())
         if logger_ref:
             logger_ref.info(f"Người dùng [{user['username']}] đã đổi mật khẩu thành công")
         return jsonify({'success': True, 'message': 'Đổi mật khẩu thành công!'})
@@ -489,8 +546,22 @@ def api_auth_change_password():
 @app.route('/api/admin/stations', methods=['GET'])
 @admin_required
 def api_admin_list_stations():
-    """Lấy danh sách trạm thực hiện đầy đủ cho Super Admin."""
-    return jsonify({'success': True, 'stations': list_stations(app_config)})
+    """Lấy danh sách trạm thực hiện đầy đủ (kèm mã kết nối Client Agent) cho Super Admin."""
+    return jsonify({'success': True, 'stations': list_stations(app_config, include_api_key=True)})
+
+
+@app.route('/api/admin/stations/<station_id>/api-key', methods=['POST'])
+@admin_required
+def api_admin_generate_station_key(station_id):
+    """Sinh mã kết nối Client Agent mới cho trạm (mã cũ lập tức bị vô hiệu)."""
+    try:
+        key = generate_station_api_key(app_config, config_path, station_id)
+    except ValueError as ve:
+        return jsonify({'success': False, 'message': str(ve)}), 404
+    if logger_ref:
+        logger_ref.info(f"Super Admin đã cấp mã kết nối Client Agent mới cho Nơi thực hiện [{station_id}]")
+    return jsonify({'success': True, 'station_id': station_id.upper(), 'api_key': key,
+                    'message': 'Đã tạo mã kết nối mới. Mã cũ (nếu có) không còn dùng được.'})
 
 
 @app.route('/api/admin/stations', methods=['POST'])
@@ -498,6 +569,11 @@ def api_admin_list_stations():
 def api_admin_upsert_station():
     """Thêm mới hoặc cập nhật thông tin Trạm thực hiện & Modality được phép."""
     data = request.get_json(silent=True) or {}
+    is_new = not get_station_by_id(app_config, data.get('id'))
+    if is_new and license_manager_ref:
+        limit = license_manager_ref.max_stations()
+        if limit and len(list_stations(app_config)) >= limit:
+            return jsonify({'success': False, 'message': f'Gói bản quyền chỉ cho phép tối đa {limit} nơi thực hiện.'}), 403
     try:
         st = upsert_station(app_config, config_path, data)
         if logger_ref:
@@ -570,8 +646,8 @@ def api_admin_delete_user(username):
 
 
 @app.route('/api/status', methods=['GET'])
+@login_required
 def api_status():
-    import time
     uptime = int(time.time() - start_time) if start_time else 0
     stats = get_system_stats(app_config) if app_config else {}
     folders = get_watch_folders_list(app_config) if app_config else []
@@ -812,11 +888,20 @@ def api_update_config():
         return jsonify({'success': False, 'message': 'Dữ liệu không hợp lệ'}), 400
 
     try:
+        changed = config_changes_require_restart(app_config, new_data)
         save_config(new_data, config_path)
         app_config = new_data
         if logger_ref:
-            logger_ref.info("Đã cập nhật cấu hình config.yaml từ Web Dashboard")
-        return jsonify({'success': True, 'message': 'Cập nhật cấu hình thành công!'})
+            logger_ref.info(f"Đã cập nhật cấu hình config.yaml từ Web Dashboard (mục thay đổi: {', '.join(changed) or 'không'})")
+        message = 'Cập nhật cấu hình thành công!'
+        restarting = False
+        if changed:
+            # Watcher, retry, tra cứu RIS, listener, web server chỉ đọc cấu hình lúc khởi động:
+            # khởi động lại để mọi luồng dùng cùng một cấu hình (tránh gửi tới 2 PACS khác nhau).
+            restarting = _schedule_service_restart('áp dụng cấu hình mới')
+            message += _restart_note(restarting)
+        return jsonify({'success': True, 'message': message, 'restart_required': bool(changed),
+                        'restarting': restarting, 'changed_sections': changed})
     except ConfigError as exc:
         return jsonify({'success': False, 'message': f"Lỗi cấu hình: {exc}"}), 400
     except Exception as exc:
@@ -994,19 +1079,24 @@ def api_upload_manual():
     batch_attachment_series_uid = generate_uid()
 
     # Tìm xem file nào là main report
-    has_explicit_main = any(f.filename == main_report_filename for f in uploaded_files if f and f.filename)
+    main_report_filename = _safe_upload_name(main_report_filename) if main_report_filename else ''
+    has_explicit_main = any(_safe_upload_name(f.filename) == main_report_filename for f in uploaded_files if f and f.filename)
+
+    # Cả batch thường cùng 1 bệnh nhân: tra RIS 1 lần cho mỗi PatientID thay vì mỗi file
+    ris_cache = {}
+    wl_client = WorklistClient(app_config['ris'], logger_ref) if app_config.get('ris', {}).get('enabled', False) else None
 
     for idx, file_obj in enumerate(uploaded_files):
         if not file_obj or file_obj.filename == '':
             continue
 
-        filename = file_obj.filename
+        filename = _safe_upload_name(file_obj.filename)
         ext = os.path.splitext(filename)[1].lower()
         if ext not in ('.png', '.jpg', '.jpeg', '.pdf'):
             results.append({'file': filename, 'success': False, 'message': f'Định dạng {ext} không hỗ trợ'})
             continue
 
-        temp_input_path = os.path.join(staging_dir, f"upload_{filename}")
+        temp_input_path = dedupe_destination(os.path.join(staging_dir, f"upload_{filename}"))
         file_obj.save(temp_input_path)
 
         try:
@@ -1031,6 +1121,15 @@ def api_upload_manual():
             else:
                 metadata['modality'] = 'OT'
 
+            if license_manager_ref:
+                lic_ok, lic_reason = license_manager_ref.check_processing_allowed(metadata['modality'])
+                if not lic_ok:
+                    os.remove(temp_input_path)
+                    if logger_ref:
+                        logger_ref.warning(f"[Web Upload] Từ chối {filename}: {lic_reason}")
+                    results.append({'file': filename, 'success': False, 'license_error': True, 'message': lic_reason})
+                    continue
+
             metadata['study_instance_uid'] = batch_study_uid
 
             # Xử lý phân định Phiếu Kết Quả chính vs Tài liệu đính kèm
@@ -1049,10 +1148,12 @@ def api_upload_manual():
                 metadata['document_title'] = f'Tài liệu đính kèm ({filename})'
                 metadata['series_description'] = 'Attachment'
 
-            if app_config.get('ris', {}).get('enabled', False) and metadata.get('patient_id'):
+            if wl_client is not None and metadata.get('patient_id'):
                 try:
-                    wl_client = WorklistClient(app_config['ris'], logger_ref)
-                    ris_data = wl_client.lookup_patient(metadata['patient_id'])
+                    pid = metadata['patient_id']
+                    if pid not in ris_cache:
+                        ris_cache[pid] = wl_client.lookup_patient(pid)
+                    ris_data = ris_cache[pid]
                     if ris_data:
                         if not form_patient_name and ris_data.get('patient_name'):
                             metadata['patient_name'] = ris_data['patient_name']
@@ -1139,10 +1240,10 @@ def api_get_logs():
         return jsonify({'logs': ['Chưa có file log.']})
 
     try:
+        # deque giữ 200 dòng mới nhất mà không nạp cả file log (có thể vài chục MB) vào RAM
         with open(log_path, 'r', encoding='utf-8', errors='ignore') as f:
-            lines = f.readlines()
-            lines = lines[-200:]  # 200 dòng mới nhất
-            return jsonify({'logs': [line.strip() for line in lines]})
+            lines = deque(f, maxlen=200)
+        return jsonify({'logs': [line.strip() for line in lines]})
     except Exception as exc:
         return jsonify({'logs': [f"Lỗi đọc file log: {exc}"]})
 

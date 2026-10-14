@@ -28,9 +28,9 @@ echo [*] Dang dang ky Windows Service he thong voi WinSW...
 TTSG_Service.exe install
 
 if %errorLevel% equ 0 (
-    echo [*] Mo cong Windows Firewall cho Web UI (Port 5000) va DICOM...
-    netsh advfirewall firewall add rule name="TTSG DICOM Gateway Web UI" dir=in action=allow protocol=TCP localport=5000 >nul 2>&1
-    netsh advfirewall firewall add rule name="TTSG DICOM Storage Commitment" dir=in action=allow protocol=TCP localport=105 >nul 2>&1
+    echo [*] Mo Windows Firewall theo port trong config.yaml...
+    TTSG_DicomGateway.exe --configure-firewall
+    if errorlevel 1 echo [CANH BAO] Khong cau hinh duoc firewall - kiem tra lai bang tay.
 
     echo [*] Dang khoi dong Service chay ngam 24/7...
     TTSG_Service.exe start
@@ -42,7 +42,7 @@ if %errorLevel% equ 0 (
     echo   - Service Name: TTSG_DicomGateway (TTSG DICOM Gateway Service)
     echo   - Che do: Tu dong chay ngam 24/7 khi bat may (khong can dang nhap Windows)
     echo   - Tu dong phuc hoi (Auto-Restart) ngay lap tuc neu xay ra su co
-    echo   - Truy cap Web Control Panel tai: http://localhost:5000
+    echo   - Truy cap Web Control Panel tai: http://localhost:^<web_ui.port trong config.yaml^>
     echo ===============================================================================
 ) else (
     echo.

@@ -27,7 +27,9 @@ from utils import (
     ConfigError,
     ProcessedRegistry,
     compute_file_hash,
+    configure_firewall,
     dedupe_destination,
+    ensure_bootstrap_admin,
     extract_metadata_from_filename,
     get_watch_folders_list,
     load_config,
@@ -76,8 +78,9 @@ class InboxHandler(FileSystemEventHandler):
 
 
 class GatewayWorker(threading.Thread):
-    def __init__(self, config, work_queue, registry, sender, worklist_client, logger):
+    def __init__(self, config, work_queue, registry, sender, worklist_client, logger, license_manager=None):
         super().__init__(daemon=True)
+        self.license_manager = license_manager
         self.config = config
         self.work_queue = work_queue
         self.registry = registry
@@ -133,6 +136,15 @@ class GatewayWorker(threading.Thread):
         metadata['modality'] = folder_modality
         for w in warnings:
             self.logger.warning(f"{filename}: {w}")
+
+        if self.license_manager is not None:
+            lic_ok, lic_reason = self.license_manager.check_processing_allowed(folder_modality)
+            if not lic_ok:
+                # Giữ file gốc trong failed/ (không mất dữ liệu); kích hoạt license rồi chép lại vào inbox
+                self.logger.error(f"Từ chối xử lý {filename}: {lic_reason}")
+                self._move_original(path, self.config['paths']['failed_folder'])
+                self.registry.record_study(filename, metadata, 'FAILED', file_hash=file_hash, last_error=lic_reason)
+                return
 
         if self.worklist_client is not None:
             ris_data = self.worklist_client.lookup_patient(metadata['patient_id'])
@@ -207,8 +219,16 @@ def main():
         print(f"[FATAL] Lỗi cấu hình: {exc}", file=sys.stderr)
         sys.exit(1)
 
+    if '--configure-firewall' in sys.argv:
+        # Gọi từ bộ cài / service_install.bat: chỉ mở firewall theo port trong config.yaml rồi thoát
+        sys.exit(0 if configure_firewall(config) else 1)
+
     logger = setup_logging(config)
     logger.info("Khởi động DICOM Gateway Service")
+    if getattr(sys, 'frozen', False):
+        # Bản cài chạy dưới quyền LocalSystem: đổi port trong config.yaml -> firewall tự khớp sau khi khởi động lại
+        configure_firewall(config, logger)
+    ensure_bootstrap_admin(config, CONFIG_PATH, os.path.join(os.path.dirname(os.path.abspath(CONFIG_PATH)), 'data'), logger)
 
     watch_folders_list = get_watch_folders_list(config)
     folder_paths = [f['path'] for f in watch_folders_list]
@@ -238,7 +258,7 @@ def main():
     logger.info(f"[Bản Quyền] Trạng thái: {lic_summary.get('status')} | Gói: {lic_summary.get('plan_name')} | Khách hàng: {lic_summary.get('customer_name')} (Hardware ID: {lic_summary.get('hardware_id')})")
 
     work_queue = queue.Queue()
-    worker = GatewayWorker(config, work_queue, registry, sender, worklist_client, logger)
+    worker = GatewayWorker(config, work_queue, registry, sender, worklist_client, logger, license_manager)
     worker.start()
 
     retry_worker = RetryWorker(config, retry_sender, registry, logger)
