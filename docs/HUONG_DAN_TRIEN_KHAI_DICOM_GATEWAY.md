@@ -1,4 +1,7 @@
 # 📘 TÀI LIỆU HƯỚNG DẪN TRIỂN KHAI HỆ THỐNG TTSG DICOM GATEWAY
+
+> ⚠️ **Quy trình build, cài đặt, cấp license và cập nhật đã thay đổi (14/10/2026).** Tài liệu chuẩn hiện hành: [HUONG_DAN_BUILD_CAI_DAT_LICENSE_UPDATE.md](HUONG_DAN_BUILD_CAI_DAT_LICENSE_UPDATE.md). Nếu nội dung bên dưới khác với tài liệu đó, làm theo tài liệu đó.
+
 ### (Phương Pháp Cài Đặt Bằng File Cài Đặt Chuyên Nghiệp 1-Click `Setup.exe`)
 
 ---
@@ -81,7 +84,7 @@ Trước khi cài đặt, gửi bảng này cho IT Bệnh viện điền:
 
 1. Trên màn hình Web vừa mở, đăng nhập tài khoản Quản trị:
    * **Tên đăng nhập**: `trind`
-   * **Mật khẩu mặc định**: `admin123`
+   * **Mật khẩu**: do nhà cung cấp bàn giao riêng — **bắt buộc đổi ngay** tại Tab Bản Quyền & Hệ Thống sau lần đăng nhập đầu tiên
 2. Chọn Tab **⚙️ Cấu Hình Pacs & Ris**:
    * Điền IP, Port, AE Title của PACS và RIS theo thông tin khảo sát ở Bước 1.
    * Bấm nút **"💾 Lưu Cấu Hình"**.

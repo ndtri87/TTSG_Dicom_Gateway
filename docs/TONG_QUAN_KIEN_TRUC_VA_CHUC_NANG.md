@@ -110,10 +110,10 @@ Hệ thống bao gồm 2 phân hệ chính: **Gateway Server Trung Tâm** và **
 
 | Tên File / Thư mục | Vai trò & Chức năng |
 | :--- | :--- |
-| [`client_agent.py`](file:///e:/Work/Apps/TTSG_Dicom_Gateway/client_agent.py) | • Tiến trình nền chạy siêu nhẹ tại các máy trạm thiết bị y tế (VLAN `10.4.140.x`).<br>• Tự động quét (Auto-watch) thư mục xuất file local (VD: `C:\ExportImage`).<br>• Đóng gói và gửi ngầm qua HTTP POST (`/api/upload-manual`) về Gateway Server `192.168.0.3:5000`.<br>• **Cơ chế Offline Buffer**: Khi mất mạng với Server, lưu tạm file tại `./export/sent` hoặc `./export/failed` và tự động gửi lại ngay khi kết nối mạng phục hồi. |
-| [`client_config.yaml`](file:///e:/Work/Apps/TTSG_Dicom_Gateway/client_config.yaml) | • File cấu hình địa chỉ Gateway Server (`server_url`), thư mục theo dõi (`watch_folder`), thư mục lưu trữ (`sent_folder`, `failed_folder`) và tần suất quét (`poll_interval_sec`). |
-| [`build_client_exe.bat`](file:///e:/Work/Apps/TTSG_Dicom_Gateway/build_client_exe.bat) | • Script đóng gói toàn bộ Client Agent thành **file thực thi độc lập (`dist/client_agent.exe`)** bằng PyInstaller, **không cần cài đặt Python** trên máy trạm. |
-| [`run_client.bat`](file:///e:/Work/Apps/TTSG_Dicom_Gateway/run_client.bat) / [`setup_client.bat`](file:///e:/Work/Apps/TTSG_Dicom_Gateway/setup_client.bat) | • Script hỗ trợ khởi chạy và tạo môi trường ảo Python local (dành cho chế độ chạy mã nguồn). |
+| [`client_agent.py`](file:///e:/Work/Apps/TTSG_Dicom_Gateway/Client/client_agent.py) | • Tiến trình nền chạy siêu nhẹ tại các máy trạm thiết bị y tế (VLAN `10.4.140.x`).<br>• Tự động quét (Auto-watch) thư mục xuất file local (VD: `C:\ExportImage`).<br>• Đóng gói và gửi ngầm qua HTTP POST (`/api/upload-manual`) về Gateway Server `192.168.0.3:5000`.<br>• **Cơ chế Offline Buffer**: Khi mất mạng với Server, lưu tạm file tại `./export/sent` hoặc `./export/failed` và tự động gửi lại ngay khi kết nối mạng phục hồi. |
+| [`client_config.yaml`](file:///e:/Work/Apps/TTSG_Dicom_Gateway/Client/client_config.yaml) | • File cấu hình địa chỉ Gateway Server (`server_url`), thư mục theo dõi (`watch_folder`), thư mục lưu trữ (`sent_folder`, `failed_folder`) và tần suất quét (`poll_interval_sec`). |
+| [`build_client_exe.bat`](file:///e:/Work/Apps/TTSG_Dicom_Gateway/Client/build_client_exe.bat) | • Script đóng gói toàn bộ Client Agent thành **file thực thi độc lập (`Client/dist/TTSG_ClientAgent/TTSG_ClientAgent.exe`)** bằng PyInstaller, **không cần cài đặt Python** trên máy trạm. |
+| [`run_client.bat`](file:///e:/Work/Apps/TTSG_Dicom_Gateway/Client/run_client.bat) / [`setup_client.bat`](file:///e:/Work/Apps/TTSG_Dicom_Gateway/Client/setup_client.bat) | • Script hỗ trợ khởi chạy và tạo môi trường ảo Python local (dành cho chế độ chạy mã nguồn). |
 
 ---
 
@@ -121,11 +121,11 @@ Hệ thống bao gồm 2 phân hệ chính: **Gateway Server Trung Tâm** và **
 
 | Tên File | Mục đích sử dụng |
 | :--- | :--- |
-| [`mock_pacs_server.py`](file:///e:/Work/Apps/TTSG_Dicom_Gateway/mock_pacs_server.py) | Giả lập máy chủ PACS Server hỗ trợ nhận C-STORE và phản hồi C-ECHO (Port `11112` / AE: `PACS_SERVER`), lưu file vào `./data/mock_pacs_received` để test cục bộ không cần PACS thật. |
-| [`mock_ris_server.py`](file:///e:/Work/Apps/TTSG_Dicom_Gateway/mock_ris_server.py) | Giả lập máy chủ RIS Modality Worklist hỗ trợ C-FIND (Port `6002` / AE: `RISTTSG`) trả về bản ghi bệnh nhân mẫu. |
-| [`inspect_pacs_query.py`](file:///e:/Work/Apps/TTSG_Dicom_Gateway/inspect_pacs_query.py) | Công cụ chẩn đoán: Hỏi trực tiếp database của PACS Server qua `DICOM C-FIND (StudyRootQueryRetrieve)` để xác minh file đã lưu thành công trong CSDL PACS hay chưa (tách biệt lỗi hiển thị trên Web Viewer của PACS). |
-| [`inspect_worklist_raw.py`](file:///e:/Work/Apps/TTSG_Dicom_Gateway/inspect_worklist_raw.py) | Công cụ chẩn đoán: Dump toàn bộ dataset thô từ RIS Worklist để phân tích các thẻ mở rộng (như `FillerOrderNumber`, `RequestedProcedureID`...). |
-| [`test_pacs_connection.py`](file:///e:/Work/Apps/TTSG_Dicom_Gateway/test_pacs_connection.py) | Kiểm tra kết nối C-ECHO tới PACS được cấu hình trong `config.yaml`. |
+| [`mock_pacs_server.py`](file:///e:/Work/Apps/TTSG_Dicom_Gateway/tools/mock_pacs_server.py) | Giả lập máy chủ PACS Server hỗ trợ nhận C-STORE và phản hồi C-ECHO (Port `11112` / AE: `PACS_SERVER`), lưu file vào `./data/mock_pacs_received` để test cục bộ không cần PACS thật. |
+| [`mock_ris_server.py`](file:///e:/Work/Apps/TTSG_Dicom_Gateway/tools/mock_ris_server.py) | Giả lập máy chủ RIS Modality Worklist hỗ trợ C-FIND (Port `6002` / AE: `RISTTSG`) trả về bản ghi bệnh nhân mẫu. |
+| [`inspect_pacs_query.py`](file:///e:/Work/Apps/TTSG_Dicom_Gateway/tools/inspect_pacs_query.py) | Công cụ chẩn đoán: Hỏi trực tiếp database của PACS Server qua `DICOM C-FIND (StudyRootQueryRetrieve)` để xác minh file đã lưu thành công trong CSDL PACS hay chưa (tách biệt lỗi hiển thị trên Web Viewer của PACS). |
+| [`inspect_worklist_raw.py`](file:///e:/Work/Apps/TTSG_Dicom_Gateway/tools/inspect_worklist_raw.py) | Công cụ chẩn đoán: Dump toàn bộ dataset thô từ RIS Worklist để phân tích các thẻ mở rộng (như `FillerOrderNumber`, `RequestedProcedureID`...). |
+| [`test_pacs_connection.py`](file:///e:/Work/Apps/TTSG_Dicom_Gateway/tools/test_pacs_connection.py) | Kiểm tra kết nối C-ECHO tới PACS được cấu hình trong `config.yaml`. |
 
 ---
 
@@ -292,65 +292,49 @@ sequenceDiagram
 
 ```
 TTSG_Dicom_Gateway/
-├── 📄 config.yaml                      # Cấu hình trung tâm Server (PACS, RIS, Watcher, Paths, Retry)
-├── 📄 client_config.yaml               # Cấu hình mẫu cho Client Agent
-├── 📄 requirements.txt                 # Danh sách thư viện Python phụ thuộc
+├── 📄 config.default.yaml              # Cấu hình MẪU (không tài khoản) — đóng gói vào bộ cài
+├── 📄 config.yaml                      # [KHÔNG COMMIT] cấu hình thật của máy, setup.bat tạo từ mẫu
+├── 📄 requirements.txt                 # Thư viện Python phụ thuộc
 │
-├── 🐍 main.py                          # Điểm khởi chạy chính của Gateway Service & Watchdog
-├── 🐍 dicom_builder.py                 # Module đóng gói DICOM (Secondary Capture / Encapsulated PDF)
-├── 🐍 dicom_sender.py                  # Module gửi DICOM C-STORE SCU & Storage Commitment
-├── 🐍 worklist_client.py               # Module tra cứu RIS Modality Worklist C-FIND SCU
-├── 🐍 retry_worker.py                  # Tiến trình nền quét hàng đợi và tự động thử lại
-├── 🐍 storage_commitment_listener.py   # Listener lắng nghe N-EVENT-REPORT từ PACS Server (Port 105)
-├── 🐍 web_server.py                    # Flask REST API Server & Web Controller (Port 5000)
-├── 🐍 utils.py                         # CSDL SQLite Registry, trích xuất Regex, Logging, Config helper
+├── 🐍 main.py                          # Điểm khởi chạy Gateway Service & Watchdog
+├── 🐍 dicom_builder.py                 # Đóng gói DICOM (Secondary Capture / Encapsulated PDF)
+├── 🐍 dicom_sender.py                  # C-STORE SCU & Storage Commitment
+├── 🐍 worklist_client.py               # RIS Modality Worklist C-FIND SCU
+├── 🐍 retry_worker.py                  # Hàng đợi retry (Exponential Backoff)
+├── 🐍 storage_commitment_listener.py   # Listener N-EVENT-REPORT (Port 105)
+├── 🐍 web_server.py                    # Flask/Waitress REST API & Web (Port 5000)
+├── 🐍 utils.py                         # SQLite Registry, config, logging, auth helpers
+├── 🐍 license_manager.py               # Xác thực bản quyền RSA (chỉ chứa PUBLIC key)
+├── 🐍 patch_builder.py                 # Tạo (dev) & áp dụng (server) bản vá .pkg có chữ ký
+├── 🐍 license_generator.py             # [CHỈ DÀNH CHO DEV] Ký license — không đóng gói vào bản build
 │
-├── 📁 Client/                          # Thư mục bộ cài Client Agent độc lập cho máy trạm
-│   ├── 🐍 client_agent.py              # Mã nguồn Client Agent theo dõi thư mục & đẩy HTTP
-│   ├── 📄 client_config.yaml           # Cấu hình Client Agent
-│   ├── 📜 run_client.bat               # Script khởi chạy Client
-│   ├── 📜 setup_client.bat             # Script cài đặt môi trường Client
-│   └── 📁 export/                      # Thư mục chứa dữ liệu xuất (sent / failed)
+├── 📁 keys/                            # [KHÔNG COMMIT] license_private.pem — khóa ký license/bản vá
+├── 📁 Client/                          # Client Agent máy trạm (mã nguồn, cấu hình, script build/chạy)
+├── 📁 templates/                       # index.html (Dashboard 5 tab), login.html (chọn trạm / đăng nhập)
+├── 📁 static/                          # logo, favicon, showcase/ (ảnh trang giới thiệu)
+├── 📁 docs/                            # Tài liệu .md, index.html (/docs), product_showcase.html
+├── 📁 tests/                           # Unit test (pytest) — conftest.py dùng cặp khóa tạm
+├── 📁 tools/                           # Công cụ chẩn đoán & giả lập (chạy từ thư mục gốc)
+│   ├── 🐍 mock_pacs_server.py / mock_ris_server.py
+│   ├── 🐍 inspect_pacs.py / inspect_pacs_query.py / inspect_worklist_raw.py
+│   ├── 🐍 test_pacs_connection.py
+│   └── 📜 run_mock_pacs / run_mock_ris / test_ket_noi_pacs (.bat / .sh)
 │
-├── 📁 templates/                       # Giao diện Web Dashboard
-│   └── 🌐 index.html                   # Giao diện nguyên khối (HTML5, CSS3, JS Vanilla, 4 Tabs)
+├── 📁 data/   (runtime, không commit)  # inbox, staging, processed, failed, duplicates, queue/retry,
+│                                       # registry.sqlite3, license.key, .trial.json
+├── 📁 logs/   (runtime, không commit)  # gateway.log xoay vòng theo ngày
 │
-├── 📁 data/                            # Thư mục lưu trữ dữ liệu vận hành
-│   ├── 📁 dicom_staging/               # Vùng đệm tạo file .dcm tạm trước khi gửi
-│   ├── 📁 inbox/                       # Thư mục nhận file tự động (Modality Inbox)
-│   ├── 📁 processed/                   # Thư mục lưu trữ file nguồn & DICOM đã gửi thành công
-│   ├── 📁 failed/                      # Thư mục chứa file lỗi hoặc vượt quá số lần retry
-│   ├── 📁 duplicates/                  # Thư mục chứa file trùng lặp băm SHA-256
-│   ├── 📁 queue/retry/                 # Hàng đợi retry (chứa file .dcm và .json sidecar)
-│   └── 🗄️ registry.sqlite3            # CSDL SQLite lưu vết xử lý và lịch sử ca chụp
-│
-├── 📁 logs/                            # Nhật ký hoạt động xoay vòng theo ngày
-│   └── 📄 gateway.log                  # File log chính của hệ thống
-│
-├── 📁 tests/                           # Bộ kiểm thử tự động (Unit Tests)
-│   ├── 🐍 test_dicom_builder.py        # Kiểm thử đóng gói DICOM Image/PDF
-│   ├── 🐍 test_utils.py                # Kiểm thử trích xuất metadata và SQLite Registry
-│   ├── 🐍 test_web_server.py           # Kiểm thử các API REST Web Server
-│   └── 🐍 test_client_agent.py         # Kiểm thử logic Client Agent
-│
-├── 🛠️ Các công cụ kiểm thử & Giả lập:
-│   ├── 🐍 mock_pacs_server.py          # Giả lập PACS C-STORE/C-ECHO Server
-│   ├── 🐍 mock_ris_server.py           # Giả lập RIS Worklist C-FIND Server
-│   ├── 🐍 inspect_pacs_query.py        # Truy vấn trực tiếp database PACS qua C-FIND
-│   ├── 🐍 inspect_worklist_raw.py      # Dump dữ liệu C-FIND thô từ RIS
-│   ├── 🐍 test_pacs_connection.py      # Kiểm tra kết nối C-ECHO PACS
-│   ├── 📜 run_mock_pacs.bat / .sh      # Script chạy nhanh Mock PACS Server
-│   ├── 📜 run_mock_ris.bat / .sh       # Script chạy nhanh Mock RIS Server
-│   └── 📜 test_ket_noi_pacs.bat / .sh  # Script chạy nhanh kiểm tra kết nối PACS
-│
-├── 📦 Scripts đóng gói & Triển khai:
-│   ├── 📜 setup.bat / setup.sh         # Cài đặt môi trường ảo .venv và thư viện cho Server
-│   ├── 📜 run.bat / run.sh             # Khởi chạy Gateway Server
-│   └── 📜 build_client_exe.bat         # Đóng gói Client Agent thành file client_agent.exe độc lập
-│
-└── 📖 Tài liệu hướng dẫn:
-    ├── 📄 PRD.md                       # Yêu cầu sản phẩm & Quy chuẩn kỹ thuật gốc
-    └── 📄 guide.md                     # Sổ tay hướng dẫn cài đặt & vận hành chi tiết
+├── 📦 Đóng gói & triển khai:
+│   ├── 📜 setup.bat / setup.sh         # Tạo .venv & cài thư viện
+│   ├── 📜 run.bat / run.sh             # Chạy Server từ mã nguồn
+│   ├── 📄 TTSG_DicomGateway.spec       # Cấu hình PyInstaller DUY NHẤT
+│   ├── 📜 build_server_exe.bat         # Build dist/TTSG_DicomGateway (kèm chặn lộ private key)
+│   ├── 📜 build_setup_installer.bat    # build_server_exe + Inno Setup -> Setup.exe
+│   ├── 📄 installer.iss                # Kịch bản Inno Setup
+│   ├── 📜 build_patch.bat              # Tạo bản vá .pkg
+│   ├── 📜 tao_license.bat              # Phát hành license.key
+│   └── 🛠️ TTSG_Service.exe/.xml + service_install/uninstall.bat  # Windows Service (WinSW)
+└── 📄 DESIGN.md                        # Design system giao diện
 ```
 
 ---

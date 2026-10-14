@@ -1,4 +1,7 @@
 # 📘 TÀI LIỆU TOÀN DIỆN HỆ THỐNG TTSG DICOM GATEWAY
+
+> ⚠️ **Quy trình build, cài đặt, cấp license và cập nhật đã thay đổi (14/10/2026).** Tài liệu chuẩn hiện hành: [HUONG_DAN_BUILD_CAI_DAT_LICENSE_UPDATE.md](HUONG_DAN_BUILD_CAI_DAT_LICENSE_UPDATE.md). Nếu nội dung bên dưới khác với tài liệu đó, làm theo tài liệu đó.
+
 ### (Đóng Gói - Triển Khai - Cấu Hình Chi Tiết - Bản Quyền - Nâng Cấp - Vận Hành Chức Năng)
 
 ---
@@ -94,7 +97,7 @@
                                        │
   [BƯỚC 3: TẠO FILE MÁY TRẠM PHÒNG]    │ Nhấp đúp chuột vào: 👉 build_client_exe.bat
   (Dành cho máy trạm quét ảnh ngầm)    ▼
-                                       │ 📦 TẠO RA: dist\client_agent.exe (~10MB)
+                                       │ 📦 TẠO RA: Client\dist\TTSG_ClientAgent\TTSG_ClientAgent.exe (~10MB)
                                        │
   [BƯỚC 4: TẠO FILE NÂNG CẤP BẢN VÁ]   │ Nhấp đúp chuột vào: 👉 build_patch.bat
   (Khi có tính năng mới gửi cho BV)    ▼
@@ -108,9 +111,9 @@
 * **Bước 2: Nhấp đúp vào [`build_setup_installer.bat`](file:///e:/Work/Apps/TTSG_Dicom_Gateway/build_setup_installer.bat)**:
   - Script tự động gọi [`build_server_exe.bat`](file:///e:/Work/Apps/TTSG_Dicom_Gateway/build_server_exe.bat) đóng gói backend thành mã máy nhị phân, sau đó dùng Inno Setup nén lại thành 1 file cài đặt duy nhất.
   - **Kết quả xuất hiện**: 📦 **`dist\TTSG_DicomGateway_Setup_v2.0.exe`** (~18 MB). Đây là file mang đi bàn giao và cài đặt ở máy chủ bệnh viện.
-* **Bước 3: Nhấp đúp vào [`build_client_exe.bat`](file:///e:/Work/Apps/TTSG_Dicom_Gateway/build_client_exe.bat)**:
+* **Bước 3: Nhấp đúp vào [`build_client_exe.bat`](file:///e:/Work/Apps/TTSG_Dicom_Gateway/Client/build_client_exe.bat)**:
   - Script tự động đóng gói tiến trình nền máy trạm.
-  - **Kết quả xuất hiện**: 📦 **`dist\client_agent.exe`** (~10 MB).
+  - **Kết quả xuất hiện**: 📦 **`Client\dist\TTSG_ClientAgent\TTSG_ClientAgent.exe`** (~10 MB).
 * **Bước 4: Nhấp đúp vào [`build_patch.bat`](file:///e:/Work/Apps/TTSG_Dicom_Gateway/build_patch.bat)**:
   - Nhập số phiên bản (VD: `2.1.0`) và nhấn Enter.
   - **Kết quả xuất hiện**: 📦 **`TTSG_Gateway_Patch_v2.1.0.pkg`**. Gửi file này cho IT Bệnh viện để họ cập nhật trực tiếp trên Web trong 3 giây.
@@ -123,10 +126,10 @@
 | **`setup.bat`** | Nhấp đúp chuột | Người phát triển | Khởi tạo thư viện và môi trường ảo Python local `.venv`. |
 | **`build_setup_installer.bat`** | Nhấp đúp chuột | Người phát triển | **Tạo file cài đặt 1-Click duy nhất:** `dist\TTSG_DicomGateway_Setup_v2.0.exe`. |
 | **`build_server_exe.bat`** | Tự động gọi | Hệ thống | Biên dịch Backend Flask sang thư mục nhị phân `dist\TTSG_DicomGateway\`. |
-| **`build_client_exe.bat`** | Nhấp đúp chuột | Người phát triển | **Tạo file chạy cho máy trạm:** `dist\client_agent.exe`. |
+| **`build_client_exe.bat`** | Nhấp đúp chuột | Người phát triển | **Tạo file chạy cho máy trạm:** `Client\dist\TTSG_ClientAgent\TTSG_ClientAgent.exe`. |
 | **`build_patch.bat`** | Nhấp đúp chuột | Người phát triển | **Tạo gói cập nhật nâng cấp:** `TTSG_Gateway_Patch_vX.X.X.pkg`. |
 | **`run.bat`** | Nhấp đúp chuột | Người kiểm thử | Chạy thử Server trực tiếp bằng Python để test tính năng. |
-| **`test_ket_noi_pacs.bat`** | Nhấp đúp chuột | Kỹ sư triển khai | Kiểm tra kết nối mạng C-ECHO tới PACS xem có thông không. |
+| **`tools\test_ket_noi_pacs.bat`** | Nhấp đúp chuột | Kỹ sư triển khai | Kiểm tra kết nối mạng C-ECHO tới PACS xem có thông không. |
 
 ---
 
@@ -260,10 +263,10 @@ web_ui:
 auth:
   enabled: true
   session_lifetime_days: 30
-  secret_key: "TTSG_DICOM_GATEWAY_SUPER_SECRET_KEY_2026"
+  # secret_key: KHÔNG khai báo — mỗi máy tự sinh khóa ngẫu nhiên lưu tại .secret_key
   users:
     - username: trind
-      password_hash: "scrypt:32768:8:1$UrmQhPzkp2t5PgFk$bd54e06b5cf6655d2aa25d5cbb7d8fa52b906d498a5813156c3ce8dd1eb208db0d60867f823390e1f786fd10da77bc635045254b1e95042d820b74c7c65108ee"
+      password_hash: "<sinh bằng utils.hash_password(), KHÔNG chép hash mẫu>"
       full_name: "Quản Trị Viên Hệ Thống"
       role: "ADMIN"
       allowed_modalities: ["*"]
@@ -304,13 +307,14 @@ Hệ thống kiểm soát bản quyền thương mại bằng công nghệ **kh�
 └─────────────────────────────────────────────────────────────────────────────┘
                                        │
   1. TẠI MÁY CHỦ KHÁCH HÀNG (GATEWAY SERVER):
-     - Mở Web: http://localhost:5000 -> Đăng nhập Admin (trind / admin123)
+     - Mở Web: http://localhost:5000 -> Đăng nhập tài khoản Admin
      - Vào Tab: "🔑 Bản Quyền & Hệ Thống"
      - Nhấp nút: [📋 Sao Chép] để lấy Mã Hardware ID (VD: TTSG-6F6E-BCA7-82EA-C52B)
                                        │
                                        ▼
   2. TẠI MÁY CỦA NHÀ PHÁT TRIỂN / CẤP PHÉP:
      - Dùng công cụ license_generator.py để ký số tạo file license.key:
+     # Yêu cầu private key tại keys/license_private.pem (hoặc biến môi trường TTSG_LICENSE_PRIVATE_KEY)
      python license_generator.py --customer "BV Đa Khoa Tâm Trí Sài Gòn" \
                                  --hwid "TTSG-6F6E-BCA7-82EA-C52B" \
                                  --exp "2035-12-31" \

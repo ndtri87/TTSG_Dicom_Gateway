@@ -1,5 +1,8 @@
 # Hướng Dẫn Setup & Vận Hành Chi Tiết DICOM Gateway (Client - Server Architecture)
 
+> ⚠️ **Quy trình build, cài đặt, cấp license và cập nhật đã thay đổi (14/10/2026).** Tài liệu chuẩn hiện hành: [HUONG_DAN_BUILD_CAI_DAT_LICENSE_UPDATE.md](HUONG_DAN_BUILD_CAI_DAT_LICENSE_UPDATE.md). Nếu nội dung bên dưới khác với tài liệu đó, làm theo tài liệu đó.
+
+
 Tài liệu này hướng dẫn chi tiết từ A-Z cách thiết lập, cấu hình và vận hành hệ thống **DICOM Gateway Service** theo mô hình **Client - Server chuyên nghiệp**, cách ly tuyệt đối giữa mạng bệnh viện (`10.4.140.x`) và mạng PACS/RIS nội bộ (`192.168.6.x`).
 
 ---
@@ -57,7 +60,7 @@ Tài liệu này hướng dẫn chi tiết từ A-Z cách thiết lập, cấu h
      called_ae_title: "RISTTSG"
      calling_ae_title: "DICOM_GATEWAY"
    ```
-4. Kiểm tra kết nối PACS C-ECHO: Double-click **`test_ket_noi_pacs.bat`** ➔ Kết quả báo `[THANH CONG]`.
+4. Kiểm tra kết nối PACS C-ECHO: Double-click **`tools\test_ket_noi_pacs.bat`** ➔ Kết quả báo `[THANH CONG]`.
 5. Khởi chạy Server chính: Double-click **`run.bat`** (Khởi chạy service background trên Port 5000).
 
 ---
@@ -67,7 +70,7 @@ Tài liệu này hướng dẫn chi tiết từ A-Z cách thiết lập, cấu h
 Client Agent hiện tại đã chuyển sang **file cài đặt / thực thi độc lập (`client_agent.exe`)**, **KHÔNG cần cài đặt Python** hay bất kỳ môi trường/thư viện nào trên máy trạm thiết bị y tế.
 
 ### Bước 3.1: Đóng Gói / Lấy File Cài Đặt Client Exe
-* **Đối với người triển khai (Dev/Admin)**: Nếu cần tự đóng gói từ mã nguồn thành file `.exe` độc lập mới nhất, chạy file **`build_client_exe.bat`**. Kết quả file thực thi sẽ nằm tại: `dist\client_agent.exe`.
+* **Đối với người triển khai (Dev/Admin)**: Nếu cần tự đóng gói từ mã nguồn thành file `.exe` độc lập mới nhất, chạy file **`build_client_exe.bat`**. Kết quả file thực thi sẽ nằm tại: `Client\dist\TTSG_ClientAgent\TTSG_ClientAgent.exe`.
 * **Đối với máy trạm Client**: Chỉ cần lấy file `client_agent.exe` đã đóng gói sẵn trong thư mục `dist\` hoặc bộ cài Client.
 
 ### Bước 3.2: Copy File Cài Đặt Sang Máy Trạm
@@ -146,7 +149,7 @@ Bác sĩ hoặc Kỹ thuật viên mở trình duyệt bất kỳ tại máy ph�
 | **Client báo `Không kết nối được Gateway Server`** | Tường lửa Server chặn hoặc sai IP `server_url` | 1. Đảm bảo máy trạm ping được `192.168.0.3`<br>2. Kiểm tra lại địa chỉ `server_url` trong `client_config.yaml`<br>3. Kiểm tra Inbound Port 5000 trong Windows Firewall trên Server. |
 | **Client báo `Không tìm thấy client_config.yaml`** | Đặt file `client_agent.exe` sai thư mục | Đảm bảo file `client_config.yaml` nằm chung thư mục với `client_agent.exe`. |
 | **Client Agent tắt khi tắt cửa sổ Command** | Đang chạy giao diện console | Tạo Shortcut của `client_agent.exe` (hoặc `run_client.bat`) thả vào `shell:startup` để tự khởi động cùng Windows. |
-| **Server báo `Lỗi C-STORE đẩy PACS`** | PACS đổi IP, Port hoặc chặn AE Title | Double-click `test_ket_noi_pacs.bat` trên Server để test C-ECHO. Đảm bảo PACS chấp nhận Calling AE Title `DICOM_GATEWAY`. |
+| **Server báo `Lỗi C-STORE đẩy PACS`** | PACS đổi IP, Port hoặc chặn AE Title | Double-click `tools\test_ket_noi_pacs.bat` trên Server để test C-ECHO. Đảm bảo PACS chấp nhận Calling AE Title `DICOM_GATEWAY`. |
 | **Tên Bệnh Nhân bị dính ký tự `^`** | Dữ liệu gốc từ RIS chứa ký tự phân cách | Gateway đã tích hợp tự động chuẩn hóa loại bỏ toàn bộ dấu `^` thành khoảng trắng. |
 | **PACS không xếp file Report lên đầu** | PACS xếp theo InstanceNumber | Gateway tự động gán `InstanceNumber = 1` cho file Report chính và `2, 3...` cho các file phụ đính kèm. |
 

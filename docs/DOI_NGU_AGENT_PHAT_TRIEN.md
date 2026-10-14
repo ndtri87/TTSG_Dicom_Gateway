@@ -86,8 +86,8 @@ flowchart TD
   * [`dicom_sender.py`](file:///e:/Work/Apps/TTSG_Dicom_Gateway/dicom_sender.py)
   * [`worklist_client.py`](file:///e:/Work/Apps/TTSG_Dicom_Gateway/worklist_client.py)
   * [`storage_commitment_listener.py`](file:///e:/Work/Apps/TTSG_Dicom_Gateway/storage_commitment_listener.py)
-  * [`inspect_pacs_query.py`](file:///e:/Work/Apps/TTSG_Dicom_Gateway/inspect_pacs_query.py)
-  * [`inspect_worklist_raw.py`](file:///e:/Work/Apps/TTSG_Dicom_Gateway/inspect_worklist_raw.py)
+  * [`inspect_pacs_query.py`](file:///e:/Work/Apps/TTSG_Dicom_Gateway/tools/inspect_pacs_query.py)
+  * [`inspect_worklist_raw.py`](file:///e:/Work/Apps/TTSG_Dicom_Gateway/tools/inspect_worklist_raw.py)
 * **Nhiệm vụ cốt lõi**:
   1. Quản lý kết nối SCU/SCP với PACS Server: Đàm phán Presentation Context, gửi file DICOM qua `C-STORE`, kiểm tra kết nối `C-ECHO`.
   2. Tích hợp tính năng `Storage Commitment Push Model` (gửi `N-ACTION` và lắng nghe `N-EVENT-REPORT` trên Port `105`).
@@ -100,9 +100,9 @@ flowchart TD
 ### 💻 AGENT 4: Client Agent & Windows Endpoint Engineer (Kỹ Sư Ứng Dụng Máy Trạm Client)
 * **Mục tiêu**: Phát triển và tối ưu ứng dụng Client Agent chạy trên các máy trạm thiết bị y tế (VLAN `10.4.140.x`), đảm bảo siêu nhẹ, độc lập và chống mất dữ liệu khi mất kết nối mạng.
 * **Tập tin phụ trách chính**:
-  * [`client_agent.py`](file:///e:/Work/Apps/TTSG_Dicom_Gateway/client_agent.py)
-  * [`client_config.yaml`](file:///e:/Work/Apps/TTSG_Dicom_Gateway/client_config.yaml)
-  * [`build_client_exe.bat`](file:///e:/Work/Apps/TTSG_Dicom_Gateway/build_client_exe.bat)
+  * [`client_agent.py`](file:///e:/Work/Apps/TTSG_Dicom_Gateway/Client/client_agent.py)
+  * [`client_config.yaml`](file:///e:/Work/Apps/TTSG_Dicom_Gateway/Client/client_config.yaml)
+  * [`build_client_exe.bat`](file:///e:/Work/Apps/TTSG_Dicom_Gateway/Client/build_client_exe.bat)
   * [`Client/`](file:///e:/Work/Apps/TTSG_Dicom_Gateway/Client)
 * **Nhiệm vụ cốt lõi**:
   1. Duy trì tiến trình nền theo dõi thư mục xuất ảnh của máy khám (`watch_folder`).
@@ -134,9 +134,9 @@ flowchart TD
 * **Mục tiêu**: Đảm bảo chất lượng toàn diện, kiểm thử tự động, xác minh chuẩn DICOM Conformance, tuân thủ an ninh mạng y tế và rà soát các rủi ro mất mát dữ liệu.
 * **Tập tin phụ trách chính**:
   * [`tests/`](file:///e:/Work/Apps/TTSG_Dicom_Gateway/tests) (`test_dicom_builder.py`, `test_utils.py`, `test_web_server.py`, `test_client_agent.py`)
-  * [`mock_pacs_server.py`](file:///e:/Work/Apps/TTSG_Dicom_Gateway/mock_pacs_server.py)
-  * [`mock_ris_server.py`](file:///e:/Work/Apps/TTSG_Dicom_Gateway/mock_ris_server.py)
-  * [`test_pacs_connection.py`](file:///e:/Work/Apps/TTSG_Dicom_Gateway/test_pacs_connection.py)
+  * [`mock_pacs_server.py`](file:///e:/Work/Apps/TTSG_Dicom_Gateway/tools/mock_pacs_server.py)
+  * [`mock_ris_server.py`](file:///e:/Work/Apps/TTSG_Dicom_Gateway/tools/mock_ris_server.py)
+  * [`test_pacs_connection.py`](file:///e:/Work/Apps/TTSG_Dicom_Gateway/tools/test_pacs_connection.py)
 * **Nhiệm vụ cốt lõi**:
   1. Xây dựng và thực thi các bộ Unit Tests, Integration Tests cho toàn bộ pipeline.
   2. Duy trì và cải tiến các Mock Server (`mock_pacs_server.py`, `mock_ris_server.py`) để kiểm thử độc lập mà không cần môi trường PACS/RIS thật.
@@ -226,8 +226,8 @@ Ký hiệu:
 | [`dicom_sender.py`](file:///e:/Work/Apps/TTSG_Dicom_Gateway/dicom_sender.py) | R | R | **R/W (Primary)** | ❌ | R | **Review** |
 | [`worklist_client.py`](file:///e:/Work/Apps/TTSG_Dicom_Gateway/worklist_client.py) | R | R | **R/W (Primary)** | ❌ | R | **Review** |
 | [`storage_commitment_listener.py`](file:///e:/Work/Apps/TTSG_Dicom_Gateway/storage_commitment_listener.py) | R | R | **R/W (Primary)** | ❌ | ❌ | **Review** |
-| [`client_agent.py`](file:///e:/Work/Apps/TTSG_Dicom_Gateway/client_agent.py) | ❌ | ❌ | ❌ | **R/W (Primary)** | R | **Review** |
-| [`build_client_exe.bat`](file:///e:/Work/Apps/TTSG_Dicom_Gateway/build_client_exe.bat) | ❌ | ❌ | ❌ | **R/W (Primary)** | ❌ | **Review** |
+| [`client_agent.py`](file:///e:/Work/Apps/TTSG_Dicom_Gateway/Client/client_agent.py) | ❌ | ❌ | ❌ | **R/W (Primary)** | R | **Review** |
+| [`build_client_exe.bat`](file:///e:/Work/Apps/TTSG_Dicom_Gateway/Client/build_client_exe.bat) | ❌ | ❌ | ❌ | **R/W (Primary)** | ❌ | **Review** |
 | [`web_server.py`](file:///e:/Work/Apps/TTSG_Dicom_Gateway/web_server.py) | R | R | R | ❌ | **R/W (Primary)** | **Review** |
 | [`templates/index.html`](file:///e:/Work/Apps/TTSG_Dicom_Gateway/templates/index.html) | ❌ | ❌ | ❌ | ❌ | **R/W (Primary)** | **Review** |
 | [`config.yaml`](file:///e:/Work/Apps/TTSG_Dicom_Gateway/config.yaml) | R | **R/W (Primary)** | R | ❌ | R | **Review** |
